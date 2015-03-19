@@ -1,0 +1,10 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+top = '..'
+
+def configure(conf):
+    for subdir in conf.path.ant_glob(['*'], dir=True, src=False):
+        conf.recurse(str(subdir), mandatory=False)
+
+def build(bld):
+    for subdir in bld.path.ant_glob(['*'], dir=True, src=False):
+        bld.recurse(str(subdir))
