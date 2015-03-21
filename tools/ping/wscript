@@ -1,0 +1,17 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+top = '../..'
+
+def build(bld):
+    bld.program(
+        features='cxx',
+        target='../../bin/ndnping',
+        source='ndn-ping.cpp',
+        use='core-objects',
+        )
+
+    bld.program(
+        features='cxx',
+        target='../../bin/ndnpingserver',
+        source='ndn-ping-server.cpp',
+        use='core-objects',
+        )
