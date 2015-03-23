@@ -1,0 +1,17 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+top = '../..'
+
+def build(bld):
+    bld.program(
+        features='cxx',
+        target='../../bin/ndnpeek',
+        source='ndn-peek.cpp',
+        use='core-objects',
+        )
+
+    bld.program(
+        features='cxx',
+        target='../../bin/ndnpoke',
+        source='ndn-poke.cpp',
+        use='core-objects',
+        )
