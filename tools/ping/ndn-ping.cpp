@@ -27,13 +27,13 @@
 #include <boost/noncopyable.hpp>
 
 namespace ndn {
+namespace ping {
 
-class NdnTlvPing : boost::noncopyable
+class NdnPing : boost::noncopyable
 {
 public:
-
   explicit
-  NdnTlvPing(char* programName)
+  NdnPing(char* programName)
     : m_programName(programName)
     , m_isAllowCachingSet(false)
     , m_isPrintTimestampSet(false)
@@ -53,7 +53,6 @@ public:
   class PingStatistics : boost::noncopyable
   {
   public:
-
     explicit
     PingStatistics()
       : m_sentPings(0)
@@ -73,10 +72,12 @@ public:
         m_minimumRoundTripTime = roundTripTime;
       if (roundTripTime > m_maximumRoundTripTime)
         m_maximumRoundTripTime = roundTripTime;
+
       m_averageRoundTripTimeData += roundTripTime;
-      m_standardDeviationRoundTripTimeData += roundTripTime*roundTripTime;
+      m_standardDeviationRoundTripTimeData += roundTripTime * roundTripTime;
     }
 
+  public:
     int m_sentPings;
     int m_receivedPings;
     time::steady_clock::TimePoint m_pingStartTime;
@@ -124,6 +125,7 @@ public:
   {
     if (totalPings <= 0)
       usage();
+
     m_totalPings = totalPings;
   }
 
@@ -132,6 +134,7 @@ public:
   {
     if (pingInterval < getPingMinimumInterval().count())
       usage();
+
     m_pingInterval = time::milliseconds(pingInterval);
   }
 
@@ -140,6 +143,7 @@ public:
   {
     if (startPingNumber < 0)
       usage();
+
     m_startPingNumber = startPingNumber;
   }
 
@@ -159,10 +163,12 @@ public:
   setClientIdentifier(char* clientIdentifier)
   {
     m_clientIdentifier = clientIdentifier;
+
     if (strlen(clientIdentifier) == 0)
       usage();
+
     while (*clientIdentifier != '\0') {
-      if( isalnum(*clientIdentifier) == 0 )
+      if (isalnum(*clientIdentifier) == 0)
         usage();
       clientIdentifier++;
     }
@@ -186,12 +192,11 @@ public:
          Data& data,
          time::steady_clock::TimePoint timePoint)
   {
-    std::string pingReference;
-    time::nanoseconds roundTripTime;
-    pingReference = interest.getName().toUri();
+    std::string pingReference = interest.getName().toUri();
     m_pingsReceived++;
     m_pingStatistics.m_receivedPings++;
-    roundTripTime = time::steady_clock::now() - timePoint;
+    time::nanoseconds roundTripTime = time::steady_clock::now() - timePoint;
+
     if (m_isPrintTimestampSet)
       std::cout << time::toIsoString(time::system_clock::now())  << " - ";
     std::cout << "Content From " << m_prefix;
@@ -199,6 +204,7 @@ public:
       interest.getName().getSubName(interest.getName().size()-1).toUri().substr(1);
     std::cout << "  \t- Round Trip Time = " <<
       roundTripTime.count() / 1000000.0 << " ms" << std::endl;
+
     m_pingStatistics.addToPingStatistics(roundTripTime);
     this->finish();
   }
@@ -212,6 +218,7 @@ public:
     std::cout << " - Ping Reference = " <<
       interest.getName().getSubName(interest.getName().size()-1).toUri().substr(1);
     std::cout << std::endl;
+
     this->finish();
   }
 
@@ -246,45 +253,49 @@ public:
   void
   performPing(boost::asio::deadline_timer* deadlineTimer)
   {
-    if ((m_totalPings < 0) || (m_pingsSent < m_totalPings))
-      {
-        m_pingsSent++;
-        m_pingStatistics.m_sentPings++;
+    if ((m_totalPings < 0) || (m_pingsSent < m_totalPings)) {
+      m_pingsSent++;
+      m_pingStatistics.m_sentPings++;
 
-        //Perform Ping
-        char pingNumberString[20];
-        Name pingPacketName(m_prefix);
-        pingPacketName.append("ping");
-        if(m_clientIdentifier != 0)
-          pingPacketName.append(m_clientIdentifier);
-        std::memset(pingNumberString, 0, 20);
-        if (m_startPingNumber < 0)
-            m_startPingNumber = std::rand();
-        sprintf(pingNumberString, "%lld", static_cast<long long int>(m_startPingNumber));
-        pingPacketName.append(pingNumberString);
-        ndn::Interest interest(pingPacketName);
-        if (m_isAllowCachingSet)
-          interest.setMustBeFresh(false);
-        else
-          interest.setMustBeFresh(true);
-        interest.setInterestLifetime(m_pingTimeoutThreshold);
-        interest.setNonce(m_startPingNumber);
-        m_startPingNumber++;
-         try {
-          m_face.expressInterest(interest,
-                                 std::bind(&NdnTlvPing::onData, this, _1, _2,
-                                           time::steady_clock::now()),
-                                 std::bind(&NdnTlvPing::onTimeout, this, _1));
-          deadlineTimer->expires_at(deadlineTimer->expires_at() +
-                                    boost::posix_time::millisec(m_pingInterval.count()));
-          deadlineTimer->async_wait(bind(&NdnTlvPing::performPing,
-                                         this,
-                                         deadlineTimer));
-        }
-        catch (std::exception& e) {
-            std::cerr << "ERROR: " << e.what() << std::endl;
-        }
-        ++m_outstanding;
+      //Perform Ping
+      char pingNumberString[20];
+      Name pingPacketName(m_prefix);
+      pingPacketName.append("ping");
+      if (m_clientIdentifier != 0)
+        pingPacketName.append(m_clientIdentifier);
+      std::memset(pingNumberString, 0, 20);
+      if (m_startPingNumber < 0)
+        m_startPingNumber = std::rand();
+      sprintf(pingNumberString, "%lld", static_cast<long long int>(m_startPingNumber));
+      pingPacketName.append(pingNumberString);
+
+      ndn::Interest interest(pingPacketName);
+
+      if (m_isAllowCachingSet)
+        interest.setMustBeFresh(false);
+      else
+        interest.setMustBeFresh(true);
+
+      interest.setInterestLifetime(m_pingTimeoutThreshold);
+      interest.setNonce(m_startPingNumber);
+
+      m_startPingNumber++;
+ 
+      try {
+        m_face.expressInterest(interest,
+                               std::bind(&NdnPing::onData, this, _1, _2,
+                                         time::steady_clock::now()),
+                               std::bind(&NdnPing::onTimeout, this, _1));
+        deadlineTimer->expires_at(deadlineTimer->expires_at() +
+                                  boost::posix_time::millisec(m_pingInterval.count()));
+        deadlineTimer->async_wait(bind(&NdnPing::performPing,
+                                       this,
+                                       deadlineTimer));
+      }
+      catch (std::exception& e) {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+      }
+      ++m_outstanding;
     }
     else {
       this->finish();
@@ -316,12 +327,12 @@ public:
     std::cout << "\n=== Pinging " << m_prefix  << " ===\n" <<std::endl;
 
     boost::asio::signal_set signalSet(m_ioService, SIGINT, SIGTERM);
-    signalSet.async_wait(bind(&NdnTlvPing::signalHandler, this));
+    signalSet.async_wait(bind(&NdnPing::signalHandler, this));
 
     boost::asio::deadline_timer deadlineTimer(m_ioService,
                                               boost::posix_time::millisec(0));
 
-    deadlineTimer.async_wait(bind(&NdnTlvPing::performPing,
+    deadlineTimer.async_wait(bind(&NdnPing::performPing,
                                   this,
                                   &deadlineTimer));
     try {
@@ -354,47 +365,44 @@ private:
   Face m_face;
 };
 
-}
-
-
 int
 main(int argc, char* argv[])
 {
   std::srand(::time(0));
   int res;
 
-  ndn::NdnTlvPing ndnTlvPing(argv[0]);
+  NdnPing program(argv[0]);
   while ((res = getopt(argc, argv, "htai:c:n:p:")) != -1)
     {
       switch (res) {
       case 'a':
-        ndnTlvPing.setAllowCaching();
+        program.setAllowCaching();
         break;
       case 'c':
-        ndnTlvPing.setTotalPings(atoi(optarg));
+        program.setTotalPings(atoi(optarg));
         break;
       case 'h':
-        ndnTlvPing.usage();
+        program.usage();
         break;
       case 'i':
-        ndnTlvPing.setPingInterval(atoi(optarg));
+        program.setPingInterval(atoi(optarg));
         break;
       case 'n':
         try {
-          ndnTlvPing.setStartPingNumber(boost::lexical_cast<int64_t>(optarg));
+          program.setStartPingNumber(boost::lexical_cast<int64_t>(optarg));
         }
         catch (boost::bad_lexical_cast&) {
-          ndnTlvPing.usage();
+          program.usage();
         }
         break;
       case 'p':
-        ndnTlvPing.setClientIdentifier(optarg);
+        program.setClientIdentifier(optarg);
         break;
       case 't':
-        ndnTlvPing.setPrintTimestamp();
+        program.setPrintTimestamp();
         break;
       default:
-        ndnTlvPing.usage();
+        program.usage();
         break;
       }
     }
@@ -403,15 +411,24 @@ main(int argc, char* argv[])
   argv += optind;
 
   if (argv[0] == 0)
-    ndnTlvPing.usage();
+    program.usage();
 
-  ndnTlvPing.setPrefix(argv[0]);
-  ndnTlvPing.run();
+  program.setPrefix(argv[0]);
+  program.run();
 
   std::cout << std::endl;
 
-  if (ndnTlvPing.hasError())
+  if (program.hasError())
     return 1;
   else
     return 0;
+}
+
+} // namespace ping
+} // namespace ndn
+
+int
+main(int argc, char** argv)
+{
+  return ndn::ping::main(argc, argv);
 }

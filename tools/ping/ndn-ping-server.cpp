@@ -26,13 +26,13 @@
 #include <boost/noncopyable.hpp>
 
 namespace ndn {
+namespace ping {
 
-class NdnTlvPingServer : boost::noncopyable
+class NdnPingServer : boost::noncopyable
 {
 public:
-
   explicit
-  NdnTlvPingServer(char* programName)
+  NdnPingServer(char* programName)
     : m_programName(programName)
     , m_hasError(false)
     , m_isPrintTimestampSet(false)
@@ -66,6 +66,7 @@ public:
   setFreshnessPeriod(int freshnessPeriod)
   {
     if (freshnessPeriod <= 0)
+      usage();
 
     m_freshnessPeriod = time::milliseconds(freshnessPeriod);
   }
@@ -75,6 +76,7 @@ public:
   {
     if (maximumPings <= 0)
       usage();
+
     m_maximumPings = maximumPings;
   }
 
@@ -100,10 +102,12 @@ public:
   onInterest(const Name& name, const Interest& interest)
   {
     Name interestName = interest.getName();
+
     if (m_isPrintTimestampSet)
       std::cout << time::toIsoString(time::system_clock::now())  << " - ";
     std::cout << "Interest Received - Ping Reference = "
               << interestName.at(-1).toUri() << std::endl;
+
     char responseContent[] = "NDN TLV Ping Response";
     shared_ptr<Data> data = make_shared<Data>(interestName);
     data->setFreshnessPeriod(m_freshnessPeriod);
@@ -111,6 +115,7 @@ public:
                      sizeof(responseContent));
     m_keyChain.sign(*data);
     m_face.put(*data);
+
     ++m_totalPings;
     if (m_maximumPings > 0 && m_maximumPings == m_totalPings) {
       std::cout << "\n\nTotal Ping Interests Processed = " << m_totalPings << std::endl;
@@ -146,13 +151,15 @@ public:
 
     boost::asio::signal_set signalSet(m_ioService, SIGINT, SIGTERM);
     signalSet.async_wait(bind([this]() { signalHandler(); }));
+
     m_name = m_prefix;
     m_name.append("ping");
     m_face.setInterestFilter(m_name,
-                             bind(&NdnTlvPingServer::onInterest,
+                             bind(&NdnPingServer::onInterest,
                                   this, _1, _2),
-                             bind(&NdnTlvPingServer::onRegisterFailed,
+                             bind(&NdnPingServer::onRegisterFailed,
                                   this, _1,_2));
+
     try {
       m_face.processEvents();
     }
@@ -179,31 +186,29 @@ private:
   Face m_face;
 };
 
-}
-
 int
 main(int argc, char* argv[])
 {
   int res;
 
-  ndn::NdnTlvPingServer ndnTlvPingServer(argv[0]);
+  NdnPingServer program(argv[0]);
   while ((res = getopt(argc, argv, "hdtp:x:")) != -1)
     {
       switch (res) {
       case 'h':
-        ndnTlvPingServer.usage();
+        program.usage();
         break;
       case 'p':
-        ndnTlvPingServer.setMaximumPings(atoi(optarg));
+        program.setMaximumPings(atoi(optarg));
         break;
       case 'x':
-        ndnTlvPingServer.setFreshnessPeriod(atoi(optarg));
+        program.setFreshnessPeriod(atoi(optarg));
         break;
       case 't':
-        ndnTlvPingServer.setPrintTimestamp();
+        program.setPrintTimestamp();
         break;
       default:
-        ndnTlvPingServer.usage();
+        program.usage();
         break;
       }
     }
@@ -212,15 +217,24 @@ main(int argc, char* argv[])
   argv += optind;
 
   if (argv[0] == 0)
-    ndnTlvPingServer.usage();
+    program.usage();
 
-  ndnTlvPingServer.setPrefix(argv[0]);
-  ndnTlvPingServer.run();
+  program.setPrefix(argv[0]);
+  program.run();
 
   std::cout << std::endl;
 
-  if (ndnTlvPingServer.hasError())
+  if (program.hasError())
     return 1;
   else
     return 0;
+}
+
+} // namespace ping
+} // namespace ndn
+
+int
+main(int argc, char** argv)
+{
+  return ndn::ping::main(argc, argv);
 }

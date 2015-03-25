@@ -31,13 +31,14 @@
 
 #include <ndn-cxx/face.hpp>
 
-namespace ndntlvpeek {
+namespace ndn {
+namespace peek {
 
-class NdnTlvPeek : boost::noncopyable
+class NdnPeek : boost::noncopyable
 {
 public:
   explicit
-  NdnTlvPeek(char* programName)
+  NdnPeek(char* programName)
     : m_programName(programName)
     , m_mustBeFresh(false)
     , m_isChildSelectorRightmost(false)
@@ -87,6 +88,7 @@ public:
   {
     if (minSuffixComponents < 0)
       usage();
+
     m_minSuffixComponents = minSuffixComponents;
   }
 
@@ -95,6 +97,7 @@ public:
   {
     if (maxSuffixComponents < 0)
       usage();
+
     m_maxSuffixComponents = maxSuffixComponents;
   }
 
@@ -103,7 +106,8 @@ public:
   {
     if (interestLifetime < 0)
       usage();
-    m_interestLifetime = ndn::time::milliseconds(interestLifetime);
+
+    m_interestLifetime = time::milliseconds(interestLifetime);
   }
 
   void
@@ -117,87 +121,90 @@ public:
   {
     if (timeout < 0)
       usage();
-    m_timeout = ndn::time::milliseconds(timeout);
+
+    m_timeout = time::milliseconds(timeout);
   }
 
   void
   setPrefixName(char* prefixName)
   {
     m_prefixName = prefixName;
+
     if (m_prefixName.length() == 0)
       usage();
   }
 
-  ndn::time::milliseconds
+  time::milliseconds
   getDefaultInterestLifetime()
   {
-    return ndn::time::seconds(4);
+    return time::seconds(4);
   }
 
-  ndn::Interest
+  Interest
   createInterestPacket()
   {
-    ndn::Name interestName(m_prefixName);
-    ndn::Interest interestPacket(interestName);
+    Name interestName(m_prefixName);
+    Interest interestPacket(interestName);
+
     if (m_mustBeFresh)
       interestPacket.setMustBeFresh(true);
+
     if (m_isChildSelectorRightmost)
       interestPacket.setChildSelector(1);
+
     if (m_minSuffixComponents >= 0)
       interestPacket.setMinSuffixComponents(m_minSuffixComponents);
+
     if (m_maxSuffixComponents >= 0)
       interestPacket.setMaxSuffixComponents(m_maxSuffixComponents);
-    if (m_interestLifetime < ndn::time::milliseconds::zero())
+
+    if (m_interestLifetime < time::milliseconds::zero())
       interestPacket.setInterestLifetime(getDefaultInterestLifetime());
     else
       interestPacket.setInterestLifetime(m_interestLifetime);
+
     return interestPacket;
   }
 
   void
-  onData(const ndn::Interest& interest, ndn::Data& data)
+  onData(const Interest& interest, Data& data)
   {
     m_isDataReceived = true;
-    if (m_isPayloadOnlySet)
-      {
-        const ndn::Block& block = data.getContent();
-        std::cout.write(reinterpret_cast<const char*>(block.value()), block.value_size());
-      }
-    else
-      {
-        const ndn::Block& block = data.wireEncode();
-        std::cout.write(reinterpret_cast<const char*>(block.wire()), block.size());
-      }
+    if (m_isPayloadOnlySet) {
+      const Block& block = data.getContent();
+      std::cout.write(reinterpret_cast<const char*>(block.value()), block.value_size());
+    }
+    else {
+      const Block& block = data.wireEncode();
+      std::cout.write(reinterpret_cast<const char*>(block.wire()), block.size());
+    }
   }
 
   void
-  onTimeout(const ndn::Interest& interest)
+  onTimeout(const Interest& interest)
   {
   }
 
   void
   run()
   {
-    try
-      {
-        m_face.expressInterest(createInterestPacket(),
-                               bind(&NdnTlvPeek::onData, this, _1, _2),
-                               bind(&NdnTlvPeek::onTimeout, this, _1));
-        if (m_timeout < ndn::time::milliseconds::zero())
-          {
-            if (m_interestLifetime < ndn::time::milliseconds::zero())
-              m_face.processEvents(getDefaultInterestLifetime());
-            else
-              m_face.processEvents(m_interestLifetime);
-          }
+    try {
+      m_face.expressInterest(createInterestPacket(),
+                             bind(&NdnPeek::onData, this, _1, _2),
+                             bind(&NdnPeek::onTimeout, this, _1));
+      if (m_timeout < time::milliseconds::zero()) {
+        if (m_interestLifetime < time::milliseconds::zero())
+          m_face.processEvents(getDefaultInterestLifetime());
         else
-          m_face.processEvents(m_timeout);
+          m_face.processEvents(m_interestLifetime);
       }
-    catch (std::exception& e)
-      {
-        std::cerr << "ERROR: " << e.what() << "\n" << std::endl;
-        exit(1);
-      }
+      else
+        m_face.processEvents(m_timeout);
+    }
+    catch (std::exception& e) {
+      std::cerr << "ERROR: " << e.what() << "\n" << std::endl;
+      exit(1);
+    }
   }
 
   bool
@@ -207,58 +214,55 @@ public:
   }
 
 private:
-
   std::string m_programName;
   bool m_mustBeFresh;
   bool m_isChildSelectorRightmost;
   int m_minSuffixComponents;
   int m_maxSuffixComponents;
-  ndn::time::milliseconds m_interestLifetime;
+  time::milliseconds m_interestLifetime;
   bool m_isPayloadOnlySet;
-  ndn::time::milliseconds m_timeout;
+  time::milliseconds m_timeout;
   std::string m_prefixName;
   bool m_isDataReceived;
-  ndn::Face m_face;
+  Face m_face;
 };
-
-}
 
 int
 main(int argc, char* argv[])
 {
-  ndntlvpeek::NdnTlvPeek ndnTlvPeek(argv[0]);
+  NdnPeek program(argv[0]);
   int option;
   while ((option = getopt(argc, argv, "hfrm:M:l:pw:V")) != -1) {
     switch (option) {
     case 'h':
-      ndnTlvPeek.usage();
+      program.usage();
       break;
     case 'f':
-      ndnTlvPeek.setMustBeFresh();
+      program.setMustBeFresh();
       break;
     case 'r':
-      ndnTlvPeek.setRightmostChildSelector();
+      program.setRightmostChildSelector();
       break;
     case 'm':
-      ndnTlvPeek.setMinSuffixComponents(atoi(optarg));
+      program.setMinSuffixComponents(atoi(optarg));
       break;
     case 'M':
-      ndnTlvPeek.setMaxSuffixComponents(atoi(optarg));
+      program.setMaxSuffixComponents(atoi(optarg));
       break;
     case 'l':
-      ndnTlvPeek.setInterestLifetime(atoi(optarg));
+      program.setInterestLifetime(atoi(optarg));
       break;
     case 'p':
-      ndnTlvPeek.setPayloadOnly();
+      program.setPayloadOnly();
       break;
     case 'w':
-      ndnTlvPeek.setTimeout(atoi(optarg));
+      program.setTimeout(atoi(optarg));
       break;
     case 'V':
       std::cout << NFD_VERSION_BUILD_STRING << std::endl;
       return 0;
     default:
-      ndnTlvPeek.usage();
+      program.usage();
       break;
     }
   }
@@ -267,13 +271,22 @@ main(int argc, char* argv[])
   argv += optind;
 
   if (argv[0] == 0)
-    ndnTlvPeek.usage();
+    program.usage();
 
-  ndnTlvPeek.setPrefixName(argv[0]);
-  ndnTlvPeek.run();
+  program.setPrefixName(argv[0]);
+  program.run();
 
-  if (ndnTlvPeek.isDataReceived())
+  if (program.isDataReceived())
     return 0;
   else
     return 1;
+}
+
+} // namespace peek
+} // namespace ndn
+
+int
+main(int argc, char** argv)
+{
+  return ndn::peek::main(argc, argv);
 }
