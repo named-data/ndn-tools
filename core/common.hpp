@@ -8,7 +8,7 @@
  *                           Beijing Institute of Technology,
  *                           The University of Memphis.
  *
- * This file is part of ndn-tools (Named Data Networking Tools).
+ * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
  *
  * ndn-tools is free software: you can redistribute it and/or modify it under the terms
