@@ -101,7 +101,8 @@ For example:
       return 0;
     }
     
-    }
+    } // namespace foo
+    } // namespace ndn
     
     int
     main(int argc, char** argv)
