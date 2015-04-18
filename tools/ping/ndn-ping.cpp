@@ -35,13 +35,9 @@
  * @author: Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
  */
 
-#include <ndn-cxx/face.hpp>
-#include <ndn-cxx/name.hpp>
+#include "core/version.hpp"
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/noncopyable.hpp>
 
 namespace ndn {
 namespace ping {
@@ -389,7 +385,7 @@ main(int argc, char* argv[])
   int res;
 
   NdnPing program(argv[0]);
-  while ((res = getopt(argc, argv, "htai:c:n:p:")) != -1)
+  while ((res = getopt(argc, argv, "htai:c:n:p:V")) != -1)
     {
       switch (res) {
       case 'a':
@@ -418,6 +414,9 @@ main(int argc, char* argv[])
       case 't':
         program.setPrintTimestamp();
         break;
+      case 'V':
+        std::cout << "ndnping " << tools::VERSION << std::endl;
+        return 0;
       default:
         program.usage();
         break;

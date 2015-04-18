@@ -48,12 +48,7 @@
  * @author Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
  */
 
-#include "version.hpp"
-
-#include <boost/noncopyable.hpp>
-
-#include <ndn-cxx/face.hpp>
-#include <ndn-cxx/security/key-chain.hpp>
+#include "core/version.hpp"
 
 namespace ndn {
 namespace peek {
@@ -274,7 +269,7 @@ main(int argc, char* argv[])
       program.setTimeout(atoi(optarg));
       break;
     case 'V':
-      std::cout << NFD_VERSION_BUILD_STRING << std::endl;
+      std::cout << "ndnpoke " << tools::VERSION << std::endl;
       return 0;
     default:
       program.usage();

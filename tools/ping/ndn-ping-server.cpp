@@ -35,12 +35,7 @@
  * @author: Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
  */
 
-#include <ndn-cxx/face.hpp>
-#include <ndn-cxx/name.hpp>
-#include <ndn-cxx/security/key-chain.hpp>
-
-#include <boost/asio.hpp>
-#include <boost/noncopyable.hpp>
+#include "core/version.hpp"
 
 namespace ndn {
 namespace ping {
@@ -209,7 +204,7 @@ main(int argc, char* argv[])
   int res;
 
   NdnPingServer program(argv[0]);
-  while ((res = getopt(argc, argv, "hdtp:x:")) != -1)
+  while ((res = getopt(argc, argv, "hdtp:x:V")) != -1)
     {
       switch (res) {
       case 'h':
@@ -224,7 +219,10 @@ main(int argc, char* argv[])
       case 't':
         program.setPrintTimestamp();
         break;
-      default:
+      case 'V':
+        std::cout << "ndnpingserver " << tools::VERSION << std::endl;
+        return 0;
+     default:
         program.usage();
         break;
       }

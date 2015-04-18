@@ -57,6 +57,6 @@ using std::size_t;
 using boost::noncopyable;
 
 
-} // namespace
+} // namespace ndn
 
 #endif // NDN_TOOLS_CORE_COMMON_HPP
