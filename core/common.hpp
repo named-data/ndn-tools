@@ -49,12 +49,17 @@
 #include <ndn-cxx/face.hpp>
 #include <ndn-cxx/interest.hpp>
 #include <ndn-cxx/security/key-chain.hpp>
+#include <ndn-cxx/util/scheduler.hpp>
+#include <ndn-cxx/util/signal.hpp>
 
 namespace ndn {
 
 using std::size_t;
 
 using boost::noncopyable;
+
+namespace signal = util::signal;
+namespace scheduler = util::scheduler;
 
 
 } // namespace ndn

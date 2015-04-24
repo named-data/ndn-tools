@@ -5,7 +5,7 @@ def build(bld):
     bld.program(
         features='cxx',
         target='../../bin/ndnping',
-        source='ndn-ping.cpp',
+        source=bld.path.ant_glob('client/*.cpp'),
         use='core-objects',
         )
 
