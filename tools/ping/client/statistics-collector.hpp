@@ -46,6 +46,9 @@ struct Statistics
   double sumRtt;                                //!< sum of round trip times
   double avgRtt;                                //!< average round trip time
   double stdDevRtt;                             //!< std dev of round trip time
+
+  std::ostream&
+  printSummary(std::ostream& os) const;
 };
 
 /**

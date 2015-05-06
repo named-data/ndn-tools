@@ -55,12 +55,15 @@ usage(const boost::program_options::options_description& options)
   exit(2);
 }
 
+/**
+ * @brief SIGINT handler: print statistics and exit
+ */
 static void
-signalHandler(Face& face, StatisticsCollector& statisticsCollector)
+onSigInt(Face& face, StatisticsCollector& statisticsCollector)
 {
   face.shutdown();
   Statistics statistics = statisticsCollector.computeStatistics();
-  std::cout << statistics << "\n";
+  std::cout << statistics << std::endl;
 
   if (statistics.nReceived == statistics.nSent) {
     exit(0);
@@ -68,6 +71,16 @@ signalHandler(Face& face, StatisticsCollector& statisticsCollector)
   else {
     exit(1);
   }
+}
+
+/**
+ * @brief SIGQUIT handler: print statistics summary and continue
+ */
+static void
+onSigQuit(StatisticsCollector& statisticsCollector, boost::asio::signal_set& signalSet)
+{
+  statisticsCollector.computeStatistics().printSummary(std::cout);
+  signalSet.async_wait(bind(&onSigQuit, ref(statisticsCollector), ref(signalSet)));
 }
 
 int
@@ -191,8 +204,11 @@ main(int argc, char* argv[])
   StatisticsCollector statisticsCollector(ping, options);
   Tracer tracer(ping, options);
 
-  boost::asio::signal_set signalSet(face.getIoService(), SIGINT);
-  signalSet.async_wait(bind(&signalHandler, ref(face), ref(statisticsCollector)));
+  boost::asio::signal_set signalSetInt(face.getIoService(), SIGINT);
+  signalSetInt.async_wait(bind(&onSigInt, ref(face), ref(statisticsCollector)));
+
+  boost::asio::signal_set signalSetQuit(face.getIoService(), SIGQUIT);
+  signalSetQuit.async_wait(bind(&onSigQuit, ref(statisticsCollector), ref(signalSetQuit)));
 
   std::cout << "PING " << options.prefix << std::endl;
 

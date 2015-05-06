@@ -83,6 +83,16 @@ StatisticsCollector::computeStatistics()
 }
 
 std::ostream&
+Statistics::printSummary(std::ostream& os) const
+{
+  os << nReceived << "/" << nSent << " packets, " << packetLossRate * 100.0
+     << "% loss, min/avg/max/mdev = " << minRtt << "/" << avgRtt << "/" << maxRtt << "/"
+     << stdDevRtt << " ms" << std::endl;
+
+  return os;
+}
+
+std::ostream&
 operator<<(std::ostream& os, const Statistics& statistics)
 {
   os << "\n";
