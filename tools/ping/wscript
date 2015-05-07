@@ -12,6 +12,6 @@ def build(bld):
     bld.program(
         features='cxx',
         target='../../bin/ndnpingserver',
-        source='ndn-ping-server.cpp',
+        source=bld.path.ant_glob('server/*.cpp'),
         use='core-objects',
         )
