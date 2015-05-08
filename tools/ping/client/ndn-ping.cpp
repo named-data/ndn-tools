@@ -32,7 +32,13 @@ namespace ping {
 namespace client {
 
 static time::milliseconds
-getPingMinimumInterval()
+getMinimumPingInterval()
+{
+  return time::milliseconds(1);
+}
+
+static time::milliseconds
+getDefaultPingInterval()
 {
   return time::milliseconds(1000);
 }
@@ -89,7 +95,7 @@ main(int argc, char* argv[])
   Options options;
   options.shouldAllowStaleData = false;
   options.nPings = -1;
-  options.interval = time::milliseconds(getPingMinimumInterval());
+  options.interval = time::milliseconds(getDefaultPingInterval());
   options.timeout = time::milliseconds(getDefaultPingTimeoutThreshold());
   options.startSeq = 0;
   options.shouldGenerateRandomSeq = true;
@@ -104,8 +110,9 @@ main(int argc, char* argv[])
     ("help,h", "print this message and exit")
     ("version,V", "display version and exit")
     ("interval,i", po::value<int>(),
-                   ("set ping interval in milliseconds (minimum " +
-                   std::to_string(getPingMinimumInterval().count()) + " ms)").c_str())
+                   ("set ping interval in milliseconds (default " +
+                   std::to_string(getDefaultPingInterval().count()) + " ms - minimum " +
+                   std::to_string(getMinimumPingInterval().count()) + " ms)").c_str())
     ("timeout,o", po::value<int>(),
                   ("set ping timeout in milliseconds (default " +
                   std::to_string(getDefaultPingTimeoutThreshold().count()) + " ms)").c_str())
@@ -153,9 +160,9 @@ main(int argc, char* argv[])
     if (optVm.count("interval") > 0) {
       options.interval = time::milliseconds(optVm["interval"].as<int>());
 
-      if (options.interval.count() < getPingMinimumInterval().count()) {
+      if (options.interval.count() < getMinimumPingInterval().count()) {
         std::cerr << "ERROR: Specified ping interval is less than the minimum " <<
-                     getPingMinimumInterval() << std::endl;
+                     getMinimumPingInterval() << std::endl;
         usage(visibleOptDesc);
       }
     }
