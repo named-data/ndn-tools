@@ -32,6 +32,9 @@ PingServer::PingServer(Face& face, const Options& options)
   , m_nPings(0)
   , m_face(face)
 {
+  shared_ptr<Buffer> b = make_shared<Buffer>();
+  b->assign(m_options.payloadSize, 'a');
+  m_payload = Block(tlv::Content, b);
 }
 
 void
@@ -60,11 +63,9 @@ PingServer::onInterest(const Interest& interest)
 
   afterReceive(interestName);
 
-  char responseContent[] = "NDN TLV Ping Response";
   shared_ptr<Data> data = make_shared<Data>(interestName);
   data->setFreshnessPeriod(m_options.freshnessPeriod);
-  data->setContent(reinterpret_cast<const uint8_t*>(responseContent),
-                   sizeof(responseContent));
+  data->setContent(m_payload);
   m_keyChain.sign(*data);
   m_face.put(*data);
 

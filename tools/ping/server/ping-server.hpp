@@ -39,6 +39,7 @@ struct Options
   bool shouldLimitSatisfied;          //!< should limit the number of pings satisfied
   int nMaxPings;                      //!< max number of pings to satisfy
   bool shouldPrintTimestamp;          //!< print timestamp when response sent
+  int payloadSize;                    //!< user specified payload size
 };
 
 /**
@@ -90,6 +91,7 @@ private:
   KeyChain m_keyChain;
   int m_nPings;
   Face& m_face;
+  Block m_payload;
 };
 
 } // namespace server

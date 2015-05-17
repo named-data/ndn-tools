@@ -86,6 +86,7 @@ main(int argc, char* argv[])
   options.shouldLimitSatisfied = false;
   options.nMaxPings = 0;
   options.shouldPrintTimestamp = false;
+  options.payloadSize = 0;
 
   namespace po = boost::program_options;
 
@@ -98,6 +99,7 @@ main(int argc, char* argv[])
                    std::to_string(getMinimumFreshnessPeriod().count()) + " ms)").c_str())
     ("satisfy,p", po::value<int>(&options.nMaxPings), "set maximum number of pings to be satisfied")
     ("timestamp,t", "log timestamp with responses")
+    ("size,s", po::value<int>(&options.payloadSize), "specify size of response payload")
   ;
   po::options_description hiddenOptDesc("Hidden options");
   hiddenOptDesc.add_options()
@@ -153,6 +155,13 @@ main(int argc, char* argv[])
 
     if (optVm.count("timestamp") > 0) {
       options.shouldPrintTimestamp = true;
+    }
+
+    if (optVm.count("size") > 0) {
+      if (options.payloadSize < 0) {
+        std::cerr << "ERROR: Payload size must be greater than or equal to 0" << std::endl;
+        usage(visibleOptDesc);
+      }
     }
   }
   catch (const po::error& e) {
