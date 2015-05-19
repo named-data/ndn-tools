@@ -57,7 +57,6 @@ Ping::performPing()
   Interest interest(pingPacketName);
   interest.setMustBeFresh(!m_options.shouldAllowStaleData);
   interest.setInterestLifetime(m_options.timeout);
-  interest.setNonce(m_nextSeq);
 
   m_face.expressInterest(interest,
                          bind(&Ping::onData, this, _1, _2, m_nextSeq, time::steady_clock::now()),
