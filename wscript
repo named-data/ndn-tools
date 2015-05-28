@@ -2,15 +2,15 @@
 import os
 
 VERSION='0.1'
-APPNAME="ndn-tools"
+APPNAME='ndn-tools'
 
 def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
-    opt.load(['default-compiler-flags'], tooldir=['.waf-tools'])
+    opt.load(['default-compiler-flags', 'sphinx_build'], tooldir=['.waf-tools'])
 
 def configure(conf):
     conf.load(['compiler_cxx', 'gnu_dirs',
-               'default-compiler-flags'])
+               'default-compiler-flags', 'sphinx_build'])
 
     if not os.environ.has_key('PKG_CONFIG_PATH'):
         os.environ['PKG_CONFIG_PATH'] = ':'.join([
@@ -23,6 +23,8 @@ def configure(conf):
     conf.recurse('tools')
 
 def build(bld):
+    bld.env['VERSION'] = VERSION
+
     bld(
         target='core-objects',
         name='core-objects',
@@ -33,3 +35,4 @@ def build(bld):
         )
 
     bld.recurse('tools')
+    bld.recurse('manpages')

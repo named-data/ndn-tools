@@ -1,0 +1,10 @@
+def build(bld):
+    if not bld.env['SPHINX_BUILD']:
+        return
+    bld(features='sphinx',
+        builder='man',
+        outdir='.',
+        config='./conf.py',
+        source=bld.path.ant_glob('*.rst'),
+        install_path='${MANDIR}/',
+        VERSION=bld.env['VERSION'])
