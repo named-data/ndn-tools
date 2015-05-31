@@ -41,8 +41,8 @@ usage(const boost::program_options::options_description& options)
 {
   std::cout << "Usage: ndnpingserver [options] ndn:/name/prefix\n"
       "\n"
-      "Starts a NDN ping server that responds to Interests with name"
-      "ndn:/name/prefix/ping/number.\n"
+      "Starts a NDN ping server that responds to Interests under name "
+      "ndn:/name/prefix/ping.\n"
       "\n";
   std::cout << options;
   exit(2);
