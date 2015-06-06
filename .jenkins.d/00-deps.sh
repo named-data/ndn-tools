@@ -21,5 +21,5 @@ if has Ubuntu $NODE_LABELS; then
     set -x
     sudo apt-get update -qq -y
     sudo apt-get -qq -y install build-essential pkg-config $BOOST_PKG \
-                                libcrypto++-dev libsqlite3-dev
+                                libcrypto++-dev libsqlite3-dev libpcap-dev
 fi

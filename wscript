@@ -6,11 +6,11 @@ APPNAME='ndn-tools'
 
 def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
-    opt.load(['default-compiler-flags', 'sphinx_build'], tooldir=['.waf-tools'])
+    opt.load(['default-compiler-flags', 'sphinx_build', 'boost'], tooldir=['.waf-tools'])
 
 def configure(conf):
     conf.load(['compiler_cxx', 'gnu_dirs',
-               'default-compiler-flags', 'sphinx_build'])
+               'default-compiler-flags', 'sphinx_build', 'boost'])
 
     if not os.environ.has_key('PKG_CONFIG_PATH'):
         os.environ['PKG_CONFIG_PATH'] = ':'.join([
@@ -19,6 +19,8 @@ def configure(conf):
             '/opt/local/lib/pkgconfig'])
     conf.check_cfg(package='libndn-cxx', args=['--cflags', '--libs'],
                    uselib_store='NDN_CXX', mandatory=True)
+
+    conf.check_boost(lib='system iostreams regex')
 
     conf.recurse('tools')
 
