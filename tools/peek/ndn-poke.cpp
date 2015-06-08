@@ -142,22 +142,22 @@ public:
     return time::seconds(10);
   }
 
-  Data
+  shared_ptr<Data>
   createDataPacket()
   {
-    Data dataPacket(m_prefixName);
+    auto dataPacket = make_shared<Data>(m_prefixName);
 
     std::stringstream payloadStream;
     payloadStream << std::cin.rdbuf();
     std::string payload = payloadStream.str();
-    dataPacket.setContent(reinterpret_cast<const uint8_t*>(payload.c_str()), payload.length());
+    dataPacket->setContent(reinterpret_cast<const uint8_t*>(payload.c_str()), payload.length());
 
     if (m_freshnessPeriod >= time::milliseconds::zero())
-      dataPacket.setFreshnessPeriod(m_freshnessPeriod);
+      dataPacket->setFreshnessPeriod(m_freshnessPeriod);
 
     if (m_isLastAsFinalBlockIdSet) {
       if (!m_prefixName.empty())
-        dataPacket.setFinalBlockId(m_prefixName.get(-1));
+        dataPacket->setFinalBlockId(m_prefixName.get(-1));
       else {
         std::cerr << "Name Provided Has 0 Components" << std::endl;
         exit(1);
@@ -165,12 +165,12 @@ public:
     }
 
     if (m_isUseDigestSha256Set)
-      m_keyChain.signWithSha256(dataPacket);
+      m_keyChain.signWithSha256(*dataPacket);
     else {
       if (m_identityName == nullptr)
-        m_keyChain.sign(dataPacket);
+        m_keyChain.sign(*dataPacket);
       else
-        m_keyChain.signByIdentity(dataPacket, *m_identityName);
+        m_keyChain.signByIdentity(*dataPacket, *m_identityName);
     }
 
     return dataPacket;
@@ -179,9 +179,9 @@ public:
   void
   onInterest(const Name& name,
              const Interest& interest,
-             const Data& dataPacket)
+             shared_ptr<Data> dataPacket)
   {
-    m_face.put(dataPacket);
+    m_face.put(*dataPacket);
     m_isDataSent = true;
     m_face.shutdown();
   }
@@ -197,9 +197,9 @@ public:
   run()
   {
     try {
-      Data dataPacket = createDataPacket();
+      shared_ptr<Data> dataPacket = createDataPacket();
       if (m_isForceDataSet) {
-        m_face.put(dataPacket);
+        m_face.put(*dataPacket);
         m_isDataSent = true;
       }
       else {
