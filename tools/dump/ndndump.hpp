@@ -1,5 +1,22 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
+ * Copyright (c) 2014-2015,  Regents of the University of California.
+ *
+ * This file is part of ndn-tools (Named Data Networking Essential Tools).
+ * See AUTHORS.md for complete list of ndn-tools authors and contributors.
+ *
+ * ndn-tools is free software: you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ *
+ * ndn-tools is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
  * Copyright (c) 2011-2014, Regents of the University of California,
  *
  * This file is part of ndndump, the packet capture and analysis tool for Named Data
@@ -17,8 +34,8 @@
  * ndndump, e.g., in COPYING file.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef NDNDUMP_NDNDUMP_HPP
-#define NDNDUMP_NDNDUMP_HPP
+#ifndef NDN_TOOLS_DUMP_NDNDUMP_HPP
+#define NDN_TOOLS_DUMP_NDNDUMP_HPP
 
 #include <pcap.h>
 
@@ -26,7 +43,7 @@
 #include <boost/regex.hpp>
 
 namespace ndn {
-namespace tools {
+namespace dump {
 
 class Ndndump : noncopyable
 {
@@ -107,7 +124,7 @@ private:
 };
 
 
-} // namespace tools
+} // namespace dump
 } // namespace ndn
 
-#endif // NDNDUMP_NDNDUMP_HPP
+#endif // NDN_TOOLS_DUMP_NDNDUMP_HPP

@@ -1,5 +1,22 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
+ * Copyright (c) 2014-2015,  Regents of the University of California.
+ *
+ * This file is part of ndn-tools (Named Data Networking Essential Tools).
+ * See AUTHORS.md for complete list of ndn-tools authors and contributors.
+ *
+ * ndn-tools is free software: you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ *
+ * ndn-tools is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
  * Copyright (c) 2011-2014, Regents of the University of California,
  *
  * This file is part of ndndump, the packet capture and analysis tool for Named Data
@@ -18,6 +35,7 @@
  **/
 
 #include "ndndump.hpp"
+#include "core/version.hpp"
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -39,6 +57,9 @@ validate(boost::any& v,
 
 } // namespace boost
 
+namespace ndn {
+namespace dump {
+
 void
 usage(std::ostream& os, const std::string& appName, const po::options_description& options)
 {
@@ -54,11 +75,12 @@ usage(std::ostream& os, const std::string& appName, const po::options_descriptio
 int
 main(int argc, char* argv[])
 {
-  ndn::tools::Ndndump instance;
+  Ndndump instance;
 
   po::options_description visibleOptions;
   visibleOptions.add_options()
     ("help,h", "Produce this help message")
+    ("version,V", "display version and exit")
     ("interface,i", po::value<std::string>(&instance.interface),
      "Interface from which to dump packets")
     ("read,r", po::value<std::string>(&instance.inputFile),
@@ -107,6 +129,11 @@ main(int argc, char* argv[])
     return 0;
   }
 
+  if (vm.count("version") > 0) {
+    std::cout << "ndndump " << tools::VERSION << std::endl;
+    return 0;
+  }
+
   if (vm.count("verbose") > 0) {
     instance.isVerbose = true;
   }
@@ -129,4 +156,13 @@ main(int argc, char* argv[])
   instance.run();
 
   return 0;
+}
+
+} // namespace dump
+} // namespace ndn
+
+int
+main(int argc, char** argv)
+{
+  return ndn::dump::main(argc, argv);
 }
