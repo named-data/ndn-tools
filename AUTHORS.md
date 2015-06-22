@@ -11,3 +11,4 @@ in ndn-tools:
 * Davide Pesavento      <http://www.lip6.fr/actualite/personnes-fiche.php?ident=D1469>
 * Junxiao Shi           <http://www.cs.arizona.edu/people/shijunxiao/>
 * Eric Newberry         <http://ericnewberry.com/>
+* Xiaoke Jiang          <http://netarchlab.tsinghua.edu.cn/~shock/>

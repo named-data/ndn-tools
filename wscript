@@ -6,9 +6,11 @@ APPNAME='ndn-tools'
 
 def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
+
     opt.load(['default-compiler-flags', 'sphinx_build', 'boost'], tooldir=['.waf-tools'])
     opt.add_option('--with-tests', action='store_true', default=False,
                    dest='with_tests', help='''Build unit tests''')
+    opt.recurse("tools")
 
 def configure(conf):
     conf.load(['compiler_cxx', 'gnu_dirs',

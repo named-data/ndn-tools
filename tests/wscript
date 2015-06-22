@@ -5,11 +5,9 @@ def build(bld):
     if not bld.env['WITH_TESTS']:
         return
 
-    tools = bld.path.ant_glob('*', dir=True, src=False)
-
     bld(target='../unit-tests',
         features='cxx cxxprogram',
-        source=bld.path.ant_glob('**/*.cpp'),
-        use=['core-objects'] + ['%s-objects' % tool for tool in tools],
+        source=bld.path.ant_glob(['*.cpp'] + ['%s/**/*.cpp' % tool for tool in bld.env['BUILD_TOOLS']]),
+        use=['core-objects'] + ['%s-objects' % tool for tool in bld.env['BUILD_TOOLS']],
         headers='../common.hpp boost-test.hpp',
         )
