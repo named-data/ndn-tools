@@ -164,13 +164,16 @@ public:
       }
     }
 
-    if (m_isUseDigestSha256Set)
-      m_keyChain.signWithSha256(*dataPacket);
+    if (m_isUseDigestSha256Set) {
+      m_keyChain.sign(*dataPacket, signingWithSha256());
+    }
     else {
-      if (m_identityName == nullptr)
+      if (m_identityName == nullptr) {
         m_keyChain.sign(*dataPacket);
-      else
-        m_keyChain.signByIdentity(*dataPacket, *m_identityName);
+      }
+      else {
+        m_keyChain.sign(*dataPacket, signingByIdentity(*m_identityName));
+      }
     }
 
     return dataPacket;
