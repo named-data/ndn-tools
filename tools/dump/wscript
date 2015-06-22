@@ -33,10 +33,15 @@ def configure(conf):
                    uselib_store='PCAP', mandatory=True)
 
 def build(bld):
-    bld.program(
-        features='cxx',
-        target='../../bin/ndndump',
-        source=bld.path.ant_glob(['*.cpp']),
+    bld(features='cxx',
+        name='dump-objects',
+        source=bld.path.ant_glob('*.cpp', excl='main.cpp'),
         includes='.',
+        export_includes='.',
         use='core-objects BOOST PCAP',
         )
+
+    bld(features='cxx cxxprogram',
+        target='../../bin/ndndump',
+        source='main.cpp',
+        use='dump-objects')

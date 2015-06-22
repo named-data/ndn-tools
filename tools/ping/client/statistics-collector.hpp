@@ -64,6 +64,13 @@ public:
   StatisticsCollector(Ping& ping, const Options& options);
 
   /**
+   * Returns ping statistics as structure
+   */
+  Statistics
+  computeStatistics();
+
+PUBLIC_WITH_TESTS_ELSE_PRIVATE:
+  /**
    * Called on ping response received
    * @param rtt round trip time
    */
@@ -75,12 +82,6 @@ public:
    */
   void
   recordTimeout();
-
-  /**
-   * Returns ping statistics as structure
-   */
-  Statistics
-  computeStatistics();
 
 private:
   Ping& m_ping;

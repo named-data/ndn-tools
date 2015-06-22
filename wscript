@@ -7,6 +7,8 @@ APPNAME='ndn-tools'
 def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
     opt.load(['default-compiler-flags', 'sphinx_build', 'boost'], tooldir=['.waf-tools'])
+    opt.add_option('--with-tests', action='store_true', default=False,
+                   dest='with_tests', help='''Build unit tests''')
 
 def configure(conf):
     conf.load(['compiler_cxx', 'gnu_dirs',
@@ -20,7 +22,12 @@ def configure(conf):
     conf.check_cfg(package='libndn-cxx', args=['--cflags', '--libs'],
                    uselib_store='NDN_CXX', mandatory=True)
 
-    conf.check_boost(lib='system iostreams regex')
+    boost_libs = 'system iostreams regex'
+    if conf.options.with_tests:
+        conf.env['WITH_TESTS'] = 1
+        conf.define('WITH_TESTS', 1);
+        boost_libs += ' unit_test_framework'
+    conf.check_boost(lib=boost_libs)
 
     conf.recurse('tools')
 
@@ -32,9 +39,10 @@ def build(bld):
         name='core-objects',
         features='cxx',
         source=bld.path.ant_glob(['core/*.cpp']),
-        use='NDN_CXX',
+        use='NDN_CXX BOOST',
         export_includes='.',
         )
 
     bld.recurse('tools')
+    bld.recurse('tests')
     bld.recurse('manpages')
