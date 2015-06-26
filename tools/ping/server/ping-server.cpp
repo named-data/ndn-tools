@@ -66,7 +66,7 @@ PingServer::onInterest(const Interest& interest)
   shared_ptr<Data> data = make_shared<Data>(interestName);
   data->setFreshnessPeriod(m_options.freshnessPeriod);
   data->setContent(m_payload);
-  m_keyChain.signWithSha256(*data);
+  m_keyChain.sign(*data, signingWithSha256());
   m_face.put(*data);
 
   ++m_nPings;
