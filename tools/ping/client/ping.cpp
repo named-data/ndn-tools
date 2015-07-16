@@ -42,9 +42,15 @@ Ping::Ping(Face& face, const Options& options)
 void
 Ping::run()
 {
-  performPing();
+  start();
 
-  m_face.processEvents();
+  m_face.getIoService().run();
+}
+
+void
+Ping::start()
+{
+  performPing();
 }
 
 void

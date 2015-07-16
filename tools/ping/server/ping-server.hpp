@@ -65,6 +65,12 @@ public:
   run();
 
   /**
+   * @brief starts the Interest filter
+   */
+  void
+  start();
+
+  /**
    * @brief gets the number of pings received
    */
   int

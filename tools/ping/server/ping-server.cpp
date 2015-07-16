@@ -40,14 +40,20 @@ PingServer::PingServer(Face& face, const Options& options)
 void
 PingServer::run()
 {
+  start();
+
+  m_face.getIoService().run();
+}
+
+void
+PingServer::start()
+{
   m_name.append("ping");
   m_face.setInterestFilter(m_name,
                            bind(&PingServer::onInterest,
                                 this, _2),
                            bind(&PingServer::onRegisterFailed,
                                 this, _2));
-
-  m_face.processEvents();
 }
 
 int

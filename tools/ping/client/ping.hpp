@@ -74,10 +74,16 @@ public:
   signal::Signal<Ping> afterFinish;
 
   /**
-   * Executes the pings
+   * Runs the ping client (blocking)
    */
   void
   run();
+
+  /**
+   * Runs the ping client (non-blocking)
+   */
+  void
+  start();
 
 private:
   /**
