@@ -12,3 +12,4 @@ in ndn-tools:
 * Junxiao Shi           <http://www.cs.arizona.edu/people/shijunxiao/>
 * Eric Newberry         <http://ericnewberry.com/>
 * Xiaoke Jiang          <http://netarchlab.tsinghua.edu.cn/~shock/>
+* Yingdi Yu             <http://irl.cs.ucla.edu/~yingdi/>

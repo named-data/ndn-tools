@@ -12,4 +12,5 @@ man_pages = [
     ('ndnpingserver', 'ndnpingserver', 'reachability testing server', None, 1),
     ('ndndump', 'ndndump', 'traffic analysis tool', None, 8),
     ('ndn-dissect', 'ndn-dissect', 'NDN packet format inspector', None, 1),
+    ('ndn-pib', 'ndn-pib',  'NDN PIB service', None, 1),
 ]
