@@ -19,55 +19,43 @@
  * @author Yingdi Yu <yingdi@cs.ucla.edu>
  */
 
-#include "response-cache.hpp"
+#ifndef NDN_TOOLS_TESTS_IDENTITY_MANAGEMENT_TIME_FIXTURE_HPP
+#define NDN_TOOLS_TESTS_IDENTITY_MANAGEMENT_TIME_FIXTURE_HPP
+
+#include <ndn-cxx/security/key-chain.hpp>
+#include <vector>
+#include <boost/filesystem.hpp>
+
+#include "tests/test-common.hpp"
 
 namespace ndn {
-namespace pib {
+namespace tests {
 
-using std::map;
-
-ResponseCache::ResponseCache()
+/**
+ * @brief IdentityManagementTimeFixture is a test suite level fixture.
+ * Test cases in the suite can use this fixture to create identities.
+ * Identities added via addIdentity method are automatically deleted
+ * during test teardown.
+ */
+class IdentityManagementTimeFixture : public tests::UnitTestTimeFixture
 {
-}
+public:
+  IdentityManagementTimeFixture();
 
+  ~IdentityManagementTimeFixture();
 
-shared_ptr<const Data>
-ResponseCache::find(const Name& dataName, bool hasVersion) const
-{
-  if (!hasVersion) {
-    Storage::const_iterator it = m_storage.find(dataName);
-    if (it != m_storage.end())
-      return it->second;
-    else
-      return shared_ptr<const Data>();
-  }
-  else {
-    Storage::const_iterator it = m_storage.find(dataName.getPrefix(-1));
-    if (it != m_storage.end() && it->second->getName() == dataName)
-      return it->second;
-    else
-      return shared_ptr<const Data>();
-  }
-}
+  /// @brief add identity, return true if succeed.
+  bool
+  addIdentity(const Name& identity, const KeyParams& params = KeyChain::DEFAULT_KEY_PARAMS);
 
-void
-ResponseCache::insert(const Data& data)
-{
-  data.getName().at(-1).toVersion(); // ensures last component is version
-  m_storage[data.getName().getPrefix(-1)] = data.shared_from_this();
-}
+protected:
+  boost::filesystem::path m_keyChainTmpPath;
 
-void
-ResponseCache::erase(const Name& dataNameWithoutVersion)
-{
-  m_storage.erase(dataNameWithoutVersion);
-}
+  KeyChain m_keyChain;
+  std::vector<Name> m_identities;
+};
 
-void
-ResponseCache::clear()
-{
-  m_storage.clear();
-}
-
-} // namespace pib
+} // namespace tests
 } // namespace ndn
+
+#endif // NDN_TOOLS_TESTS_IDENTITY_MANAGEMENT_TIME_FIXTURE_HPP

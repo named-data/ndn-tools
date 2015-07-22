@@ -19,55 +19,40 @@
  * @author Yingdi Yu <yingdi@cs.ucla.edu>
  */
 
-#include "response-cache.hpp"
+#include "identity-management-time-fixture.hpp"
 
 namespace ndn {
-namespace pib {
+namespace tests {
 
-using std::map;
-
-ResponseCache::ResponseCache()
+IdentityManagementTimeFixture::IdentityManagementTimeFixture()
+  : m_keyChainTmpPath(boost::filesystem::path(TMP_TESTS_PATH) / "PibIdMgmtTimeTest")
+  , m_keyChain(std::string("pib-sqlite3:").append(m_keyChainTmpPath.string()),
+               std::string("tpm-file:").append(m_keyChainTmpPath.string()))
 {
 }
 
-
-shared_ptr<const Data>
-ResponseCache::find(const Name& dataName, bool hasVersion) const
+IdentityManagementTimeFixture::~IdentityManagementTimeFixture()
 {
-  if (!hasVersion) {
-    Storage::const_iterator it = m_storage.find(dataName);
-    if (it != m_storage.end())
-      return it->second;
-    else
-      return shared_ptr<const Data>();
+  for (const auto& identity : m_identities) {
+    m_keyChain.deleteIdentity(identity);
   }
-  else {
-    Storage::const_iterator it = m_storage.find(dataName.getPrefix(-1));
-    if (it != m_storage.end() && it->second->getName() == dataName)
-      return it->second;
-    else
-      return shared_ptr<const Data>();
+
+  boost::filesystem::remove_all(m_keyChainTmpPath);
+}
+
+bool
+IdentityManagementTimeFixture::addIdentity(const Name& identity, const KeyParams& params)
+{
+  try {
+    m_keyChain.createIdentity(identity, params);
+    m_identities.push_back(identity);
+    return true;
+  }
+  catch (std::runtime_error&) {
+    return false;
   }
 }
 
-void
-ResponseCache::insert(const Data& data)
-{
-  data.getName().at(-1).toVersion(); // ensures last component is version
-  m_storage[data.getName().getPrefix(-1)] = data.shared_from_this();
-}
 
-void
-ResponseCache::erase(const Name& dataNameWithoutVersion)
-{
-  m_storage.erase(dataNameWithoutVersion);
-}
-
-void
-ResponseCache::clear()
-{
-  m_storage.clear();
-}
-
-} // namespace pib
+} // namespace tests
 } // namespace ndn

@@ -1,26 +1,26 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2013-2015 Regents of the University of California.
+ * Copyright (c) 2014-2015,  Regents of the University of California.
  *
- * This file is part of ndn-cxx library (NDN C++ library with eXperimental eXtensions).
+ * This file is part of ndn-tools (Named Data Networking Essential Tools).
+ * See AUTHORS.md for complete list of ndn-tools authors and contributors.
  *
- * ndn-cxx library is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later version.
+ * ndn-tools is free software: you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
  *
- * ndn-cxx library is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- * PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+ * ndn-tools is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License for more details.
  *
- * You should have received copies of the GNU General Public License and GNU Lesser
- * General Public License along with ndn-cxx, e.g., in COPYING.md file.  If not, see
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with
+ * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  *
- * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
+ * @author Yingdi Yu <yingdi@cs.ucla.edu>
  */
 
 #include "tools/pib/cert-publisher.hpp"
-#include "identity-management-time-fixture.hpp"
+#include "../identity-management-time-fixture.hpp"
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
 #include <boost/filesystem.hpp>
@@ -31,7 +31,7 @@ namespace ndn {
 namespace pib {
 namespace tests {
 
-class CertPublisherFixture : public ndn::security::IdentityManagementTimeFixture
+class CertPublisherFixture : public ndn::tests::IdentityManagementTimeFixture
 {
 public:
   CertPublisherFixture()
@@ -52,7 +52,7 @@ public:
   shared_ptr<util::DummyClientFace> face;
 };
 
-BOOST_FIXTURE_TEST_SUITE(TestCertPublisher, CertPublisherFixture)
+BOOST_FIXTURE_TEST_SUITE(PibCertPublisher, CertPublisherFixture)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
