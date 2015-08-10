@@ -13,3 +13,6 @@ in ndn-tools:
 * Eric Newberry         <http://ericnewberry.com/>
 * Xiaoke Jiang          <http://netarchlab.tsinghua.edu.cn/~shock/>
 * Yingdi Yu             <http://irl.cs.ucla.edu/~yingdi/>
+* Qi Zhao               <https://www.linkedin.com/pub/qi-zhao/73/835/9a3>
+* Seunghyun Yoo         <http://relue2718.com/>
+* Seungbae Kim          <https://sites.google.com/site/sbkimcv/>

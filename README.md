@@ -9,6 +9,8 @@ Tools in this collection include:
 * [ping](tools/ping): test reachability between two nodes
 * [dump](tools/dump): analyze traffic on wire
 * [dissect](tools/dissect): inspect TLV structure of NDN packet format
+* [dissect-wireshark](tools/dissect-wireshark): Wireshark extension to inspect TLV structure of NDN
+  packets
 * [pib](tools/pib): a service to manage the public information of keys and publish certificates
 
 See [INSTALL.md](INSTALL.md) for build instructions.
