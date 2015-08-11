@@ -1,18 +1,49 @@
-ndn-dissect-wireshark
-=====================
+NDN Packet Dissector for Wireshark
+==================================
 
-A Wireshark dissector for [Named Data Networking (NDN) packets](http://named-data.net/doc/ndn-tlv/).
+**NDN packet dissector requires at least version 1.12.6 of Wireshark with LUA support enabled**
 
-The dissector is able to process and visualize structure of NDN packets encapsulated in
-IPv4/IPv6 UDP packets with source of destination port 6363, IPv4/IPv6 TCP packets with
-source or destination port 6363, IPv4/IPv6 TCP/HTTP WebSocket packets (any port).
+The dissection of [Named Data Networking (NDN) packets](http://named-data.net/doc/ndn-tlv/) is
+supported in the following cases:
 
-Note that when UDP packet is fragmented, only the first fragment is getting dissected.
-For TCP packets, the dissector assumes that NDN packet starts at the packet boundary,
-therefore some NDN packets will not be properly dissected.  The same limitation applies to
-WebSocket packets.
+- NDN packets are encapsulated in IPv4/IPv6 UDP packets with source or destination port
+  6363 or 56363.
 
-Currently, the dissector does not support NDNLPv2 packets, Link, SelectedDelegation fields.
+- NDN packets are encapsulated in IPv4/IPv6 TCP segments with source or destination
+  port 6363.
+
+- NDN packets are encapsulated in IPv4/IPv6 TCP/HTTP WebSocket packets with source or
+  destination port 9696.
+
+## Available dissection features
+
+- When UDP packet is fragmented, the dissection is performed after the full IP reassembly.
+  If the full reassembly is not possible (e.g., a wrong checksum or missing segments),
+  dissection is not performed.
+
+- When multiple NDN packets are part of a single UDP datagram, TCP segment, or WebSocket
+  payload, all NDN packets are dissected.
+
+- When a single NDN packet is scattered across multiple TCP segments or WebSocket
+  payloads, it is dissected after the successful reconstruction of the necessary portion
+  of the TCP stream.  If the reconstruction of the necessary portion of the TCP stream is
+  not possible (e.g., missing segments), the dissection is not performed.
+
+- When an NDN packet is not aligned to the segment or payload boundary, the dissector
+  searches for any valid NDN packet within the segment using heuristics defined by the
+  following pseudocode:
+
+        for each offset in range (0, packet length)
+          type <- read TLV VarNumber from (buffer + offset)
+          length <- read TLV VarNumber from (buffer + offset + length of type field)
+
+          if type is either 5 or 6  // Type of NDN Interest of Data packet)
+             and length is less 8800 // Current (soft) limit for NDN packet size
+          then
+             dissect NDN packet from (buffer + offset)
+          end if
+
+Currently, the dissector does not support NDNLPv2 packets.
 
 ## Usage
 
