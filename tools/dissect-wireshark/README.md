@@ -15,6 +15,8 @@ supported in the following cases:
 - NDN packets are encapsulated in IPv4/IPv6 TCP/HTTP WebSocket packets with source or
   destination port 9696.
 
+- NDN packets are encapsulated in Ethernet frames with EtherType 0x8624.
+
 ## Available dissection features
 
 - When UDP packet is fragmented, the dissection is performed after the full IP reassembly.

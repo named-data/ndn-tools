@@ -263,13 +263,21 @@ function getBlock(tvb, offset)
    return block
 end
 
+function canBeValidNdnPacket(block)
+   if ((block.type == 5 or block.type == 6) and block.length <= 8800) then
+      return true
+   else
+      return false
+   end
+end
+
 function findNdnPacket(tvb)
    offset = 0
 
    while offset + 2 < tvb:len() do
       local block = getBlock(tvb, offset)
 
-      if ((block.type == 5 or block.type == 6) and block.length <= 8800) then
+      if canBeValidNdnPacket(block) then
          return block
       end
 
@@ -368,7 +376,7 @@ function ndn.dissector(tvb, pInfo, root) -- Tvb, Pinfo, TreeItem
 
       if (nBytesLeft > 0) then
          ok, block = pcall(getBlock, tvb, tvb:len() - nBytesLeft)
-         if (not ok) then
+         if (not ok or not canBeValidNdnPacket(block)) then
             break
          end
       end
@@ -376,7 +384,7 @@ function ndn.dissector(tvb, pInfo, root) -- Tvb, Pinfo, TreeItem
 
    pInfo.cols.protocol = tostring(pInfo.cols.protocol) .. " (" .. ndn.name .. ")"
 
-   if (nBytesLeft > 0 and block.size > nBytesLeft) then
+   if (nBytesLeft > 0 and block ~= nil and block.size ~= nil and block.size > nBytesLeft) then
       pInfo.desegment_offset = tvb:len() - nBytesLeft
 
       -- Originally, I set desegment_len to the exact lenght, but it mysteriously didn't work for TCP
@@ -396,5 +404,7 @@ local websocketDissectorTable = DissectorTable.get("ws.port")
 -- websocketDissectorTable:add("9696", ndn)
 websocketDissectorTable:add("1-65535", ndn)
 
--- print("ndn.lua is successfully loaded")
+local ethernetDissectorTable = DissectorTable.get("ethertype")
+ethernetDissectorTable:add(0x8624, ndn)
+
 io.stderr:write("ndn.lua is successfully loaded\n")

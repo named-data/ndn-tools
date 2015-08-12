@@ -96,3 +96,12 @@ Expected result of the dissection:
   packet 6.
 - data packet is properly dissected after a partial reconstruction of WebSocket
   conversation at packet 12.
+
+### 7. Ethernet
+
+Trace file: `ethernet.pcap`
+
+Trace summary: Short capture, containing an NDN interest multicasted directly in Ethernet frame.
+
+Expected result of the dissection:
+- interest packet is dissected from packet 6.
