@@ -52,7 +52,7 @@ struct Statistics
 };
 
 /**
- * @brief collects statistics from ping client
+ * @brief Statistics collector from ping client
  */
 class StatisticsCollector : noncopyable
 {
@@ -64,21 +64,22 @@ public:
   StatisticsCollector(Ping& ping, const Options& options);
 
   /**
-   * Returns ping statistics as structure
+   * @brief Compute ping statistics as structure
    */
   Statistics
   computeStatistics();
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   /**
-   * Called on ping response received
+   * @brief Called on ping response received
+   *
    * @param rtt round trip time
    */
   void
   recordResponse(Rtt rtt);
 
   /**
-   * Called on ping timeout
+   * @brief Called on ping timeout
    */
   void
   recordTimeout();

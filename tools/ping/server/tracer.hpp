@@ -39,7 +39,7 @@ public:
   Tracer(PingServer& pingServer, const Options& options);
 
   /**
-   * Prints ping information when interest received
+   * @brief Prints ping information when interest received
    * @param name interest name received
    */
   void
@@ -53,4 +53,4 @@ private:
 } // namespace ping
 } // namespace ndn
 
-#endif //NDN_TOOLS_PING_SERVER_TRACER_HPP
+#endif // NDN_TOOLS_PING_SERVER_TRACER_HPP

@@ -22,6 +22,7 @@
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
 #include "tests/test-common.hpp"
+#include "../identity-management-time-fixture.hpp"
 
 namespace ndn {
 namespace ping {
@@ -29,7 +30,7 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class PingIntegratedFixture : public UnitTestTimeFixture
+class PingIntegratedFixture : public IdentityManagementTimeFixture
 {
 public:
   PingIntegratedFixture()
@@ -93,7 +94,7 @@ BOOST_FIXTURE_TEST_CASE(Normal, PingIntegratedFixture)
   serverOpts.nMaxPings = 4;
   serverOpts.shouldPrintTimestamp = false;
   serverOpts.payloadSize = 0;
-  server.reset(new server::PingServer(*serverFace, serverOpts));
+  server.reset(new server::PingServer(*serverFace, m_keyChain, serverOpts));
   BOOST_REQUIRE_EQUAL(0, server->getNPings());
   server->start();
 
@@ -128,7 +129,7 @@ BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
   serverOpts.nMaxPings = 4;
   serverOpts.shouldPrintTimestamp = false;
   serverOpts.payloadSize = 0;
-  server.reset(new server::PingServer(*serverFace, serverOpts));
+  server.reset(new server::PingServer(*serverFace, m_keyChain, serverOpts));
   BOOST_REQUIRE_EQUAL(0, server->getNPings());
   server->start();
 

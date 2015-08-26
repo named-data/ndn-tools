@@ -26,11 +26,13 @@ namespace ndn {
 namespace ping {
 namespace server {
 
-PingServer::PingServer(Face& face, const Options& options)
+PingServer::PingServer(Face& face, KeyChain& keyChain, const Options& options)
   : m_options(options)
+  , m_keyChain(keyChain)
   , m_name(options.prefix)
   , m_nPings(0)
   , m_face(face)
+  , m_registeredPrefixId(nullptr)
 {
   shared_ptr<Buffer> b = make_shared<Buffer>();
   b->assign(m_options.payloadSize, 'a');
@@ -38,22 +40,22 @@ PingServer::PingServer(Face& face, const Options& options)
 }
 
 void
-PingServer::run()
-{
-  start();
-
-  m_face.getIoService().run();
-}
-
-void
 PingServer::start()
 {
   m_name.append("ping");
-  m_face.setInterestFilter(m_name,
-                           bind(&PingServer::onInterest,
-                                this, _2),
-                           bind(&PingServer::onRegisterFailed,
-                                this, _2));
+  m_registeredPrefixId = m_face.setInterestFilter(m_name,
+                                                  bind(&PingServer::onInterest,
+                                                       this, _2),
+                                                  bind(&PingServer::onRegisterFailed,
+                                                       this, _2));
+}
+
+void
+PingServer::stop()
+{
+  if (m_registeredPrefixId != nullptr) {
+    m_face.unsetInterestFilter(m_registeredPrefixId);
+  }
 }
 
 int
@@ -77,8 +79,7 @@ PingServer::onInterest(const Interest& interest)
 
   ++m_nPings;
   if (m_options.shouldLimitSatisfied && m_options.nMaxPings > 0 && m_options.nMaxPings == m_nPings) {
-    m_face.shutdown();
-    m_face.getIoService().stop();
+    afterFinish();
   }
 }
 

@@ -43,7 +43,8 @@ public:
   Tracer(Ping& ping, const Options& options);
 
   /**
-   * Prints ping results when response received
+   * @brief Prints ping results when response received
+   *
    * @param seq ping sequence number
    * @param rtt round trip time
    */
@@ -51,14 +52,15 @@ public:
   onResponse(uint64_t seq, Rtt rtt);
 
   /**
-   * Prints ping results when timed out
+   * @brief Prints ping results when timed out
+   *
    * @param seq ping sequence number
    */
   void
   onTimeout(uint64_t seq);
 
   /**
-   * Outputs ping errors to cerr
+   * @brief Outputs ping errors to cerr
    */
   void
   onError(std::string msg);

@@ -48,13 +48,19 @@ struct Options
 class PingServer : noncopyable
 {
 public:
-  PingServer(Face& face, const Options& options);
+  PingServer(Face& face, KeyChain& keyChain, const Options& options);
 
   /**
-   * Signals when Interest received
+   * @brief Signals when Interest received
+   *
    * @param name incoming interest name
    */
   signal::Signal<PingServer, Name> afterReceive;
+
+  /**
+   * @brief Signals when finished pinging
+   */
+  signal::Signal<PingServer> afterFinish;
 
   /** @brief starts ping server
    *
@@ -66,9 +72,17 @@ public:
 
   /**
    * @brief starts the Interest filter
+   *
+   * @note This method is non-blocking and caller need to call face.processEvents()
    */
   void
   start();
+
+  /**
+   * @brief Unregister set interest filter
+   */
+  void
+  stop();
 
   /**
    * @brief gets the number of pings received
@@ -78,14 +92,16 @@ public:
 
 private:
   /**
-   * Called when interest received
+   * @brief Called when interest received
+   *
    * @param interest incoming interest
    */
   void
   onInterest(const Interest& interest);
 
   /**
-   * Called when prefix registration failed
+   * @brief Called when prefix registration failed
+   *
    * @param reason reason for failure
    */
   void
@@ -93,11 +109,13 @@ private:
 
 private:
   const Options& m_options;
+  KeyChain& m_keyChain;
   Name m_name;
-  KeyChain m_keyChain;
   int m_nPings;
   Face& m_face;
   Block m_payload;
+
+  const RegisteredPrefixId* m_registeredPrefixId;
 };
 
 } // namespace server

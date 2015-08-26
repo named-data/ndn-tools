@@ -33,6 +33,7 @@ Ping::Ping(Face& face, const Options& options)
   , m_nOutstanding(0)
   , m_face(face)
   , m_scheduler(m_face.getIoService())
+  , m_nextPingEvent(m_scheduler)
 {
   if (m_options.shouldGenerateRandomSeq) {
     m_nextSeq = random::generateWord64();
@@ -40,17 +41,15 @@ Ping::Ping(Face& face, const Options& options)
 }
 
 void
-Ping::run()
-{
-  start();
-
-  m_face.getIoService().run();
-}
-
-void
 Ping::start()
 {
   performPing();
+}
+
+void
+Ping::stop()
+{
+  m_nextPingEvent.cancel();
 }
 
 void
@@ -73,7 +72,7 @@ Ping::performPing()
   ++m_nOutstanding;
 
   if ((m_options.nPings < 0) || (m_nSent < m_options.nPings)) {
-    m_scheduler.scheduleEvent(m_options.interval, bind(&Ping::performPing, this));
+    m_nextPingEvent = m_scheduler.scheduleEvent(m_options.interval, bind(&Ping::performPing, this));
   }
   else {
     finish();
@@ -105,9 +104,7 @@ Ping::finish()
     return;
   }
 
-  m_face.shutdown();
   afterFinish();
-  m_face.getIoService().stop();
 }
 
 Name

@@ -21,6 +21,7 @@
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
 #include "tests/test-common.hpp"
+#include "../../identity-management-time-fixture.hpp"
 
 namespace ndn {
 namespace ping {
@@ -31,13 +32,13 @@ using namespace ndn::tests;
 
 BOOST_AUTO_TEST_SUITE(PingServerPingServer)
 
-class CreatePingServerFixture : public UnitTestTimeFixture
+class CreatePingServerFixture : public IdentityManagementTimeFixture
 {
 protected:
   CreatePingServerFixture()
     : face(util::makeDummyClientFace(io, {false, true}))
     , pingOptions(makeOptions())
-    , pingServer(*face, pingOptions)
+    , pingServer(*face, m_keyChain, pingOptions)
   {
   }
 

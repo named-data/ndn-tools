@@ -56,51 +56,61 @@ public:
   Ping(Face& face, const Options& options);
 
   /**
-   * Signals on the successful return of a packet
+   * @brief Signals on the successful return of a packet
+   *
    * @param seq ping sequence number
    * @param rtt round trip time
    */
   signal::Signal<Ping, uint64_t, Rtt> afterResponse;
 
   /**
-   * Signals on timeout of a packet
+   * @brief Signals on timeout of a packet
+   *
    * @param seq ping sequence number
    */
   signal::Signal<Ping, uint64_t> afterTimeout;
 
   /**
-   * Signals when finished pinging
+   * @brief Signals when finished pinging
    */
   signal::Signal<Ping> afterFinish;
 
   /**
-   * Runs the ping client (blocking)
-   */
-  void
-  run();
-
-  /**
-   * Runs the ping client (non-blocking)
+   * @brief Start sending ping interests
+   *
+   * @note This method is non-blocking and caller need to call face.processEvents()
    */
   void
   start();
 
+  /**
+   * @brief Stop sending ping interests
+   *
+   * This method cancels any future ping interests and does not affect already pending interests.
+   *
+   * @todo Cancel pending ping interest
+   */
+  void
+  stop();
+
 private:
   /**
-   * Creates a ping Name from the sequence number
+   * @brief Creates a ping Name from the sequence number
+   *
    * @param seq ping sequence number
    */
   Name
   makePingName(uint64_t seq) const;
 
   /**
-   * Performs individual ping
+   * @brief Performs individual ping
    */
   void
   performPing();
 
   /**
-   * Called when ping returned successfully
+   * @brief Called when ping returned successfully
+   *
    * @param interest NDN interest
    * @param data returned data
    * @param seq ping sequence number
@@ -110,7 +120,8 @@ private:
   onData(const Interest& interest, Data& data, uint64_t seq, const time::steady_clock::TimePoint& sendTime);
 
   /**
-   * Called when ping timed out
+   * @brief Called when ping timed out
+   *
    * @param interest NDN interest
    * @param seq ping sequence number
    */
@@ -118,7 +129,7 @@ private:
   onTimeout(const Interest& interest, uint64_t seq);
 
   /**
-   * Called after ping received or timed out
+   * @brief Called after ping received or timed out
    */
   void
   finish();
@@ -130,6 +141,7 @@ private:
   int m_nOutstanding;
   Face& m_face;
   scheduler::Scheduler m_scheduler;
+  scheduler::ScopedEventId m_nextPingEvent;
 };
 
 } // namespace client

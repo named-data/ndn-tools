@@ -30,6 +30,69 @@ namespace ndn {
 namespace ping {
 namespace server {
 
+class Runner : noncopyable
+{
+public:
+  explicit
+  Runner(const Options& options)
+    : m_options(options)
+    , m_pingServer(m_face, m_keyChain, options)
+    , m_tracer(m_pingServer, options)
+    , m_signalSetInt(m_face.getIoService(), SIGINT)
+  {
+    m_signalSetInt.async_wait(bind(&Runner::afterIntSignal, this, _1));
+
+    m_pingServer.afterFinish.connect([this] {
+        this->cancel();
+      });
+  }
+
+  int
+  run()
+  {
+    try {
+      m_pingServer.start();
+      m_face.processEvents();
+    }
+    catch (std::exception& e) {
+      std::cerr << "ERROR: " << e.what() << std::endl;
+      return 1;
+    }
+
+    std::cout << "\n--- ping server " << m_options.prefix << " ---" << std::endl;
+    std::cout << m_pingServer.getNPings() << " packets processed" << std::endl;
+
+    return 0;
+  }
+
+private:
+  void
+  cancel()
+  {
+    m_signalSetInt.cancel();
+    m_pingServer.stop();
+  }
+
+  void
+  afterIntSignal(const boost::system::error_code& errorCode)
+  {
+    if (errorCode == boost::asio::error::operation_aborted) {
+      return;
+    }
+
+    cancel();
+  }
+
+private:
+  const Options& m_options;
+  Face m_face;
+  KeyChain m_keyChain;
+  PingServer m_pingServer;
+  Tracer m_tracer;
+
+  boost::asio::signal_set m_signalSetInt;
+};
+
 static time::milliseconds
 getMinimumFreshnessPeriod()
 {
@@ -46,36 +109,6 @@ usage(const boost::program_options::options_description& options)
       "\n";
   std::cout << options;
   exit(2);
-}
-
-static void
-printStatistics(PingServer& pingServer, Options& options)
-{
-  std::cout << "\n--- ping server " << options.prefix << " ---" << std::endl;
-  std::cout << pingServer.getNPings() << " packets processed" << std::endl;
-}
-
-/**
- * @brief SIGINT handler: exits
- * @param pingServer pingServer instance
- * @param options options
- */
-static void
-onSigInt(PingServer& pingServer, Options& options, Face& face)
-{
-  printStatistics(pingServer, options);
-  face.shutdown();
-  face.getIoService().stop();
-  exit(1);
-}
-
-/**
- * @brief outputs errors to cerr
- */
-static void
-onError(std::string msg)
-{
-  std::cerr << "ERROR: " << msg << std::endl;
 }
 
 int
@@ -169,30 +202,8 @@ main(int argc, char* argv[])
     usage(visibleOptDesc);
   }
 
-  boost::asio::io_service ioService;
-  Face face(ioService);
-  PingServer pingServer(face, options);
-  Tracer tracer(pingServer, options);
-
-  boost::asio::signal_set signalSetInt(face.getIoService(), SIGINT);
-  signalSetInt.async_wait(bind(&onSigInt, ref(pingServer), ref(options), ref(face)));
-
   std::cout << "PING SERVER " << options.prefix << std::endl;
-
-  try {
-    pingServer.run();
-  }
-  catch (std::exception& e) {
-    onError(e.what());
-    face.getIoService().stop();
-    return 1;
-  }
-
-  printStatistics(pingServer, options);
-  face.shutdown();
-  face.getIoService().stop();
-
-  return 0;
+  return Runner(options).run();
 }
 
 } // namespace server

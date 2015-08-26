@@ -31,6 +31,89 @@ namespace ndn {
 namespace ping {
 namespace client {
 
+class Runner : noncopyable
+{
+public:
+  explicit
+  Runner(const Options& options)
+    : m_ping(m_face, options)
+    , m_statisticsCollector(m_ping, options)
+    , m_tracer(m_ping, options)
+    , m_signalSetInt(m_face.getIoService(), SIGINT)
+    , m_signalSetQuit(m_face.getIoService(), SIGQUIT)
+  {
+    m_signalSetInt.async_wait(bind(&Runner::afterIntSignal, this, _1));
+    m_signalSetQuit.async_wait(bind(&Runner::afterQuitSignal, this, _1));
+
+    m_ping.afterFinish.connect([this] {
+        this->cancel();
+      });
+  }
+
+  int
+  run()
+  {
+    try {
+      m_ping.start();
+      m_face.processEvents();
+    }
+    catch (std::exception& e) {
+      m_tracer.onError(e.what());
+      return 2;
+    }
+
+    Statistics statistics = m_statisticsCollector.computeStatistics();
+
+    std::cout << statistics << std::endl;
+
+    if (statistics.nReceived == statistics.nSent) {
+      return 0;
+    }
+    else {
+      return 1;
+    }
+  }
+
+private:
+  void
+  cancel()
+  {
+    m_signalSetInt.cancel();
+    m_signalSetQuit.cancel();
+    m_ping.stop();
+  }
+
+  void
+  afterIntSignal(const boost::system::error_code& errorCode)
+  {
+    if (errorCode == boost::asio::error::operation_aborted) {
+      return;
+    }
+
+    cancel();
+  }
+
+  void
+  afterQuitSignal(const boost::system::error_code& errorCode)
+  {
+    if (errorCode == boost::asio::error::operation_aborted) {
+      return;
+    }
+
+    m_statisticsCollector.computeStatistics().printSummary(std::cout);
+    m_signalSetQuit.async_wait(bind(&Runner::afterQuitSignal, this, _1));
+  };
+
+private:
+  Face m_face;
+  Ping m_ping;
+  StatisticsCollector m_statisticsCollector;
+  Tracer m_tracer;
+
+  boost::asio::signal_set m_signalSetInt;
+  boost::asio::signal_set m_signalSetQuit;
+};
+
 static time::milliseconds
 getMinimumPingInterval()
 {
@@ -59,34 +142,6 @@ usage(const boost::program_options::options_description& options)
       "\n";
   std::cout << options;
   exit(2);
-}
-
-/**
- * @brief SIGINT handler: print statistics and exit
- */
-static void
-onSigInt(Face& face, StatisticsCollector& statisticsCollector)
-{
-  face.shutdown();
-  Statistics statistics = statisticsCollector.computeStatistics();
-  std::cout << statistics << std::endl;
-
-  if (statistics.nReceived == statistics.nSent) {
-    exit(0);
-  }
-  else {
-    exit(1);
-  }
-}
-
-/**
- * @brief SIGQUIT handler: print statistics summary and continue
- */
-static void
-onSigQuit(StatisticsCollector& statisticsCollector, boost::asio::signal_set& signalSet)
-{
-  statisticsCollector.computeStatistics().printSummary(std::cout);
-  signalSet.async_wait(bind(&onSigQuit, ref(statisticsCollector), ref(signalSet)));
 }
 
 int
@@ -205,39 +260,8 @@ main(int argc, char* argv[])
     usage(visibleOptDesc);
   }
 
-  boost::asio::io_service ioService;
-  Face face(ioService);
-  Ping ping(face, options);
-  StatisticsCollector statisticsCollector(ping, options);
-  Tracer tracer(ping, options);
-
-  boost::asio::signal_set signalSetInt(face.getIoService(), SIGINT);
-  signalSetInt.async_wait(bind(&onSigInt, ref(face), ref(statisticsCollector)));
-
-  boost::asio::signal_set signalSetQuit(face.getIoService(), SIGQUIT);
-  signalSetQuit.async_wait(bind(&onSigQuit, ref(statisticsCollector), ref(signalSetQuit)));
-
   std::cout << "PING " << options.prefix << std::endl;
-
-  try {
-    ping.run();
-  }
-  catch (std::exception& e) {
-    tracer.onError(e.what());
-    face.getIoService().stop();
-    return 2;
-  }
-
-  Statistics statistics = statisticsCollector.computeStatistics();
-
-  std::cout << statistics << std::endl;
-
-  if (statistics.nReceived == statistics.nSent) {
-    return 0;
-  }
-  else {
-    return 1;
-  }
+  return Runner(options).run();
 }
 
 } // namespace client
