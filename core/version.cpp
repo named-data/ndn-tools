@@ -22,7 +22,7 @@
 namespace ndn {
 namespace tools {
 
-const char VERSION[] = "0.1.0-dev";
+const char VERSION[] = "0.2";
 
 } // namespace tools
 } // namespace ndn

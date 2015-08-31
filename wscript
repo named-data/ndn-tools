@@ -1,7 +1,7 @@
 # -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 import os
 
-VERSION='0.1'
+VERSION='0.2'
 APPNAME='ndn-tools'
 
 def options(opt):
