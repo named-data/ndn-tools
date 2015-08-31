@@ -8,7 +8,7 @@ if has OSX $NODE_LABELS; then
     set -x
     brew update
     brew upgrade
-    brew install boost pkg-config
+    brew install boost pkg-config cryptopp
     brew cleanup
 fi
 
