@@ -59,6 +59,7 @@ public:
   explicit
   NdnPeek(char* programName)
     : m_programName(programName)
+    , m_isVerbose(false)
     , m_mustBeFresh(false)
     , m_isChildSelectorRightmost(false)
     , m_minSuffixComponents(-1)
@@ -84,10 +85,17 @@ public:
       "   [-l lifetime] - set InterestLifetime in time::milliseconds\n"
       "   [-p]          - print payload only, not full packet\n"
       "   [-w timeout]  - set Timeout in time::milliseconds\n"
+      "   [-v]          - verbose output\n"
       "   [-h]          - print help and exit\n"
       "   [-V]          - print version and exit\n"
       "\n";
     exit(1);
+  }
+
+  void
+  setVerbose()
+  {
+    m_isVerbose = true;
   }
 
   void
@@ -182,6 +190,10 @@ public:
     else
       interestPacket.setInterestLifetime(m_interestLifetime);
 
+    if (m_isVerbose) {
+      std::cerr << "INTEREST: " << interestPacket << std::endl;
+    }
+
     return interestPacket;
   }
 
@@ -189,6 +201,13 @@ public:
   onData(const Interest& interest, Data& data)
   {
     m_isDataReceived = true;
+
+    if (m_isVerbose) {
+      std::cerr << "DATA, RTT: "
+                << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_expressInterestTime).count()
+                << "ms" << std::endl;
+    }
+
     if (m_isPayloadOnlySet) {
       const Block& block = data.getContent();
       std::cout.write(reinterpret_cast<const char*>(block.value()), block.value_size());
@@ -211,18 +230,19 @@ public:
       m_face.expressInterest(createInterestPacket(),
                              bind(&NdnPeek::onData, this, _1, _2),
                              bind(&NdnPeek::onTimeout, this, _1));
+      m_expressInterestTime = time::steady_clock::now();
       if (m_timeout < time::milliseconds::zero()) {
-        if (m_interestLifetime < time::milliseconds::zero())
-          m_face.processEvents(getDefaultInterestLifetime());
-        else
-          m_face.processEvents(m_interestLifetime);
+        m_timeout = m_interestLifetime < time::milliseconds::zero() ?
+                    getDefaultInterestLifetime() : m_interestLifetime;
       }
-      else
-        m_face.processEvents(m_timeout);
+      m_face.processEvents(m_timeout);
     }
     catch (std::exception& e) {
-      std::cerr << "ERROR: " << e.what() << "\n" << std::endl;
+      std::cerr << "ERROR: " << e.what() << std::endl;
       exit(1);
+    }
+    if (m_isVerbose && !m_isDataReceived) {
+      std::cerr << "TIMEOUT" << std::endl;
     }
   }
 
@@ -234,6 +254,7 @@ public:
 
 private:
   std::string m_programName;
+  bool m_isVerbose;
   bool m_mustBeFresh;
   bool m_isChildSelectorRightmost;
   int m_minSuffixComponents;
@@ -242,6 +263,7 @@ private:
   bool m_isPayloadOnlySet;
   time::milliseconds m_timeout;
   std::string m_prefixName;
+  time::steady_clock::TimePoint m_expressInterestTime;
   bool m_isDataReceived;
   Face m_face;
 };
@@ -251,10 +273,13 @@ main(int argc, char* argv[])
 {
   NdnPeek program(argv[0]);
   int option;
-  while ((option = getopt(argc, argv, "hfrm:M:l:pw:V")) != -1) {
+  while ((option = getopt(argc, argv, "hvfrm:M:l:pw:V")) != -1) {
     switch (option) {
     case 'h':
       program.usage();
+      break;
+    case 'v':
+      program.setVerbose();
       break;
     case 'f':
       program.setMustBeFresh();
