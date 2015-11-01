@@ -69,8 +69,6 @@ protected:
   advanceClocks(boost::asio::io_service& io,
                 const time::nanoseconds& tick, size_t nTicks = 1)
   {
-    BOOST_ASSERT(nTicks >= 0);
-
     this->advanceClocks(io, tick, tick * nTicks);
   }
 
