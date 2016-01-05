@@ -16,3 +16,6 @@ in ndn-tools:
 * Qi Zhao               <https://www.linkedin.com/pub/qi-zhao/73/835/9a3>
 * Seunghyun Yoo         <http://relue2718.com/>
 * Seungbae Kim          <https://sites.google.com/site/sbkimcv/>
+* Wentao Shang          <http://irl.cs.ucla.edu/~wentao/>
+* Steve DiBenedetto     <https://dibenede.github.io>
+* Andrea Tosatto        <https://linkedin.com/in/tosattoandrea>
