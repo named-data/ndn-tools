@@ -19,3 +19,4 @@ in ndn-tools:
 * Wentao Shang          <http://irl.cs.ucla.edu/~wentao/>
 * Steve DiBenedetto     <https://dibenede.github.io>
 * Andrea Tosatto        <https://linkedin.com/in/tosattoandrea>
+* Vince Lehman          <http://vslehman.com>

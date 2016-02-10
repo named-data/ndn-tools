@@ -167,6 +167,9 @@ class ClangFlags(GccBasicFlags):
 
     def getDebugFlags(self, conf):
         flags = super(ClangFlags, self).getDebugFlags(conf)
+        version = tuple(int(i) for i in conf.env['CC_VERSION'])
+        if Utils.unversioned_sys_platform() == 'darwin' and version < (7, 0, 0):
+            flags['CXXFLAGS'] += ['-Wno-missing-field-initializers']
         flags['CXXFLAGS'] += ['-fcolor-diagnostics',
                               '-Wno-unused-local-typedef', # Bugs #2657 and #3209
                               '-Wno-error=unneeded-internal-declaration', # Bug #1588
@@ -177,6 +180,9 @@ class ClangFlags(GccBasicFlags):
 
     def getOptimizedFlags(self, conf):
         flags = super(ClangFlags, self).getOptimizedFlags(conf)
+        version = tuple(int(i) for i in conf.env['CC_VERSION'])
+        if Utils.unversioned_sys_platform() == 'darwin' and version < (7, 0, 0):
+            flags['CXXFLAGS'] += ['-Wno-missing-field-initializers']
         flags['CXXFLAGS'] += ['-fcolor-diagnostics',
                               '-Wno-unused-local-typedef', # Bugs #2657 and #3209
                               ]

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -47,8 +47,8 @@ namespace dump {
 #include "tcpdump/udp.h"
 #include "tcpdump/tcp.h"
 
-} // namespace ndn
 } // namespace dump
+} // namespace ndn
 
 #include <boost/lexical_cast.hpp>
 
@@ -56,11 +56,11 @@ namespace dump {
 
 #include <ndn-cxx/interest.hpp>
 #include <ndn-cxx/data.hpp>
+#include <ndn-cxx/lp/nack.hpp>
+#include <ndn-cxx/lp/packet.hpp>
 
 namespace ndn {
 namespace dump {
-
-// const uint8_t NDNLP_HEADER[] = {'N', 'd', 'n', 'l', 'p'};
 
 const size_t MAX_SNAPLEN = 65535;
 
@@ -139,7 +139,7 @@ Ndndump::run()
 
 
 void
-Ndndump::onCapturedPacket(const struct pcap_pkthdr* header, const uint8_t* packet)
+Ndndump::onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet)
 {
   std::ostringstream os;
   printInterceptTime(os, header);
@@ -162,24 +162,65 @@ Ndndump::onCapturedPacket(const struct pcap_pkthdr* header, const uint8_t* packe
   Block block;
   std::tie(isOk, block) = Block::fromBuffer(payload, payloadSize);
   if (!isOk) {
-    // if packet is fragmented, we will not be able to process it
+    // if packet is incomplete, we will not be able to process it
+    if (payloadSize > 0) {
+      std::cout << os.str() << ", " << "INCOMPLETE-PACKET" << ", size: " << payloadSize << std::endl;
+    }
     return;
   }
 
-  /// \todo Detect various header (LocalControlHeader, NDNLP, etc.)
+  lp::Packet lpPacket;
+  Block netPacket;
+
+  if (block.type() == lp::tlv::LpPacket) {
+    lpPacket = lp::Packet(block);
+
+    Buffer::const_iterator begin, end;
+
+    if (lpPacket.has<lp::FragmentField>()) {
+      std::tie(begin, end) = lpPacket.get<lp::FragmentField>();
+    }
+    else {
+      std::cout << os.str() << ", " << "NDNLPv2-IDLE" << std::endl;
+      return;
+    }
+
+    bool isOk = false;
+    std::tie(isOk, netPacket) = Block::fromBuffer(&*begin, std::distance(begin, end));
+    if (!isOk) {
+      // if network packet is fragmented, we will not be able to process it
+      std::cout << os.str() << ", " << "NDNLPv2-FRAGMENT" << std::endl;
+      return;
+    }
+  }
+  else {
+    netPacket = block;
+  }
 
   try {
-    if (block.type() == tlv::Interest) {
-      Interest interest(block);
+    if (netPacket.type() == tlv::Interest) {
+      Interest interest(netPacket);
       if (matchesFilter(interest.getName())) {
-        std::cout << os.str() << ", " << "INTEREST: " << interest << std::endl;
+
+        if (lpPacket.has<lp::NackField>()) {
+          lp::Nack nack(interest);
+          nack.setHeader(lpPacket.get<lp::NackField>());
+
+          std::cout << os.str() << ", " << "NACK: " << nack.getReason() << ", " << interest << std::endl;
+        }
+        else {
+          std::cout << os.str() << ", " << "INTEREST: " << interest << std::endl;
+        }
       }
     }
-    else if (block.type() == tlv::Data) {
-      Data data(block);
+    else if (netPacket.type() == tlv::Data) {
+      Data data(netPacket);
       if (matchesFilter(data.getName())) {
         std::cout << os.str() << ", " << "DATA: " << data.getName() << std::endl;
       }
+    }
+    else {
+      std::cout << os.str() << ", " << "UNKNOWN-NETWORK-PACKET" << std::endl;
     }
   }
   catch (tlv::Error& e) {
@@ -188,7 +229,7 @@ Ndndump::onCapturedPacket(const struct pcap_pkthdr* header, const uint8_t* packe
 }
 
 void
-Ndndump::printInterceptTime(std::ostream& os, const struct pcap_pkthdr* header)
+Ndndump::printInterceptTime(std::ostream& os, const pcap_pkthdr* header)
 {
   os << header->ts.tv_sec
      << "."

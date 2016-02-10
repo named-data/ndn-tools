@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -37,6 +37,8 @@
 #ifndef NDN_TOOLS_DUMP_NDNDUMP_HPP
 #define NDN_TOOLS_DUMP_NDNDUMP_HPP
 
+#include "core/common.hpp"
+
 #include <pcap.h>
 
 #include <ndn-cxx/name.hpp>
@@ -72,18 +74,19 @@ public:
   void
   run();
 
+PUBLIC_WITH_TESTS_ELSE_PRIVATE:
+  void
+  onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet);
+
 private:
   static void
-  onCapturedPacket(uint8_t* userData, const struct pcap_pkthdr* header, const uint8_t* packet)
+  onCapturedPacket(uint8_t* userData, const pcap_pkthdr* header, const uint8_t* packet)
   {
     reinterpret_cast<Ndndump*>(userData)->onCapturedPacket(header, packet);
   }
 
   void
-  onCapturedPacket(const struct pcap_pkthdr* header, const uint8_t* packet);
-
-  void
-  printInterceptTime(std::ostream& os, const struct pcap_pkthdr* header);
+  printInterceptTime(std::ostream& os, const pcap_pkthdr* header);
 
   int
   skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& payloadSize);
@@ -120,6 +123,8 @@ public:
 
 private:
   pcap_t* m_pcap;
+
+PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   int m_dataLinkType;
 };
 
