@@ -1,6 +1,6 @@
 # ndndump
 
-**ndndump** is a traffic analysis tool that captures Interest and Data packets on the wire,
+**ndndump** is a traffic analysis tool that captures Interest, Data, and Nack packets on the wire
 and displays brief information about captured packets.
 
 Usage example:

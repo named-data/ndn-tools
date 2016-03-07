@@ -11,16 +11,16 @@ Usage
 Description
 -----------
 
-:program:`ndndump` is a traffic analysis tool that captures Interest and Data packets on the wire,
-and displays brief information about captured packets.
+:program:`ndndump` is a traffic analysis tool that captures Interest, Data, and Nack packets on the
+wire and displays brief information about captured packets.
 
-Currently, :program:`ndndump` is capable of extracting Interest and Data packets from:
+Currently, :program:`ndndump` is capable of extracting Interest, Data, and Nack packets from:
 
-* Ethernet, when bare Interest/Data is transmitted without NDNLP header
+* Ethernet
 * PPP link (e.g., pcap trace from ndnSIM)
 * IPv4 UDP unicast tunnel
 * IPv4 UDP multicast group
-* IPv6 TCP tunnel, when Interest/Data is aligned to the front of a TCP segment
+* IPv4 TCP tunnel, when Interest/Data/Nack is aligned to the front of a TCP segment
 
 Options
 -------
