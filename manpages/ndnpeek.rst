@@ -6,7 +6,7 @@ Usage
 
 ::
 
-    ndnpeek [-h] [-f] [-r] [-m min] [-M max] [-l lifetime] [-p] [-w timeout] name
+    ndnpeek [-h] [-f] [-r] [-m min] [-M max] [-l lifetime] [-p] [-w timeout] [-v] [-V] name
 
 Description
 -----------
@@ -21,30 +21,48 @@ occurs.
 Options
 -------
 
-``-h``
-  Print help and exit
+``-h, --help``
+  Print help and exit.
 
-``-f``
+``-f, --fresh``
   If specified, set ``MustBeFresh`` selector in the Interest packet.
 
-``-r``
+``-r, --rightmost``
   Set ``ChildSelector=1`` (the rightmost child) selector.
 
-``-m``
+``-m, --minsuffix min``
   Set ``min`` as the ``MinSuffixComponents`` selector.
 
-``-M``
+``-M, --maxsuffix max``
   Set ``max`` as the ``MaxSuffixComponents`` selector.
 
-``-l``
+``-l, --lifetime lifetime``
   Set ``lifetime`` (in milliseconds) as the ``InterestLifetime``.
 
-``-p``
+``-p, --payload``
   If specified, print the received payload only, not the full packet.
 
-``-w``
+``-w, --timeout timeout``
   Timeout after ``timeout`` milliseconds.
 
+``-v, --verbose``
+  If specified, verbose output.
+
+``-V, --version``
+  Print version and exit.
+
+Exit Codes
+----------
+
+0: Success
+
+1: An unspecified error occurred
+
+2: Malformed command line
+
+3: Network operation timed out
+
+4: Nack received
 
 Examples
 --------

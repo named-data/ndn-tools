@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California,
+ * Copyright (c) 2014-2016,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -49,6 +49,9 @@
  */
 
 #include "core/version.hpp"
+#include "core/common.hpp"
+
+#include <ndn-cxx/util/io.hpp>
 
 namespace ndn {
 namespace peek {
@@ -58,63 +61,34 @@ class NdnPeek : boost::noncopyable
 public:
   explicit
   NdnPeek(char* programName)
-    : m_programName(programName)
-    , m_isVerbose(false)
-    , m_mustBeFresh(false)
-    , m_isChildSelectorRightmost(false)
+    : isVerbose(false)
+    , mustBeFresh(false)
+    , wantRightmostChild(false)
+    , wantPayloadOnly(false)
+    , m_programName(programName)
     , m_minSuffixComponents(-1)
     , m_maxSuffixComponents(-1)
     , m_interestLifetime(-1)
-    , m_isPayloadOnlySet(false)
     , m_timeout(-1)
     , m_prefixName("")
-    , m_isDataReceived(false)
+    , m_didReceiveData(false)
   {
   }
 
   void
-  usage()
+  usage(std::ostream& os ,const boost::program_options::options_description& options) const
   {
-    std::cout << "\n Usage:\n " << m_programName << " "
-      "[-f] [-r] [-m min] [-M max] [-l lifetime] [-p] [-w timeout] ndn:/name\n"
-      "   Get one data item matching the name prefix and write it to stdout\n"
-      "   [-f]          - set MustBeFresh\n"
-      "   [-r]          - set ChildSelector to select rightmost child\n"
-      "   [-m min]      - set MinSuffixComponents\n"
-      "   [-M max]      - set MaxSuffixComponents\n"
-      "   [-l lifetime] - set InterestLifetime in time::milliseconds\n"
-      "   [-p]          - print payload only, not full packet\n"
-      "   [-w timeout]  - set Timeout in time::milliseconds\n"
-      "   [-v]          - verbose output\n"
-      "   [-h]          - print help and exit\n"
-      "   [-V]          - print version and exit\n"
-      "\n";
-    exit(1);
-  }
-
-  void
-  setVerbose()
-  {
-    m_isVerbose = true;
-  }
-
-  void
-  setMustBeFresh()
-  {
-    m_mustBeFresh = true;
-  }
-
-  void
-  setRightmostChildSelector()
-  {
-    m_isChildSelectorRightmost = true;
+    os << "Usage: " << m_programName << " [options] ndn:/name\n"
+          "   Fetch one data item matching the name prefix and write it to standard output\n"
+          "\n"
+       << options;
   }
 
   void
   setMinSuffixComponents(int minSuffixComponents)
   {
     if (minSuffixComponents < 0)
-      usage();
+      throw std::out_of_range("'minSuffixComponents' must be a non-negative integer");
 
     m_minSuffixComponents = minSuffixComponents;
   }
@@ -123,7 +97,7 @@ public:
   setMaxSuffixComponents(int maxSuffixComponents)
   {
     if (maxSuffixComponents < 0)
-      usage();
+      throw std::out_of_range("'maxSuffixComponents' must be a non-negative integer");
 
     m_maxSuffixComponents = maxSuffixComponents;
   }
@@ -132,33 +106,24 @@ public:
   setInterestLifetime(int interestLifetime)
   {
     if (interestLifetime < 0)
-      usage();
+      throw std::out_of_range("'lifetime' must be a non-negative integer");
 
     m_interestLifetime = time::milliseconds(interestLifetime);
-  }
-
-  void
-  setPayloadOnly()
-  {
-    m_isPayloadOnlySet = true;
   }
 
   void
   setTimeout(int timeout)
   {
     if (timeout < 0)
-      usage();
+      throw std::out_of_range("'timeout' must be a non-negative integer");
 
     m_timeout = time::milliseconds(timeout);
   }
 
   void
-  setPrefixName(char* prefixName)
+  setPrefixName(const std::string& prefixName)
   {
     m_prefixName = prefixName;
-
-    if (m_prefixName.length() == 0)
-      usage();
   }
 
   time::milliseconds
@@ -173,10 +138,10 @@ public:
     Name interestName(m_prefixName);
     Interest interestPacket(interestName);
 
-    if (m_mustBeFresh)
+    if (mustBeFresh)
       interestPacket.setMustBeFresh(true);
 
-    if (m_isChildSelectorRightmost)
+    if (wantRightmostChild)
       interestPacket.setChildSelector(1);
 
     if (m_minSuffixComponents >= 0)
@@ -190,7 +155,7 @@ public:
     else
       interestPacket.setInterestLifetime(m_interestLifetime);
 
-    if (m_isVerbose) {
+    if (isVerbose) {
       std::cerr << "INTEREST: " << interestPacket << std::endl;
     }
 
@@ -200,15 +165,15 @@ public:
   void
   onData(const Interest& interest, Data& data)
   {
-    m_isDataReceived = true;
+    m_didReceiveData = true;
 
-    if (m_isVerbose) {
+    if (isVerbose) {
       std::cerr << "DATA, RTT: "
                 << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_expressInterestTime).count()
                 << "ms" << std::endl;
     }
 
-    if (m_isPayloadOnlySet) {
+    if (wantPayloadOnly) {
       const Block& block = data.getContent();
       std::cout.write(reinterpret_cast<const char*>(block.value()), block.value_size());
     }
@@ -223,7 +188,7 @@ public:
   {
   }
 
-  void
+  int
   run()
   {
     try {
@@ -237,34 +202,34 @@ public:
       }
       m_face.processEvents(m_timeout);
     }
-    catch (std::exception& e) {
+    catch (const std::exception& e) {
       std::cerr << "ERROR: " << e.what() << std::endl;
-      exit(1);
+      return 1;
     }
-    if (m_isVerbose && !m_isDataReceived) {
+
+    if (isVerbose && !m_didReceiveData) {
       std::cerr << "TIMEOUT" << std::endl;
+      return 3;
     }
+
+    return 0;
   }
 
-  bool
-  isDataReceived() const
-  {
-    return m_isDataReceived;
-  }
+public:
+  bool isVerbose;
+  bool mustBeFresh;
+  bool wantRightmostChild;
+  bool wantPayloadOnly;
 
 private:
   std::string m_programName;
-  bool m_isVerbose;
-  bool m_mustBeFresh;
-  bool m_isChildSelectorRightmost;
   int m_minSuffixComponents;
   int m_maxSuffixComponents;
   time::milliseconds m_interestLifetime;
-  bool m_isPayloadOnlySet;
   time::milliseconds m_timeout;
   std::string m_prefixName;
   time::steady_clock::TimePoint m_expressInterestTime;
-  bool m_isDataReceived;
+  bool m_didReceiveData;
   Face m_face;
 };
 
@@ -272,58 +237,71 @@ int
 main(int argc, char* argv[])
 {
   NdnPeek program(argv[0]);
-  int option;
-  while ((option = getopt(argc, argv, "hvfrm:M:l:pw:V")) != -1) {
-    switch (option) {
-    case 'h':
-      program.usage();
-      break;
-    case 'v':
-      program.setVerbose();
-      break;
-    case 'f':
-      program.setMustBeFresh();
-      break;
-    case 'r':
-      program.setRightmostChildSelector();
-      break;
-    case 'm':
-      program.setMinSuffixComponents(atoi(optarg));
-      break;
-    case 'M':
-      program.setMaxSuffixComponents(atoi(optarg));
-      break;
-    case 'l':
-      program.setInterestLifetime(atoi(optarg));
-      break;
-    case 'p':
-      program.setPayloadOnly();
-      break;
-    case 'w':
-      program.setTimeout(atoi(optarg));
-      break;
-    case 'V':
+
+  namespace po = boost::program_options;
+
+  po::options_description visibleOptDesc("Allowed options");
+  visibleOptDesc.add_options()
+    ("help,h", "print help and exit")
+    ("version,V", "print version and exit")
+    ("fresh,f", po::bool_switch(&program.mustBeFresh),
+        "set MustBeFresh")
+    ("rightmost,r", po::bool_switch(&program.wantRightmostChild),
+        "set ChildSelector to rightmost")
+    ("minsuffix,m", po::value<int>()->notifier(bind(&NdnPeek::setMinSuffixComponents, &program, _1)),
+        "set MinSuffixComponents")
+    ("maxsuffix,M", po::value<int>()->notifier(bind(&NdnPeek::setMaxSuffixComponents, &program, _1)),
+        "set MaxSuffixComponents")
+    ("lifetime,l", po::value<int>()->notifier(bind(&NdnPeek::setInterestLifetime, &program, _1)),
+        "set InterestLifetime (in milliseconds)")
+    ("payload,p", po::bool_switch(&program.wantPayloadOnly),
+        "print payload only, instead of full packet")
+    ("timeout,w", po::value<int>()->notifier(bind(&NdnPeek::setTimeout, &program, _1)),
+        "set timeout (in milliseconds)")
+    ("verbose,v", po::bool_switch(&program.isVerbose),
+        "turn on verbose output")
+  ;
+
+  po::options_description hiddenOptDesc("Hidden options");
+  hiddenOptDesc.add_options()
+    ("prefix", po::value<std::string>(), "Interest name");
+
+  po::options_description optDesc("Allowed options");
+  optDesc.add(visibleOptDesc).add(hiddenOptDesc);
+
+  po::positional_options_description optPos;
+  optPos.add("prefix", -1);
+
+  try {
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).options(optDesc).positional(optPos).run(), vm);
+    po::notify(vm);
+
+    if (vm.count("help") > 0) {
+      program.usage(std::cout, visibleOptDesc);
+      return 0;
+    }
+
+    if (vm.count("version") > 0) {
       std::cout << "ndnpeek " << tools::VERSION << std::endl;
       return 0;
-    default:
-      program.usage();
-      break;
+    }
+
+    if (vm.count("prefix") > 0) {
+      std::string prefixName = vm["prefix"].as<std::string>();
+      program.setPrefixName(prefixName);
+    }
+    else {
+      throw std::runtime_error("Required argument 'prefix' is missing");
     }
   }
+  catch (const std::exception& e) {
+    std::cerr << "ERROR: " << e.what() << std::endl;
+    program.usage(std::cerr, visibleOptDesc);
+    return 2;
+  }
 
-  argc -= optind;
-  argv += optind;
-
-  if (argv[0] == 0)
-    program.usage();
-
-  program.setPrefixName(argv[0]);
-  program.run();
-
-  if (program.isDataReceived())
-    return 0;
-  else
-    return 1;
+  return program.run();
 }
 
 } // namespace peek
