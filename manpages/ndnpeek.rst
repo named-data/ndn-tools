@@ -51,6 +51,9 @@ Options
 ``-V, --version``
   Print version and exit.
 
+``--link-file [file]``
+  Read Link object from ``file`` and add it to the expressed Interest.
+
 Exit Codes
 ----------
 

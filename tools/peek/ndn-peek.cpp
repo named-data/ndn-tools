@@ -121,6 +121,14 @@ public:
   }
 
   void
+  setLink(const std::string& file)
+  {
+    m_link = io::load<Link>(file);
+    if (m_link == nullptr)
+      throw std::runtime_error(file + " is either nonreadable or nonparseable");
+  }
+
+  void
   setPrefixName(const std::string& prefixName)
   {
     m_prefixName = prefixName;
@@ -154,6 +162,9 @@ public:
       interestPacket.setInterestLifetime(getDefaultInterestLifetime());
     else
       interestPacket.setInterestLifetime(m_interestLifetime);
+
+    if (m_link != nullptr)
+      interestPacket.setLink(m_link->wireEncode());
 
     if (isVerbose) {
       std::cerr << "INTEREST: " << interestPacket << std::endl;
@@ -229,6 +240,7 @@ private:
   time::milliseconds m_timeout;
   std::string m_prefixName;
   time::steady_clock::TimePoint m_expressInterestTime;
+  shared_ptr<Link> m_link;
   bool m_didReceiveData;
   Face m_face;
 };
@@ -260,6 +272,8 @@ main(int argc, char* argv[])
         "set timeout (in milliseconds)")
     ("verbose,v", po::bool_switch(&program.isVerbose),
         "turn on verbose output")
+    ("link-file", po::value<std::string>()->notifier(bind(&NdnPeek::setLink, &program, _1)),
+        "set Link from a file")
   ;
 
   po::options_description hiddenOptDesc("Hidden options");
