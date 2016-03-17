@@ -72,6 +72,7 @@ public:
     , m_timeout(-1)
     , m_prefixName("")
     , m_didReceiveData(false)
+    , m_didReceiveNack(false)
   {
   }
 
@@ -174,7 +175,7 @@ public:
   }
 
   void
-  onData(const Interest& interest, Data& data)
+  onData(const Interest& interest, const Data& data)
   {
     m_didReceiveData = true;
 
@@ -195,6 +196,27 @@ public:
   }
 
   void
+  onNack(const Interest& interest, const lp::Nack& nack)
+  {
+    m_didReceiveNack = true;
+    lp::NackHeader header = nack.getHeader();
+
+    if (isVerbose) {
+      std::cerr << "NACK, RTT: "
+                << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_expressInterestTime).count()
+                << "ms" << std::endl;
+    }
+
+    if (wantPayloadOnly) {
+      std::cout << header.getReason() << std::endl;
+    }
+    else {
+      const Block& block = header.wireEncode();
+      std::cout.write(reinterpret_cast<const char*>(block.wire()), block.size());
+    }
+  }
+
+  void
   onTimeout(const Interest& interest)
   {
   }
@@ -205,6 +227,7 @@ public:
     try {
       m_face.expressInterest(createInterestPacket(),
                              bind(&NdnPeek::onData, this, _1, _2),
+                             bind(&NdnPeek::onNack, this, _1, _2),
                              bind(&NdnPeek::onTimeout, this, _1));
       m_expressInterestTime = time::steady_clock::now();
       if (m_timeout < time::milliseconds::zero()) {
@@ -218,10 +241,16 @@ public:
       return 1;
     }
 
+    if (m_didReceiveNack)
+      return 4;
+
     if (isVerbose && !m_didReceiveData) {
       std::cerr << "TIMEOUT" << std::endl;
       return 3;
     }
+
+    if (!m_didReceiveData)
+      return 3;
 
     return 0;
   }
@@ -242,6 +271,7 @@ private:
   time::steady_clock::TimePoint m_expressInterestTime;
   shared_ptr<Link> m_link;
   bool m_didReceiveData;
+  bool m_didReceiveNack;
   Face m_face;
 };
 
