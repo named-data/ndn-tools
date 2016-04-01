@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Arizona Board of Regents.
+ * Copyright (c) 2014-2016,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -36,7 +36,6 @@ public:
   PingIntegratedFixture()
     : serverFace(util::makeDummyClientFace(io, {false, true}))
     , clientFace(util::makeDummyClientFace(io, {false, true}))
-    , numResponses(0)
     , wantLoss(false)
   {
     serverFace->onSendInterest.connect([this] (const Interest& interest) {
@@ -53,24 +52,11 @@ public:
     });
   }
 
-  void onTimeout(uint64_t seq)
+  void onFinish()
   {
-    numResponses++;
-    if (numResponses == maxResponses) {
-      serverFace->shutdown();
-      clientFace->shutdown();
-      io.stop();
-    }
-  }
-
-  void onData(uint64_t seq)
-  {
-    numResponses++;
-    if (numResponses == maxResponses) {
-      serverFace->shutdown();
-      clientFace->shutdown();
-      io.stop();
-    }
+    serverFace->shutdown();
+    clientFace->shutdown();
+    io.stop();
   }
 
 public:
@@ -79,8 +65,6 @@ public:
   shared_ptr<util::DummyClientFace> clientFace;
   std::unique_ptr<server::PingServer> server;
   std::unique_ptr<client::Ping> client;
-  int maxResponses;
-  int numResponses;
   bool wantLoss;
 };
 
@@ -108,9 +92,7 @@ BOOST_FIXTURE_TEST_CASE(Normal, PingIntegratedFixture)
   clientOpts.timeout = time::milliseconds(2000);
   clientOpts.startSeq = 1000;
   client.reset(new client::Ping(*clientFace, clientOpts));
-  client->afterResponse.connect(bind(&PingIntegratedFixture::onData, this, _1));
-  client->afterTimeout.connect(bind(&PingIntegratedFixture::onTimeout, this, _1));
-  maxResponses = 4;
+  client->afterFinish.connect(bind(&PingIntegratedFixture::onFinish, this));
   client->start();
 
   this->advanceClocks(io, time::milliseconds(1), 400);
@@ -143,10 +125,7 @@ BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
   clientOpts.timeout = time::milliseconds(500);
   clientOpts.startSeq = 1000;
   client.reset(new client::Ping(*clientFace, clientOpts));
-  numResponses = 0;
-  maxResponses = 4;
-  client->afterResponse.connect(bind(&PingIntegratedFixture::onData, this, _1));
-  client->afterTimeout.connect(bind(&PingIntegratedFixture::onTimeout, this, _1));
+  client->afterFinish.connect(bind(&PingIntegratedFixture::onFinish, this));
   client->start();
 
   this->advanceClocks(io, time::milliseconds(1), 1000);

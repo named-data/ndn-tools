@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Arizona Board of Regents.
+ * Copyright (c) 2014-2016,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -67,7 +67,7 @@ BOOST_FIXTURE_TEST_SUITE(PingClientStatisticsCollector, StatisticsCollectorFixtu
 
 BOOST_AUTO_TEST_CASE(Resp50msResp50ms)
 {
-  sc.recordResponse(time::milliseconds(50));
+  sc.recordData(time::milliseconds(50));
 
   Statistics stats1 = sc.computeStatistics();
   BOOST_CHECK_EQUAL(stats1.prefix, pingOptions.prefix);
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(Resp50msResp50ms)
   BOOST_CHECK_CLOSE(stats1.avgRtt, 50.0, 0.001);
   BOOST_CHECK_CLOSE(stats1.stdDevRtt, 0.0, 0.001);
 
-  sc.recordResponse(time::milliseconds(50));
+  sc.recordData(time::milliseconds(50));
 
   Statistics stats2 = sc.computeStatistics();
   BOOST_CHECK_EQUAL(stats2.prefix, pingOptions.prefix);
@@ -96,8 +96,8 @@ BOOST_AUTO_TEST_CASE(Resp50msResp50ms)
 
 BOOST_AUTO_TEST_CASE(Resp50msResp100ms)
 {
-  sc.recordResponse(time::milliseconds(50));
-  sc.recordResponse(time::milliseconds(100));
+  sc.recordData(time::milliseconds(50));
+  sc.recordData(time::milliseconds(100));
 
   Statistics stats = sc.computeStatistics();
   BOOST_CHECK_EQUAL(stats.prefix, pingOptions.prefix);
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(LossLoss)
 
 BOOST_AUTO_TEST_CASE(Resp50msLoss)
 {
-  sc.recordResponse(time::milliseconds(50));
+  sc.recordData(time::milliseconds(50));
   sc.recordTimeout();
 
   Statistics stats = sc.computeStatistics();
@@ -138,6 +138,51 @@ BOOST_AUTO_TEST_CASE(Resp50msLoss)
   BOOST_CHECK_CLOSE(stats.sumRtt, 50.0, 0.001);
   BOOST_CHECK_CLOSE(stats.avgRtt, 50.0, 0.001);
   BOOST_CHECK_CLOSE(stats.stdDevRtt, 0.0, 0.001);
+}
+
+BOOST_AUTO_TEST_CASE(NackNack)
+{
+  sc.recordNack();
+  sc.recordNack();
+
+  Statistics stats = sc.computeStatistics();
+  BOOST_CHECK_EQUAL(stats.prefix, pingOptions.prefix);
+  BOOST_CHECK_EQUAL(stats.nSent, 2);
+  BOOST_CHECK_EQUAL(stats.nNacked, 2);
+  BOOST_CHECK_EQUAL(stats.nReceived, 0);
+  BOOST_CHECK_CLOSE(stats.packetNackedRate, 1.0, 0.001);
+}
+
+BOOST_AUTO_TEST_CASE(Resp50msNack)
+{
+  sc.recordData(time::milliseconds(50));
+  sc.recordNack();
+
+  Statistics stats = sc.computeStatistics();
+  BOOST_CHECK_EQUAL(stats.prefix, pingOptions.prefix);
+  BOOST_CHECK_EQUAL(stats.nSent, 2);
+  BOOST_CHECK_EQUAL(stats.nReceived, 1);
+  BOOST_CHECK_CLOSE(stats.minRtt, 50.0, 0.001);
+  BOOST_CHECK_CLOSE(stats.maxRtt, 50.0, 0.001);
+  BOOST_CHECK_CLOSE(stats.sumRtt, 50.0, 0.001);
+  BOOST_CHECK_CLOSE(stats.avgRtt, 50.0, 0.001);
+  BOOST_CHECK_CLOSE(stats.stdDevRtt, 0.0, 0.001);
+  BOOST_CHECK_EQUAL(stats.nNacked, 1);
+  BOOST_CHECK_CLOSE(stats.packetNackedRate, 0.5, 0.001);
+}
+
+BOOST_AUTO_TEST_CASE(NackLoss)
+{
+  sc.recordNack();
+  sc.recordTimeout();
+
+  Statistics stats = sc.computeStatistics();
+  BOOST_CHECK_EQUAL(stats.prefix, pingOptions.prefix);
+  BOOST_CHECK_EQUAL(stats.nSent, 2);
+  BOOST_CHECK_EQUAL(stats.nReceived, 0);
+  BOOST_CHECK_EQUAL(stats.nNacked, 1);
+  BOOST_CHECK_CLOSE(stats.packetNackedRate, 0.5, 0.001);
+  BOOST_CHECK_CLOSE(stats.packetLossRate, 0.5, 0.001);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

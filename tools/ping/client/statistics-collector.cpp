@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2015,  Arizona Board of Regents.
+ * Copyright (c) 2015-2016,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -18,6 +18,7 @@
  *
  * @author: Eric Newberry <enewberry@email.arizona.edu>
  * @author: Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
+ * @author: Teng Liang <philoliang@email.arizona.edu>
  */
 
 #include "statistics-collector.hpp"
@@ -31,18 +32,20 @@ StatisticsCollector::StatisticsCollector(Ping& ping, const Options& options)
   , m_options(options)
   , m_nSent(0)
   , m_nReceived(0)
+  , m_nNacked(0)
   , m_pingStartTime(time::steady_clock::now())
   , m_minRtt(std::numeric_limits<double>::max())
   , m_maxRtt(0.0)
   , m_sumRtt(0.0)
   , m_sumRttSquared(0.0)
 {
-  m_ping.afterResponse.connect(bind(&StatisticsCollector::recordResponse, this, _2));
+  m_ping.afterData.connect(bind(&StatisticsCollector::recordData, this, _2));
+  m_ping.afterNack.connect(bind(&StatisticsCollector::recordNack, this));
   m_ping.afterTimeout.connect(bind(&StatisticsCollector::recordTimeout, this));
 }
 
 void
-StatisticsCollector::recordResponse(Rtt rtt)
+StatisticsCollector::recordData(Rtt rtt)
 {
   m_nSent++;
   m_nReceived++;
@@ -55,6 +58,13 @@ StatisticsCollector::recordResponse(Rtt rtt)
 
   m_sumRtt += rttMs;
   m_sumRttSquared += rttMs * rttMs;
+}
+
+void
+StatisticsCollector::recordNack()
+{
+  m_nSent++;
+  m_nNacked++;
 }
 
 void
@@ -71,10 +81,12 @@ StatisticsCollector::computeStatistics()
   statistics.prefix = m_options.prefix;
   statistics.nSent = m_nSent;
   statistics.nReceived = m_nReceived;
+  statistics.nNacked = m_nNacked;
   statistics.pingStartTime = m_pingStartTime;
   statistics.minRtt = m_minRtt;
   statistics.maxRtt = m_maxRtt;
-  statistics.packetLossRate = (double)(m_nSent - m_nReceived) / (double)m_nSent;
+  statistics.packetLossRate = static_cast<double>(m_nSent - m_nReceived - m_nNacked) / static_cast<double>(m_nSent);
+  statistics.packetNackedRate = static_cast<double>(m_nNacked) / static_cast<double>(m_nSent);
   statistics.sumRtt = m_sumRtt;
   statistics.avgRtt = m_sumRtt / m_nReceived;
   statistics.stdDevRtt = std::sqrt((m_sumRttSquared / m_nReceived) - (statistics.avgRtt * statistics.avgRtt));
@@ -99,7 +111,9 @@ operator<<(std::ostream& os, const Statistics& statistics)
   os << "--- " << statistics.prefix <<" ping statistics ---\n";
   os << statistics.nSent << " packets transmitted";
   os << ", " << statistics.nReceived << " received";
+  os << ", " << statistics.nNacked << " nacked";
   os << ", " << statistics.packetLossRate * 100.0 << "% packet loss";
+  os << ", " << statistics.packetNackedRate * 100.0 << "% nacked";
   os << ", time " << statistics.sumRtt << " ms";
   if (statistics.nReceived > 0) {
     os << "\n";

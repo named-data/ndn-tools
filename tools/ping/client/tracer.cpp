@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2015,  Arizona Board of Regents.
+ * Copyright (c) 2015-2016,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -17,6 +17,7 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author: Eric Newberry <enewberry@email.arizona.edu>
+ * @author: Teng Liang <philoliang@email.arizona.edu>
  */
 
 #include "tracer.hpp"
@@ -28,12 +29,13 @@ namespace client {
 Tracer::Tracer(Ping& ping, const Options& options)
   : m_options(options)
 {
-  ping.afterResponse.connect(bind(&Tracer::onResponse, this, _1, _2));
+  ping.afterData.connect(bind(&Tracer::onData, this, _1, _2));
+  ping.afterNack.connect(bind(&Tracer::onNack, this, _1, _2, _3));
   ping.afterTimeout.connect(bind(&Tracer::onTimeout, this, _1));
 }
 
 void
-Tracer::onResponse(uint64_t seq, Rtt rtt)
+Tracer::onData(uint64_t seq, Rtt rtt)
 {
   if (m_options.shouldPrintTimestamp) {
     std::cout << time::toIsoString(time::system_clock::now()) << " - ";
@@ -41,6 +43,17 @@ Tracer::onResponse(uint64_t seq, Rtt rtt)
 
   std::cout << "content from " << m_options.prefix << ": seq=" << seq << " time="
             << rtt.count() << " ms" << std::endl;
+}
+
+void
+Tracer::onNack(uint64_t seq, Rtt rtt, const lp::NackHeader& header)
+{
+  if (m_options.shouldPrintTimestamp) {
+    std::cout << time::toIsoString(time::system_clock::now()) << " - ";
+  }
+
+  std::cout << "nack from " << m_options.prefix << ": seq=" << seq << " time="
+            << rtt.count() << " ms" << " reason=" << header.getReason() << std::endl;
 }
 
 void

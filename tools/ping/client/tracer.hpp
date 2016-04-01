@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2015,  Arizona Board of Regents.
+ * Copyright (c) 2015-2016,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -17,6 +17,7 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author: Eric Newberry <enewberry@email.arizona.edu>
+ * @author: Teng Liang <philoliang@email.arizona.edu>
  */
 
 #ifndef NDN_TOOLS_PING_CLIENT_TRACER_HPP
@@ -43,13 +44,23 @@ public:
   Tracer(Ping& ping, const Options& options);
 
   /**
-   * @brief Prints ping results when response received
+   * @brief Prints ping results when a Data packet is received
    *
    * @param seq ping sequence number
    * @param rtt round trip time
    */
   void
-  onResponse(uint64_t seq, Rtt rtt);
+  onData(uint64_t seq, Rtt rtt);
+
+  /**
+   * @brief Prints NackReason when a Nack is received
+   *
+   * @param seq ping sequence number
+   * @param rtt round trip time
+   * @param header the header of Nack
+   */
+  void
+  onNack(uint64_t seq, Rtt rtt, const lp::NackHeader& header);
 
   /**
    * @brief Prints ping results when timed out

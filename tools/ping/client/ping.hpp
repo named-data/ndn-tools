@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2015,  Arizona Board of Regents.
+ * Copyright (c) 2015-2016,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -18,6 +18,7 @@
  *
  * @author: Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
  * @author: Eric Newberry <enewberry@email.arizona.edu>
+ * @author: Teng Liang <philoliang@email.arizona.edu>
  */
 
 #ifndef NDN_TOOLS_PING_CLIENT_PING_HPP
@@ -56,12 +57,21 @@ public:
   Ping(Face& face, const Options& options);
 
   /**
-   * @brief Signals on the successful return of a packet
+   * @brief Signals on the successful return of a Data packet
    *
    * @param seq ping sequence number
    * @param rtt round trip time
    */
-  signal::Signal<Ping, uint64_t, Rtt> afterResponse;
+  signal::Signal<Ping, uint64_t, Rtt> afterData;
+
+  /**
+   * @brief Signals on the return of a Nack
+   *
+   * @param seq ping sequence number
+   * @param rtt round trip time
+   * @param header the received Network NACK header
+   */
+  signal::Signal<Ping, uint64_t, Rtt, lp::NackHeader> afterNack;
 
   /**
    * @brief Signals on timeout of a packet
@@ -109,7 +119,7 @@ private:
   performPing();
 
   /**
-   * @brief Called when ping returned successfully
+   * @brief Called when a Data packet is received in response to a ping
    *
    * @param interest NDN interest
    * @param data returned data
@@ -117,7 +127,24 @@ private:
    * @param sendTime time ping sent
    */
   void
-  onData(const Interest& interest, Data& data, uint64_t seq, const time::steady_clock::TimePoint& sendTime);
+  onData(const Interest& interest,
+         const Data& data,
+         uint64_t seq,
+         const time::steady_clock::TimePoint& sendTime);
+
+  /**
+   * @brief Called when a Nack is received in response to a ping
+   *
+   * @param interest NDN interest
+   * @param nack returned nack
+   * @param seq ping sequence number
+   * @param sendTime time ping sent
+   */
+  void
+  onNack(const Interest& interest,
+         const lp::Nack& nack,
+         uint64_t seq,
+         const time::steady_clock::TimePoint& sendTime);
 
   /**
    * @brief Called when ping timed out
