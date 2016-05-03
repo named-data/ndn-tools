@@ -85,14 +85,14 @@ public:
    * @brief identify the latest Data version published.
    */
   void
-  run() NDN_CXX_DECL_FINAL;
+  run() final;
 
 private:
   void
-  handleData(const Interest& interest, const Data& data) NDN_CXX_DECL_FINAL;
+  handleData(const Interest& interest, const Data& data) final;
 
   void
-  handleTimeout(const Interest& interest, const std::string& reason) NDN_CXX_DECL_FINAL;
+  handleTimeout(const Interest& interest, const std::string& reason) final;
 
 private:
   uint64_t m_latestVersion;

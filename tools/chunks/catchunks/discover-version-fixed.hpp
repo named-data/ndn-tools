@@ -57,11 +57,11 @@ public:
    * @brief identify the latest Data version published.
    */
   void
-  run() NDN_CXX_DECL_FINAL;
+  run() final;
 
 private:
   void
-  handleData(const Interest& interest, const Data& data) NDN_CXX_DECL_FINAL;
+  handleData(const Interest& interest, const Data& data) final;
 
 private:
   Exclude m_strayExcludes;
