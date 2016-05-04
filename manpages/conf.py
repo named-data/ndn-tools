@@ -1,6 +1,8 @@
 # General information about the project.
 project = u'NDN Essential Tools'
 
+master_doc = 'index'
+
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
