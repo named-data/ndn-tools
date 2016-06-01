@@ -23,66 +23,31 @@
  * @author Andrea Tosatto
  */
 
-#include "tools/chunks/catchunks/pipeline-interests.hpp"
+#include "tools/chunks/catchunks/pipeline-interests-fixed-window.hpp"
 #include "tools/chunks/catchunks/data-fetcher.hpp"
 
-#include "tests/test-common.hpp"
-#include <ndn-cxx/util/dummy-client-face.hpp>
+#include "pipeline-interests-fixture.hpp"
 
 namespace ndn {
 namespace chunks {
 namespace tests {
 
-using namespace ndn::tests;
-
-class PipelineInterestsFixture : public UnitTestTimeFixture
+class PipelineInterestFixedWindowFixture : public PipelineInterestsFixture
 {
 public:
-  typedef PipelineInterestsOptions Options;
+  typedef PipelineInterestsFixedWindowOptions Options;
 
 public:
-  PipelineInterestsFixture()
-    : face(io)
+  PipelineInterestFixedWindowFixture()
+    : PipelineInterestsFixture()
     , opt(makeOptions())
-    , name("/ndn/chunks/test")
-    , pipeline(face, opt)
-    , nDataSegments(0)
-    , nReceivedSegments(0)
-    , hasFailed(false)
   {
+    setPipeline(make_unique<PipelineInterestsFixedWindow>(face, PipelineInterestsFixedWindow::Options(opt)));
   }
-
 protected:
-  shared_ptr<Data>
-  makeDataWithSegment(uint64_t segmentNo, bool setFinalBlockId = true)
-  {
-    auto data = make_shared<Data>(Name(name).appendVersion(0).appendSegment(segmentNo));
-    if (setFinalBlockId)
-      data->setFinalBlockId(name::Component::fromSegment(nDataSegments - 1));
-    return signData(data);
-  }
-
-  void
-  runWithData(const Data& data)
-  {
-    pipeline.runWithExcludedSegment(data,
-                                    bind(&PipelineInterestsFixture::onData, this, _1, _2),
-                                    bind(&PipelineInterestsFixture::onFailure, this, _1));
-  }
+  Options opt;
 
 private:
-  void
-  onData(const Interest& interest, const Data& data)
-  {
-    nReceivedSegments++;
-  }
-
-  void
-  onFailure(const std::string& reason)
-  {
-    hasFailed = true;
-  }
-
   static Options
   makeOptions()
   {
@@ -93,22 +58,12 @@ private:
     options.maxPipelineSize = 5;
     return options;
   }
-
-protected:
-  boost::asio::io_service io;
-  util::DummyClientFace face;
-  Options opt;
-  Name name;
-  PipelineInterests pipeline;
-  uint64_t nDataSegments;
-  uint64_t nReceivedSegments;
-  bool hasFailed;
 };
 
 BOOST_AUTO_TEST_SUITE(Chunks)
-BOOST_AUTO_TEST_SUITE(TestPipelineInterests)
+BOOST_AUTO_TEST_SUITE(TestPipelineInterestsFixedWindow)
 
-BOOST_FIXTURE_TEST_CASE(FewerSegmentsThanPipelineCapacity, PipelineInterestsFixture)
+BOOST_FIXTURE_TEST_CASE(FewerSegmentsThanPipelineCapacity, PipelineInterestFixedWindowFixture)
 {
   nDataSegments = 3;
   BOOST_ASSERT(nDataSegments <= opt.maxPipelineSize);
@@ -138,7 +93,7 @@ BOOST_FIXTURE_TEST_CASE(FewerSegmentsThanPipelineCapacity, PipelineInterestsFixt
   BOOST_CHECK_EQUAL(hasFailed, true);
 }
 
-BOOST_FIXTURE_TEST_CASE(FullPipeline, PipelineInterestsFixture)
+BOOST_FIXTURE_TEST_CASE(FullPipeline, PipelineInterestFixedWindowFixture)
 {
   nDataSegments = 13;
   BOOST_ASSERT(nDataSegments > opt.maxPipelineSize);
@@ -171,7 +126,7 @@ BOOST_FIXTURE_TEST_CASE(FullPipeline, PipelineInterestsFixture)
   BOOST_CHECK_EQUAL(hasFailed, false);
 }
 
-BOOST_FIXTURE_TEST_CASE(TimeoutAllSegments, PipelineInterestsFixture)
+BOOST_FIXTURE_TEST_CASE(TimeoutAllSegments, PipelineInterestFixedWindowFixture)
 {
   nDataSegments = 13;
   BOOST_ASSERT(nDataSegments > opt.maxPipelineSize);
@@ -196,7 +151,7 @@ BOOST_FIXTURE_TEST_CASE(TimeoutAllSegments, PipelineInterestsFixture)
   BOOST_CHECK_EQUAL(hasFailed, true);
 }
 
-BOOST_FIXTURE_TEST_CASE(TimeoutAfterFinalBlockIdReceived, PipelineInterestsFixture)
+BOOST_FIXTURE_TEST_CASE(TimeoutAfterFinalBlockIdReceived, PipelineInterestFixedWindowFixture)
 {
   // the FinalBlockId is sent with the first segment, after the first segment failure the pipeline
   // should fail
@@ -241,7 +196,7 @@ BOOST_FIXTURE_TEST_CASE(TimeoutAfterFinalBlockIdReceived, PipelineInterestsFixtu
   BOOST_CHECK_EQUAL(face.getNPendingInterests(), 0);
 }
 
-BOOST_FIXTURE_TEST_CASE(TimeoutBeforeFinalBlockIdReceived, PipelineInterestsFixture)
+BOOST_FIXTURE_TEST_CASE(TimeoutBeforeFinalBlockIdReceived, PipelineInterestFixedWindowFixture)
 {
   // the FinalBlockId is sent only with the last segment, all segments are sent except for the
   // second one (segment #1); all segments are received correctly until the FinalBlockId is received
@@ -294,7 +249,7 @@ BOOST_FIXTURE_TEST_CASE(TimeoutBeforeFinalBlockIdReceived, PipelineInterestsFixt
   BOOST_CHECK_EQUAL(hasFailed, true);
 }
 
-BOOST_FIXTURE_TEST_CASE(SegmentReceivedAfterTimeout, PipelineInterestsFixture)
+BOOST_FIXTURE_TEST_CASE(SegmentReceivedAfterTimeout, PipelineInterestFixedWindowFixture)
 {
   // the FinalBlockId is never sent, all the pipeline elements with a segment number greater than
   // segment #0 will fail, after this failure also segment #0 fail and this should trigger an error
@@ -327,7 +282,7 @@ BOOST_FIXTURE_TEST_CASE(SegmentReceivedAfterTimeout, PipelineInterestsFixture)
   BOOST_CHECK_EQUAL(hasFailed, true);
 }
 
-BOOST_FIXTURE_TEST_CASE(CongestionAllSegments, PipelineInterestsFixture)
+BOOST_FIXTURE_TEST_CASE(CongestionAllSegments, PipelineInterestFixedWindowFixture)
 {
   nDataSegments = 13;
   BOOST_ASSERT(nDataSegments > opt.maxPipelineSize);

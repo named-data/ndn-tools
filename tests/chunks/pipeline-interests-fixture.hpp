@@ -21,12 +21,13 @@
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
  *
  * @author Andrea Tosatto
+ * @author Weiwei Liu
  */
 
-#ifndef NDN_TOOLS_TESTS_CHUNKS_DISCOVER_VERSION_FIXTURE_HPP
-#define NDN_TOOLS_TESTS_CHUNKS_DISCOVER_VERSION_FIXTURE_HPP
+#ifndef NDN_TOOLS_TESTS_CHUNKS_PIPELINE_INTERESTS_FIXTURE_HPP
+#define NDN_TOOLS_TESTS_CHUNKS_PIPELINE_INTERESTS_FIXTURE_HPP
 
-#include "tools/chunks/catchunks/discover-version.hpp"
+#include "tools/chunks/catchunks/pipeline-interests.hpp"
 
 #include "tests/test-common.hpp"
 #include <ndn-cxx/util/dummy-client-face.hpp>
@@ -37,76 +38,67 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class DiscoverVersionFixture : public UnitTestTimeFixture, virtual protected Options
+class PipelineInterestsFixture : public UnitTestTimeFixture
 {
 public:
-  DiscoverVersionFixture(const Options& options)
-    : Options(options)
-    , face(io)
+  PipelineInterestsFixture()
+    : face(io)
     , name("/ndn/chunks/test")
-    , discoveredVersion(0)
-    , isDiscoveryFinished(false)
-  {
-  }
-
-  virtual
-  ~DiscoverVersionFixture()
+    , nDataSegments(0)
+    , nReceivedSegments(0)
+    , hasFailed(false)
   {
   }
 
 protected:
   void
-  setDiscover(unique_ptr<DiscoverVersion> disc)
+  setPipeline(unique_ptr<PipelineInterests> pline)
   {
-    discover = std::move(disc);
-    discover->onDiscoverySuccess.connect(bind(&DiscoverVersionFixture::onSuccess, this, _1));
-    discover->onDiscoveryFailure.connect(bind(&DiscoverVersionFixture::onFailure, this, _1));
+    pipeline = std::move(pline);
   }
 
   shared_ptr<Data>
-  makeDataWithVersion(uint64_t version) const
+  makeDataWithSegment(uint64_t segmentNo, bool setFinalBlockId = true) const
   {
-    auto data = make_shared<Data>(Name(name).appendVersion(version).appendSegment(0));
-    data->setFinalBlockId(name::Component::fromSegment(0));
+    auto data = make_shared<Data>(Name(name).appendVersion(0).appendSegment(segmentNo));
+    if (setFinalBlockId)
+      data->setFinalBlockId(name::Component::fromSegment(nDataSegments - 1));
     return signData(data);
   }
 
-  static Options
-  makeOptions()
+  void
+  runWithData(const Data& data)
   {
-    Options options;
-    options.isVerbose = false;
-    options.interestLifetime = time::seconds(1);
-    options.maxRetriesOnTimeoutOrNack = 3;
-    return options;
+    pipeline->run(data,
+                  bind(&PipelineInterestsFixture::onData, this, _1, _2),
+                  bind(&PipelineInterestsFixture::onFailure, this, _1));
   }
 
-  virtual void
-  onSuccess(const Data& data)
+private:
+  void
+  onData(const Interest& interest, const Data& data)
   {
-    isDiscoveryFinished = true;
-
-    if (data.getName()[name.size()].isVersion())
-      discoveredVersion = data.getName()[name.size()].toVersion();
+    nReceivedSegments++;
   }
 
-  virtual void
+  void
   onFailure(const std::string& reason)
   {
-    isDiscoveryFinished = true;
+    hasFailed = true;
   }
 
 protected:
   boost::asio::io_service io;
   util::DummyClientFace face;
   Name name;
-  unique_ptr<DiscoverVersion> discover;
-  uint64_t discoveredVersion;
-  bool isDiscoveryFinished;
+  unique_ptr<PipelineInterests> pipeline;
+  uint64_t nDataSegments;
+  uint64_t nReceivedSegments;
+  bool hasFailed;
 };
 
 } // namespace tests
 } // namespace chunks
 } // namespace ndn
 
-#endif // NDN_TOOLS_TESTS_CHUNKS_DISCOVER_VERSION_FIXTURE_HPP
+#endif // NDN_TOOLS_TESTS_CHUNKS_PIPELINE_INTERESTS_FIXTURE_HPP

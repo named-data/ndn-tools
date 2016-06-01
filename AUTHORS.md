@@ -20,3 +20,4 @@ in ndn-tools:
 * Steve DiBenedetto     <https://dibenede.github.io>
 * Andrea Tosatto        <https://linkedin.com/in/tosattoandrea>
 * Vince Lehman          <http://vslehman.com>
+* Weiwei Liu            <https://www.linkedin.com/in/weiweiliu10>

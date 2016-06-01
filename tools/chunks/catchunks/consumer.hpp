@@ -25,12 +25,11 @@
  * @author Andrea Tosatto
  */
 
-
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_CONSUMER_HPP
 #define NDN_TOOLS_CHUNKS_CATCHUNKS_CONSUMER_HPP
 
-#include "pipeline-interests.hpp"
 #include "discover-version.hpp"
+#include "pipeline-interests.hpp"
 
 #include <ndn-cxx/security/validator.hpp>
 
@@ -66,11 +65,11 @@ public:
    * @brief Run the consumer
    */
   void
-  run(DiscoverVersion& discover, PipelineInterests& pipeline);
+  run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests> pipeline);
 
 private:
   void
-  runWithData(const Data& data);
+  startPipeline(const Data& data);
 
   void
   onData(const Interest& interest, const Data& data);
@@ -88,9 +87,10 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
 private:
   Face& m_face;
   Validator& m_validator;
-  PipelineInterests* m_pipeline;
-  uint64_t m_nextToPrint;
   std::ostream& m_outputStream;
+  unique_ptr<DiscoverVersion> m_discover;
+  unique_ptr<PipelineInterests> m_pipeline;
+  uint64_t m_nextToPrint;
   bool m_isVerbose;
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:

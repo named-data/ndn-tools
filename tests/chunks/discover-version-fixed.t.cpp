@@ -31,8 +31,6 @@ namespace ndn {
 namespace chunks {
 namespace tests {
 
-using namespace ndn::tests;
-
 class DiscoverVersionFixedFixture : public DiscoverVersionFixture
 {
 public:

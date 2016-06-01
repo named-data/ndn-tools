@@ -23,6 +23,8 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Davide Pesavento
+ * @author Weiwei Liu
  */
 
 #include "core/version.hpp"
@@ -30,6 +32,7 @@
 #include "consumer.hpp"
 #include "discover-version-fixed.hpp"
 #include "discover-version-iterative.hpp"
+#include "pipeline-interests-fixed-window.hpp"
 
 #include <ndn-cxx/security/validator-null.hpp>
 
@@ -42,6 +45,7 @@ main(int argc, char** argv)
   std::string programName(argv[0]);
   Options options;
   std::string discoverType("fixed");
+  std::string pipelineType("fixed");
   size_t maxPipelineSize(1);
   int maxRetriesAfterVersionFound(1);
   std::string uri;
@@ -148,15 +152,23 @@ main(int argc, char** argv)
       return 2;
     }
 
+    unique_ptr<PipelineInterests> pipeline;
+    if (pipelineType == "fixed") {
+      PipelineInterestsFixedWindow::Options optionsPipeline(options);
+      optionsPipeline.maxPipelineSize = maxPipelineSize;
+      pipeline = make_unique<PipelineInterestsFixedWindow>(face, optionsPipeline);
+    }
+    else {
+      std::cerr << "ERROR: Interest pipeline type not valid" << std::endl;
+      return 2;
+    }
+
     ValidatorNull validator;
     Consumer consumer(face, validator, options.isVerbose);
 
-    PipelineInterests::Options optionsPipeline(options);
-    optionsPipeline.maxPipelineSize = maxPipelineSize;
-    PipelineInterests pipeline(face, optionsPipeline);
-
     BOOST_ASSERT(discover != nullptr);
-    consumer.run(*discover, pipeline);
+    BOOST_ASSERT(pipeline != nullptr);
+    consumer.run(std::move(discover), std::move(pipeline));
   }
   catch (const Consumer::ApplicationNackError& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
