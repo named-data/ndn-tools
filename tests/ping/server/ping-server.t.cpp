@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Arizona Board of Regents.
+ * Copyright (c) 2014-2016,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -36,9 +36,9 @@ class CreatePingServerFixture : public IdentityManagementTimeFixture
 {
 protected:
   CreatePingServerFixture()
-    : face(util::makeDummyClientFace(io, {false, true}))
+    : face(io, m_keyChain, {false, true})
     , pingOptions(makeOptions())
-    , pingServer(*face, m_keyChain, pingOptions)
+    , pingServer(face, m_keyChain, pingOptions)
   {
   }
 
@@ -69,7 +69,7 @@ private:
 
 protected:
   boost::asio::io_service io;
-  shared_ptr<util::DummyClientFace> face;
+  util::DummyClientFace face;
   Options pingOptions;
   PingServer pingServer;
 };
@@ -81,8 +81,8 @@ BOOST_FIXTURE_TEST_CASE(CreatePingServer, CreatePingServerFixture)
 
   this->advanceClocks(io, time::milliseconds(1), 200);
 
-  face->receive(makePingInterest(1000));
-  face->receive(makePingInterest(1001));
+  face.receive(makePingInterest(1000));
+  face.receive(makePingInterest(1001));
 
   io.run();
 

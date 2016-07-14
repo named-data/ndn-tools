@@ -34,35 +34,35 @@ class PingIntegratedFixture : public IdentityManagementTimeFixture
 {
 public:
   PingIntegratedFixture()
-    : serverFace(util::makeDummyClientFace(io, {false, true}))
-    , clientFace(util::makeDummyClientFace(io, {false, true}))
+    : serverFace(io, m_keyChain, {false, true})
+    , clientFace(io, m_keyChain, {false, true})
     , wantLoss(false)
   {
-    serverFace->onSendInterest.connect([this] (const Interest& interest) {
-      io.post([=] { if (!wantLoss) { clientFace->receive(interest); } });
+    serverFace.onSendInterest.connect([this] (const Interest& interest) {
+      io.post([=] { if (!wantLoss) { clientFace.receive(interest); } });
     });
-    clientFace->onSendInterest.connect([this] (const Interest& interest) {
-      io.post([=] { if (!wantLoss) { serverFace->receive(interest); } });
+    clientFace.onSendInterest.connect([this] (const Interest& interest) {
+      io.post([=] { if (!wantLoss) { serverFace.receive(interest); } });
     });
-    serverFace->onSendData.connect([this] (const Data& data) {
-      io.post([=] { if (!wantLoss) { clientFace->receive(data); } });
+    serverFace.onSendData.connect([this] (const Data& data) {
+      io.post([=] { if (!wantLoss) { clientFace.receive(data); } });
     });
-    clientFace->onSendData.connect([this] (const Data& data) {
-      io.post([=] { if (!wantLoss) { serverFace->receive(data); } });
+    clientFace.onSendData.connect([this] (const Data& data) {
+      io.post([=] { if (!wantLoss) { serverFace.receive(data); } });
     });
   }
 
   void onFinish()
   {
-    serverFace->shutdown();
-    clientFace->shutdown();
+    serverFace.shutdown();
+    clientFace.shutdown();
     io.stop();
   }
 
 public:
   boost::asio::io_service io;
-  shared_ptr<util::DummyClientFace> serverFace;
-  shared_ptr<util::DummyClientFace> clientFace;
+  util::DummyClientFace serverFace;
+  util::DummyClientFace clientFace;
   std::unique_ptr<server::PingServer> server;
   std::unique_ptr<client::Ping> client;
   bool wantLoss;
@@ -78,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE(Normal, PingIntegratedFixture)
   serverOpts.nMaxPings = 4;
   serverOpts.shouldPrintTimestamp = false;
   serverOpts.payloadSize = 0;
-  server.reset(new server::PingServer(*serverFace, m_keyChain, serverOpts));
+  server.reset(new server::PingServer(serverFace, m_keyChain, serverOpts));
   BOOST_REQUIRE_EQUAL(0, server->getNPings());
   server->start();
 
@@ -91,7 +91,7 @@ BOOST_FIXTURE_TEST_CASE(Normal, PingIntegratedFixture)
   clientOpts.interval = time::milliseconds(100);
   clientOpts.timeout = time::milliseconds(2000);
   clientOpts.startSeq = 1000;
-  client.reset(new client::Ping(*clientFace, clientOpts));
+  client.reset(new client::Ping(clientFace, clientOpts));
   client->afterFinish.connect(bind(&PingIntegratedFixture::onFinish, this));
   client->start();
 
@@ -111,7 +111,7 @@ BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
   serverOpts.nMaxPings = 4;
   serverOpts.shouldPrintTimestamp = false;
   serverOpts.payloadSize = 0;
-  server.reset(new server::PingServer(*serverFace, m_keyChain, serverOpts));
+  server.reset(new server::PingServer(serverFace, m_keyChain, serverOpts));
   BOOST_REQUIRE_EQUAL(0, server->getNPings());
   server->start();
 
@@ -124,7 +124,7 @@ BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
   clientOpts.interval = time::milliseconds(100);
   clientOpts.timeout = time::milliseconds(500);
   clientOpts.startSeq = 1000;
-  client.reset(new client::Ping(*clientFace, clientOpts));
+  client.reset(new client::Ping(clientFace, clientOpts));
   client->afterFinish.connect(bind(&PingIntegratedFixture::onFinish, this));
   client->start();
 

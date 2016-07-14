@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -37,7 +37,7 @@ public:
   CertPublisherFixture()
     : tmpPath(boost::filesystem::path(TMP_TESTS_PATH) / "DbTest")
     , db(tmpPath.c_str())
-    , face(util::makeDummyClientFace(io, {true, true}))
+    , face(io, m_keyChain, {true, true})
   {
   }
 
@@ -49,7 +49,7 @@ public:
   boost::asio::io_service io;
   boost::filesystem::path tmpPath;
   PibDb db;
-  shared_ptr<util::DummyClientFace> face;
+  util::DummyClientFace face;
 };
 
 BOOST_FIXTURE_TEST_SUITE(PibCertPublisher, CertPublisherFixture)
@@ -67,62 +67,62 @@ BOOST_AUTO_TEST_CASE(Basic)
   shared_ptr<IdentityCertificate> cert112 = m_keyChain.selfSign(keyName11);
   Name certName112 = cert112->getName();
 
-  CertPublisher certPublisher(*face, db);
+  CertPublisher certPublisher(face, db);
 
   // Add a certificate
   db.addCertificate(*cert111);
   advanceClocks(io, time::milliseconds(2), 50);
 
-  BOOST_REQUIRE_EQUAL(face->sentDatas.size(), 0);
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 0);
   auto interest111 = make_shared<Interest>(cert111->getName().getPrefix(-1));
-  face->receive(*interest111);
+  face.receive(*interest111);
   advanceClocks(io, time::milliseconds(2), 50);
-  BOOST_REQUIRE_EQUAL(face->sentDatas.size(), 1);
-  BOOST_CHECK(face->sentDatas[0].wireEncode() == cert111->wireEncode());
-  face->sentDatas.clear();
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
+  BOOST_CHECK(face.sentData[0].wireEncode() == cert111->wireEncode());
+  face.sentData.clear();
 
   // Add another certificate
   db.addCertificate(*cert112);
   advanceClocks(io, time::milliseconds(2), 50);
 
-  BOOST_REQUIRE_EQUAL(face->sentDatas.size(), 0);
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 0);
   auto interest112 = make_shared<Interest>(cert112->getName().getPrefix(-1));
-  face->receive(*interest112);
+  face.receive(*interest112);
   advanceClocks(io, time::milliseconds(2), 50);
-  BOOST_REQUIRE_EQUAL(face->sentDatas.size(), 1);
-  BOOST_CHECK(face->sentDatas[0].wireEncode() == cert111->wireEncode());
-  face->sentDatas.clear();
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
+  BOOST_CHECK(face.sentData[0].wireEncode() == cert111->wireEncode());
+  face.sentData.clear();
 
   Exclude exclude;
   exclude.excludeOne(cert111->getName().get(-1));
   interest112->setExclude(exclude);
-  face->receive(*interest112);
+  face.receive(*interest112);
   advanceClocks(io, time::milliseconds(2), 50);
-  BOOST_REQUIRE_EQUAL(face->sentDatas.size(), 1);
-  BOOST_CHECK(face->sentDatas[0].wireEncode() == cert112->wireEncode());
-  face->sentDatas.clear();
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
+  BOOST_CHECK(face.sentData[0].wireEncode() == cert112->wireEncode());
+  face.sentData.clear();
 
   // delete a certificate
   db.deleteCertificate(certName112);
-  face->receive(*interest112);
+  face.receive(*interest112);
   advanceClocks(io, time::milliseconds(2), 50);
-  BOOST_REQUIRE_EQUAL(face->sentDatas.size(), 0);
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 0);
 
-  face->receive(*interest111);
+  face.receive(*interest111);
   advanceClocks(io, time::milliseconds(2), 50);
-  BOOST_REQUIRE_EQUAL(face->sentDatas.size(), 1);
-  BOOST_CHECK(face->sentDatas[0].wireEncode() == cert111->wireEncode());
-  face->sentDatas.clear();
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
+  BOOST_CHECK(face.sentData[0].wireEncode() == cert111->wireEncode());
+  face.sentData.clear();
 
   // delete another certificate
   db.deleteCertificate(certName111);
-  face->receive(*interest112);
+  face.receive(*interest112);
   advanceClocks(io, time::milliseconds(2), 50);
-  BOOST_REQUIRE_EQUAL(face->sentDatas.size(), 0);
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 0);
 
-  face->receive(*interest111);
+  face.receive(*interest111);
   advanceClocks(io, time::milliseconds(2), 50);
-  BOOST_REQUIRE_EQUAL(face->sentDatas.size(), 0);
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

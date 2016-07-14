@@ -33,9 +33,8 @@ class StatisticsCollectorFixture
 {
 protected:
   StatisticsCollectorFixture()
-    : face(util::makeDummyClientFace())
-    , pingOptions(makeOptions())
-    , pingProgram(*face, pingOptions)
+    : pingOptions(makeOptions())
+    , pingProgram(face, pingOptions)
     , sc(pingProgram, pingOptions)
   {
   }
@@ -57,7 +56,7 @@ private:
   }
 
 protected:
-  shared_ptr<util::DummyClientFace> face;
+  util::DummyClientFace face;
   Options pingOptions;
   Ping pingProgram;
   StatisticsCollector sc;
