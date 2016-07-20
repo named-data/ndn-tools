@@ -84,8 +84,9 @@ DiscoverVersionIterative::handleData(const Interest& interest, const Data& data)
     m_strayExcludes.excludeOne(name[versionindex]);
   }
 
-  for (const auto& i : m_strayExcludes) {
-    exclude.excludeOne(i.first);
+  for (const Exclude::Range& range : m_strayExcludes) {
+    BOOST_ASSERT(range.isSingular());
+    exclude.excludeOne(range.from);
   }
 
   Interest newInterest(interest);
