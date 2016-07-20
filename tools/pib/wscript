@@ -13,7 +13,7 @@ def build(bld):
 
 
     bld(features=['cxx', 'cxxprogram'],
-        target='ndn-pib',
+        target='../../bin/ndn-pib',
         source='ndn-pib.cpp',
         use='pib-objects',
         )
