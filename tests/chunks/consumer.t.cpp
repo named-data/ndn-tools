@@ -24,6 +24,8 @@
  */
 
 #include "tools/chunks/catchunks/consumer.hpp"
+#include "tools/chunks/catchunks/discover-version.hpp"
+#include "tools/chunks/catchunks/pipeline-interests.hpp"
 
 #include "tests/test-common.hpp"
 #include <ndn-cxx/util/dummy-client-face.hpp>
@@ -65,7 +67,7 @@ BOOST_AUTO_TEST_CASE(OutputDataSequential)
   util::DummyClientFace face;
   ValidatorNull validator;
   output_test_stream output("");
-  Consumer cons(face, validator, false, output);
+  Consumer cons(validator, false, output);
 
   auto interest = makeInterest(name);
 
@@ -105,7 +107,7 @@ BOOST_AUTO_TEST_CASE(OutputDataUnordered)
   util::DummyClientFace face;
   ValidatorNull validator;
   output_test_stream output("");
-  Consumer cons(face, validator, false, output);
+  Consumer cons(validator, false, output);
 
   auto interest = makeInterest(name);
   std::vector<shared_ptr<Data>> dataStore;
@@ -132,6 +134,90 @@ BOOST_AUTO_TEST_CASE(OutputDataUnordered)
   cons.m_bufferedData[2] = dataStore[2];
   cons.writeInOrderData();
   BOOST_CHECK(output.is_equal(testStrings[2]));
+}
+
+class DiscoverVersionDummy : public DiscoverVersion
+{
+public:
+  DiscoverVersionDummy(const Name& prefix, Face& face, const Options& options)
+    : DiscoverVersion(prefix, face, options)
+    , isDiscoverRunning(false)
+    , m_prefix(prefix)
+  {
+  }
+
+  void
+  run() final
+  {
+    isDiscoverRunning = true;
+
+    auto interest = makeInterest(m_prefix);
+    expressInterest(*interest, 1, 1);
+  }
+
+private:
+  void
+  handleData(const Interest& interest, const Data& data) final
+  {
+    this->emitSignal(onDiscoverySuccess, data);
+  }
+
+public:
+  bool isDiscoverRunning;
+
+private:
+  Name m_prefix;
+};
+
+class PipelineInterestsDummy : public PipelineInterests
+{
+public:
+  PipelineInterestsDummy(Face& face)
+    : PipelineInterests(face)
+    , isPipelineRunning(false)
+  {
+  }
+
+private:
+  void
+  doRun() final
+  {
+    isPipelineRunning = true;
+  }
+
+  void
+  doCancel() final
+  {
+  }
+
+public:
+  bool isPipelineRunning;
+};
+
+BOOST_FIXTURE_TEST_CASE(RunBasic, UnitTestTimeFixture)
+{
+  boost::asio::io_service io;
+  util::DummyClientFace face(io);
+  ValidatorNull validator;
+  Consumer consumer(validator, false);
+
+  Name prefix("/ndn/chunks/test");
+  auto discover = make_unique<DiscoverVersionDummy>(prefix, face, Options());
+  auto pipeline = make_unique<PipelineInterestsDummy>(face);
+  auto discoverPtr = discover.get();
+  auto pipelinePtr = pipeline.get();
+
+  consumer.run(std::move(discover), std::move(pipeline));
+  BOOST_CHECK_EQUAL(discoverPtr->isDiscoverRunning, true);
+
+  this->advanceClocks(io, time::nanoseconds(1));
+  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+
+  auto data = makeData(prefix.appendSegment(0));
+  face.receive(*data);
+
+  this->advanceClocks(io, time::nanoseconds(1));
+  BOOST_CHECK_EQUAL(pipelinePtr->isPipelineRunning, true);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestConsumer

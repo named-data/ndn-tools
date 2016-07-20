@@ -30,9 +30,8 @@
 namespace ndn {
 namespace chunks {
 
-Consumer::Consumer(Face& face, Validator& validator, bool isVerbose, std::ostream& os)
-  : m_face(face)
-  , m_validator(validator)
+Consumer::Consumer(Validator& validator, bool isVerbose, std::ostream& os)
+  : m_validator(validator)
   , m_outputStream(os)
   , m_nextToPrint(0)
   , m_isVerbose(isVerbose)
@@ -47,11 +46,9 @@ Consumer::run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests
   m_nextToPrint = 0;
   m_bufferedData.clear();
 
-  discover->onDiscoverySuccess.connect(bind(&Consumer::startPipeline, this, _1));
-  discover->onDiscoveryFailure.connect(bind(&Consumer::onFailure, this, _1));
-  discover->run();
-
-  m_face.processEvents();
+  m_discover->onDiscoverySuccess.connect(bind(&Consumer::startPipeline, this, _1));
+  m_discover->onDiscoveryFailure.connect(bind(&Consumer::onFailure, this, _1));
+  m_discover->run();
 }
 
 void

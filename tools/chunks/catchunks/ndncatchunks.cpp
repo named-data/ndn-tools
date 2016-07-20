@@ -164,11 +164,12 @@ main(int argc, char** argv)
     }
 
     ValidatorNull validator;
-    Consumer consumer(face, validator, options.isVerbose);
+    Consumer consumer(validator, options.isVerbose);
 
     BOOST_ASSERT(discover != nullptr);
     BOOST_ASSERT(pipeline != nullptr);
     consumer.run(std::move(discover), std::move(pipeline));
+    face.processEvents();
   }
   catch (const Consumer::ApplicationNackError& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;

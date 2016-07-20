@@ -59,7 +59,7 @@ public:
   /**
    * @brief Create the consumer
    */
-  Consumer(Face& face, Validator& validator, bool isVerbose, std::ostream& os = std::cout);
+  Consumer(Validator& validator, bool isVerbose, std::ostream& os = std::cout);
 
   /**
    * @brief Run the consumer
@@ -85,7 +85,6 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   writeInOrderData();
 
 private:
-  Face& m_face;
   Validator& m_validator;
   std::ostream& m_outputStream;
   unique_ptr<DiscoverVersion> m_discover;
