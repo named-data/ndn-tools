@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California,
+ * Copyright (c) 2014-2016,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -28,12 +28,11 @@
 
 #include "boost-test.hpp"
 
-#include <ndn-cxx/util/time-unit-test-clock.hpp>
-#include <ndn-cxx/name.hpp>
 #include <ndn-cxx/interest.hpp>
 #include <ndn-cxx/data.hpp>
-#include <ndn-cxx/signature.hpp>
-#include <ndn-cxx/security/signature-sha256-with-rsa.hpp>
+#include <ndn-cxx/link.hpp>
+#include <ndn-cxx/lp/nack.hpp>
+#include <ndn-cxx/util/time-unit-test-clock.hpp>
 
 #include <boost/asio/io_service.hpp>
 
@@ -45,17 +44,9 @@ namespace tests {
 class UnitTestTimeFixture
 {
 protected:
-  UnitTestTimeFixture()
-    : steadyClock(make_shared<time::UnitTestSteadyClock>())
-    , systemClock(make_shared<time::UnitTestSystemClock>())
-  {
-    time::setCustomClocks(steadyClock, systemClock);
-  }
+  UnitTestTimeFixture();
 
-  ~UnitTestTimeFixture()
-  {
-    time::setCustomClocks(nullptr, nullptr);
-  }
+  ~UnitTestTimeFixture();
 
   /** \brief advance steady and system clocks
    *
@@ -67,10 +58,7 @@ protected:
    */
   void
   advanceClocks(boost::asio::io_service& io,
-                const time::nanoseconds& tick, size_t nTicks = 1)
-  {
-    this->advanceClocks(io, tick, tick * nTicks);
-  }
+                time::nanoseconds tick, size_t nTicks = 1);
 
   /** \brief advance steady and system clocks
    *
@@ -83,60 +71,56 @@ protected:
    */
   void
   advanceClocks(boost::asio::io_service& io,
-                const time::nanoseconds& tick, const time::nanoseconds& total)
-  {
-    BOOST_ASSERT(tick > time::nanoseconds::zero());
-    BOOST_ASSERT(total >= time::nanoseconds::zero());
-
-    time::nanoseconds remaining = total;
-    while (remaining > time::nanoseconds::zero()) {
-      if (remaining >= tick) {
-        steadyClock->advance(tick);
-        systemClock->advance(tick);
-        remaining -= tick;
-      }
-      else {
-        steadyClock->advance(remaining);
-        systemClock->advance(remaining);
-        remaining = time::nanoseconds::zero();
-      }
-
-      if (io.stopped())
-        io.reset();
-      io.poll();
-    }
-  }
+                time::nanoseconds tick, time::nanoseconds total);
 
 protected:
   shared_ptr<time::UnitTestSteadyClock> steadyClock;
   shared_ptr<time::UnitTestSystemClock> systemClock;
 };
 
-inline shared_ptr<Interest>
-makeInterest(const Name& name)
-{
-  return make_shared<Interest>(name);
-}
+/** \brief create an Interest
+ *  \param name Interest name
+ *  \param nonce if non-zero, set Nonce to this value
+ *               (useful for creating Nack with same Nonce)
+ */
+shared_ptr<Interest>
+makeInterest(const Name& name, uint32_t nonce = 0);
 
+/** \brief create a Data with fake signature
+ *  \note Data may be modified afterwards without losing the fake signature.
+ *        If a real signature is desired, sign again with KeyChain.
+ */
+shared_ptr<Data>
+makeData(const Name& name);
+
+/** \brief add a fake signature to Data
+ */
+Data&
+signData(Data& data);
+
+/** \brief add a fake signature to Data
+ */
 inline shared_ptr<Data>
-signData(const shared_ptr<Data>& data)
+signData(shared_ptr<Data> data)
 {
-  ndn::SignatureSha256WithRsa fakeSignature;
-  fakeSignature.setValue(ndn::dataBlock(tlv::SignatureValue,
-                                        static_cast<const uint8_t*>(nullptr), 0));
-  data->setSignature(fakeSignature);
-  data->wireEncode();
-
+  signData(*data);
   return data;
 }
 
-inline shared_ptr<Data>
-makeData(const Name& name)
-{
-  shared_ptr<Data> data = make_shared<Data>(name);
-  return signData(data);
-}
+/** \brief create a Link object with fake signature
+ *  \note Link may be modified afterwards without losing the fake signature.
+ *        If a real signature is desired, sign again with KeyChain.
+ */
+shared_ptr<Link>
+makeLink(const Name& name, std::initializer_list<std::pair<uint32_t, Name>> delegations);
 
+/** \brief create a Nack
+ *  \param name Interest name
+ *  \param nonce Interest nonce
+ *  \param reason Nack reason
+ */
+lp::Nack
+makeNack(const Name& name, uint32_t nonce, lp::NackReason reason);
 
 } // namespace tests
 } // namespace ndn

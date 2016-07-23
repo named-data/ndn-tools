@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -133,8 +133,8 @@ template<bool T>
 size_t
 PibPublicKey::wireEncode(EncodingImpl<T>& block) const
 {
-  size_t totalLength = prependByteArrayBlock(block, tlv::pib::Bytes,
-                                             m_key.get().buf(), m_key.get().size());
+  size_t totalLength = block.prependByteArrayBlock(tlv::pib::Bytes,
+                                                   m_key.get().buf(), m_key.get().size());
   totalLength += m_keyName.wireEncode(block);
   totalLength += block.prependVarNumber(totalLength);
   totalLength += block.prependVarNumber(tlv::pib::PublicKey);
@@ -227,7 +227,7 @@ template<bool T>
 size_t
 PibCertificate::wireEncode(EncodingImpl<T>& block) const
 {
-  size_t totalLength = prependBlock(block, m_certificate.wireEncode());
+  size_t totalLength = block.prependBlock(m_certificate.wireEncode());
   totalLength += block.prependVarNumber(totalLength);
   totalLength += block.prependVarNumber(tlv::pib::Certificate);
 
@@ -369,9 +369,9 @@ size_t
 PibError::wireEncode(EncodingImpl<T>& block) const
 {
   size_t totalLength = 0;
-  totalLength += prependByteArrayBlock(block, tlv::pib::Bytes,
-                                       reinterpret_cast<const uint8_t*>(m_msg.c_str()),
-                                       m_msg.size());
+  totalLength += block.prependByteArrayBlock(tlv::pib::Bytes,
+                                             reinterpret_cast<const uint8_t*>(m_msg.c_str()),
+                                             m_msg.size());
   totalLength += prependNonNegativeIntegerBlock(block, tlv::pib::ErrorCode, m_errCode);
   totalLength += block.prependVarNumber(totalLength);
   totalLength += block.prependVarNumber(tlv::pib::Error);
@@ -460,11 +460,11 @@ PibUser::wireEncode(EncodingImpl<T>& block) const
   size_t totalLength = 0;
 
   if (!m_tpmLocator.empty())
-    totalLength = prependByteArrayBlock(block, tlv::pib::TpmLocator,
-                                        reinterpret_cast<const uint8_t*>(m_tpmLocator.c_str()),
-                                        m_tpmLocator.size());
+    totalLength = block.prependByteArrayBlock(tlv::pib::TpmLocator,
+                                              reinterpret_cast<const uint8_t*>(m_tpmLocator.c_str()),
+                                              m_tpmLocator.size());
 
-  totalLength += prependBlock(block, m_mgmtCert.wireEncode());
+  totalLength += block.prependBlock(m_mgmtCert.wireEncode());
 
   totalLength += block.prependVarNumber(totalLength);
   totalLength += block.prependVarNumber(tlv::pib::User);
