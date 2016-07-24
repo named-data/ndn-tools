@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -95,18 +95,14 @@ main(int argc, char* argv[])
 
   po::options_description hiddenOptions;
   hiddenOptions.add_options()
-    ("pcap-program", po::value<std::vector<std::string> >());
-  ;
+    ("pcap-program", po::value<std::vector<std::string>>());
 
   po::positional_options_description positionalArguments;
-  positionalArguments
-    .add("pcap-program", -1);
+  positionalArguments.add("pcap-program", -1);
 
   po::options_description allOptions;
-  allOptions
-    .add(visibleOptions)
-    .add(hiddenOptions)
-    ;
+  allOptions.add(visibleOptions)
+            .add(hiddenOptions);
 
   po::variables_map vm;
 
@@ -118,8 +114,8 @@ main(int argc, char* argv[])
               vm);
     po::notify(vm);
   }
-  catch (std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
+  catch (const po::error& e) {
+    std::cerr << "ERROR: " << e.what() << "\n\n";
     usage(std::cerr, argv[0], visibleOptions);
     return 1;
   }
@@ -130,7 +126,7 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("version") > 0) {
-    std::cout << "ndndump " << tools::VERSION << std::endl;
+    std::cout << "ndndump " << tools::VERSION << '\n';
     return 0;
   }
 
@@ -139,8 +135,7 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("pcap-program") > 0) {
-    typedef std::vector<std::string> Strings;
-    const Strings& items = vm["pcap-program"].as<Strings>();
+    const auto& items = vm["pcap-program"].as<std::vector<std::string>>();
 
     std::ostringstream os;
     std::copy(items.begin(), items.end(), std::ostream_iterator<std::string>(os, " "));
@@ -148,7 +143,7 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("read") > 0 && vm.count("interface") > 0) {
-    std::cerr << "ERROR: Conflicting -r and -i options" << std::endl;
+    std::cerr << "ERROR: Conflicting -r and -i options\n";
     usage(std::cerr, argv[0], visibleOptions);
     return 2;
   }

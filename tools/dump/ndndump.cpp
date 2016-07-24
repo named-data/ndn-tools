@@ -64,6 +64,17 @@ namespace dump {
 
 const size_t MAX_SNAPLEN = 65535;
 
+Ndndump::Ndndump()
+  : isVerbose(false)
+  , pcapProgram("(ether proto 0x8624) || (tcp port 6363) || (udp port 6363)")
+  // , isSuccinct(false)
+  // , isMatchInverted(false)
+  // , shouldPrintStructure(false)
+  // , isTcpOnly(false)
+  // , isUdpOnly(false)
+{
+}
+
 void
 Ndndump::run()
 {
@@ -71,7 +82,7 @@ Ndndump::run()
     char errbuf[PCAP_ERRBUF_SIZE];
     const char* pcapDevice = pcap_lookupdev(errbuf);
 
-    if (pcapDevice == 0) {
+    if (pcapDevice == nullptr) {
       throw Error(errbuf);
     }
 
@@ -94,14 +105,14 @@ Ndndump::run()
   if (!interface.empty()) {
     char errbuf[PCAP_ERRBUF_SIZE];
     m_pcap = pcap_open_live(interface.c_str(), MAX_SNAPLEN, 0, 1000, errbuf);
-    if (m_pcap == 0) {
+    if (m_pcap == nullptr) {
       throw Error("Cannot open interface " + interface + "(" + errbuf + ")");
     }
   }
   else {
     char errbuf[PCAP_ERRBUF_SIZE];
     m_pcap = pcap_open_offline(inputFile.c_str(), errbuf);
-    if (m_pcap == 0) {
+    if (m_pcap == nullptr) {
       throw Error("Cannot file " + inputFile + " for reading (" + errbuf + ")");
     }
   }
@@ -112,34 +123,32 @@ Ndndump::run()
     }
 
     bpf_program program;
-    int returnValue = pcap_compile(m_pcap, &program, pcapProgram.c_str(), 0, PCAP_NETMASK_UNKNOWN);
+    int res = pcap_compile(m_pcap, &program, pcapProgram.c_str(), 0, PCAP_NETMASK_UNKNOWN);
 
-    if (returnValue < 0) {
+    if (res < 0) {
       throw Error("Cannot parse tcpdump expression '" + pcapProgram +
                   "' (" + pcap_geterr(m_pcap) + ")");
     }
 
-    returnValue = pcap_setfilter(m_pcap, &program);
+    res = pcap_setfilter(m_pcap, &program);
     pcap_freecode(&program);
 
-    if (returnValue < 0) {
+    if (res < 0) {
       throw Error(std::string("pcap_setfilter failed (") + pcap_geterr(m_pcap) + ")");
     }
   }
 
   m_dataLinkType = pcap_datalink(m_pcap);
-  if (m_dataLinkType != DLT_EN10MB &&
-      m_dataLinkType != DLT_PPP)
-    {
-      throw Error("Unsupported pcap format (" + boost::lexical_cast<std::string>(m_dataLinkType));
-    }
+  if (m_dataLinkType != DLT_EN10MB && m_dataLinkType != DLT_PPP) {
+    throw Error("Unsupported pcap format (" + to_string(m_dataLinkType));
+  }
 
   pcap_loop(m_pcap, -1, &Ndndump::onCapturedPacket, reinterpret_cast<uint8_t*>(this));
 }
 
 
 void
-Ndndump::onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet)
+Ndndump::onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet) const
 {
   std::ostringstream os;
   printInterceptTime(os, header);
@@ -153,8 +162,8 @@ Ndndump::onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet)
     return;
   }
 
-  int returnValue = skipAndProcessFrameHeader(frameType, payload, payloadSize, os);
-  if (returnValue < 0) {
+  int res = skipAndProcessFrameHeader(frameType, payload, payloadSize, os);
+  if (res < 0) {
     return;
   }
 
@@ -223,13 +232,13 @@ Ndndump::onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet)
       std::cout << os.str() << ", " << "UNKNOWN-NETWORK-PACKET" << std::endl;
     }
   }
-  catch (tlv::Error& e) {
+  catch (const tlv::Error& e) {
     std::cerr << e.what() << std::endl;
   }
 }
 
 void
-Ndndump::printInterceptTime(std::ostream& os, const pcap_pkthdr* header)
+Ndndump::printInterceptTime(std::ostream& os, const pcap_pkthdr* header) const
 {
   os << header->ts.tv_sec
      << "."
@@ -251,13 +260,12 @@ Ndndump::printInterceptTime(std::ostream& os, const pcap_pkthdr* header)
 }
 
 int
-Ndndump::skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& payloadSize)
+Ndndump::skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& payloadSize) const
 {
   int frameType = 0;
 
   switch (m_dataLinkType) {
-  case DLT_EN10MB: // Ethernet frames can have Ethernet or 802.3 encapsulation
-    {
+    case DLT_EN10MB: { // Ethernet frames can have Ethernet or 802.3 encapsulation
       const ether_header* etherHeader = reinterpret_cast<const ether_header*>(payload);
 
       if (payloadSize < 0) {
@@ -271,16 +279,15 @@ Ndndump::skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& pay
 
       break;
     }
-  case DLT_PPP:
-    {
+    case DLT_PPP: {
       frameType = *payload;
-      payloadSize--;
-      payload++;
+      --payloadSize;
+      ++payload;
 
       if (!(frameType & 1)) {
         frameType = (frameType << 8) | *payload;
-        payloadSize--;
-        payload++;
+        --payloadSize;
+        ++payload;
       }
 
       if (payloadSize < 0) {
@@ -298,78 +305,74 @@ Ndndump::skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& pay
 int
 Ndndump::skipAndProcessFrameHeader(int frameType,
                                    const uint8_t*& payload, ssize_t& payloadSize,
-                                   std::ostream& os)
+                                   std::ostream& os) const
 {
-  switch (frameType)
-    {
-    case /*ETHERTYPE_IP*/0x0800:
-    case DLT_EN10MB: // pcap encapsulation
-      {
-        const ip* ipHeader = reinterpret_cast<const ip*>(payload);
-        size_t ipHeaderSize = IP_HL(ipHeader) * 4;
-        if (ipHeaderSize < 20) {
-          std::cerr << "invalid IP header len " << ipHeaderSize << " bytes" << std::endl;
-          return -1;
-        }
+  switch (frameType) {
+    case 0x0800: // ETHERTYPE_IP
+    case DLT_EN10MB: { // pcap encapsulation
+      const ip* ipHeader = reinterpret_cast<const ip*>(payload);
+      size_t ipHeaderSize = IP_HL(ipHeader) * 4;
+      if (ipHeaderSize < 20) {
+        std::cerr << "invalid IP header len " << ipHeaderSize << " bytes" << std::endl;
+        return -1;
+      }
 
-        os << "From: " << inet_ntoa(ipHeader->ip_src) << ", ";
-        os << "To: "   << inet_ntoa(ipHeader->ip_dst);
+      os << "From: " << inet_ntoa(ipHeader->ip_src) << ", ";
+      os << "To: "   << inet_ntoa(ipHeader->ip_dst);
 
-        payloadSize -= ipHeaderSize;
-        payload += ipHeaderSize;
+      payloadSize -= ipHeaderSize;
+      payload += ipHeaderSize;
 
-        if (payloadSize < 0) {
-          std::cerr << "Invalid pcap IP packet" << std::endl;
-          return -1;
-        }
+      if (payloadSize < 0) {
+        std::cerr << "Invalid pcap IP packet" << std::endl;
+        return -1;
+      }
 
-        switch (ipHeader->ip_p) {
-        case IPPROTO_UDP:
-          {
-            // if (!flags.udp)
-            //   return -1;
+      switch (ipHeader->ip_p) {
+        case IPPROTO_UDP: {
+          // if (!flags.udp)
+          //   return -1;
 
-            payloadSize -= sizeof(udphdr);
-            payload += sizeof(udphdr);
+          payloadSize -= sizeof(udphdr);
+          payload += sizeof(udphdr);
 
-            if (payloadSize < 0) {
-                std::cerr << "Invalid pcap UDP/IP packet" << std::endl;
-                return -1;
-              }
-
-            os << ", Tunnel Type: UDP";
-            break;
+          if (payloadSize < 0) {
+            std::cerr << "Invalid pcap UDP/IP packet" << std::endl;
+            return -1;
           }
-        case IPPROTO_TCP:
-          {
-            // if (!flags.tcp)
-            //   return -1;
 
-            const tcphdr* tcpHeader = reinterpret_cast<const tcphdr*>(payload);
-            size_t tcpHeaderSize = TH_OFF(tcpHeader) * 4;
+          os << ", Tunnel Type: UDP";
+          break;
+        }
+        case IPPROTO_TCP: {
+          // if (!flags.tcp)
+          //   return -1;
 
-            if (tcpHeaderSize < 20) {
-              std::cerr << "Invalid TCP Header len: "<< tcpHeaderSize <<" bytes" << std::endl;
-              return -1;
-            }
+          const tcphdr* tcpHeader = reinterpret_cast<const tcphdr*>(payload);
+          size_t tcpHeaderSize = TH_OFF(tcpHeader) * 4;
 
-            payloadSize -= tcpHeaderSize;
-            payload += tcpHeaderSize;
-
-            if (payloadSize < 0) {
-              std::cerr << "Invalid pcap TCP/IP packet" << std::endl;
-              return -1;
-            }
-
-            os << ", Tunnel Type: TCP";
-            break;
+          if (tcpHeaderSize < 20) {
+            std::cerr << "Invalid TCP Header len: " << tcpHeaderSize <<" bytes" << std::endl;
+            return -1;
           }
+
+          payloadSize -= tcpHeaderSize;
+          payload += tcpHeaderSize;
+
+          if (payloadSize < 0) {
+            std::cerr << "Invalid pcap TCP/IP packet" << std::endl;
+            return -1;
+          }
+
+          os << ", Tunnel Type: TCP";
+          break;
+        }
         default:
           return -1;
-        }
-
-        break;
       }
+
+      break;
+    }
     case /*ETHERTYPE_NDN*/0x7777:
       os << "Tunnel Type: EthernetFrame";
       break;
@@ -381,12 +384,22 @@ Ndndump::skipAndProcessFrameHeader(int frameType,
       payloadSize -= 2;
       payload += 2;
       break;
-    default:
+    default: // do nothing if it is not a recognized type of a packet
       return -1;
-      break; // do nothing if it is not a recognized type of a packet
-    }
+  }
 
   return 0;
+}
+
+bool
+Ndndump::matchesFilter(const Name& name) const
+{
+  if (nameFilter.empty())
+    return true;
+
+  /// \todo Switch to NDN regular expressions
+
+  return boost::regex_match(name.toUri(), nameFilter);
 }
 
 } // namespace dump

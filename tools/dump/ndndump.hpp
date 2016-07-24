@@ -60,52 +60,35 @@ public:
     }
   };
 
-  Ndndump()
-    : isVerbose(false)
-    , pcapProgram("(ether proto 0x8624) || (tcp port 6363) || (udp port 6363)")
-    // , isSuccinct(false)
-    // , isMatchInverted(false)
-    // , shouldPrintStructure(false)
-    // , isTcpOnly(false)
-    // , isUdpOnly(false)
-  {
-  }
+  Ndndump();
 
   void
   run();
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   void
-  onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet);
+  onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet) const;
 
 private:
   static void
   onCapturedPacket(uint8_t* userData, const pcap_pkthdr* header, const uint8_t* packet)
   {
-    reinterpret_cast<Ndndump*>(userData)->onCapturedPacket(header, packet);
+    reinterpret_cast<const Ndndump*>(userData)->onCapturedPacket(header, packet);
   }
 
   void
-  printInterceptTime(std::ostream& os, const pcap_pkthdr* header);
+  printInterceptTime(std::ostream& os, const pcap_pkthdr* header) const;
 
   int
-  skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& payloadSize);
+  skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& payloadSize) const;
 
   int
   skipAndProcessFrameHeader(int frameType,
                             const uint8_t*& payload, ssize_t& payloadSize,
-                            std::ostream& os);
+                            std::ostream& os) const;
 
   bool
-  matchesFilter(const Name& name)
-  {
-    if (nameFilter.empty())
-      return true;
-
-    /// \todo Switch to NDN regular expressions
-
-    return boost::regex_match(name.toUri(), nameFilter);
-  }
+  matchesFilter(const Name& name) const;
 
 public:
   bool isVerbose;
