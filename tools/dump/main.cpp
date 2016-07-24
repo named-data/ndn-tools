@@ -148,7 +148,12 @@ main(int argc, char* argv[])
     return 2;
   }
 
-  instance.run();
+  try {
+    instance.run();
+  }
+  catch (const std::exception& e) {
+    std::cerr << "ERROR: " << e.what() << "\n\n";
+  }
 
   return 0;
 }

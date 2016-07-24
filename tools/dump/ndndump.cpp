@@ -83,7 +83,7 @@ Ndndump::run()
     const char* pcapDevice = pcap_lookupdev(errbuf);
 
     if (pcapDevice == nullptr) {
-      throw Error(errbuf);
+      BOOST_THROW_EXCEPTION(Error(errbuf));
     }
 
     interface = pcapDevice;
@@ -106,14 +106,14 @@ Ndndump::run()
     char errbuf[PCAP_ERRBUF_SIZE];
     m_pcap = pcap_open_live(interface.c_str(), MAX_SNAPLEN, 0, 1000, errbuf);
     if (m_pcap == nullptr) {
-      throw Error("Cannot open interface " + interface + "(" + errbuf + ")");
+      BOOST_THROW_EXCEPTION(Error("Cannot open interface " + interface + " (" + errbuf + ")"));
     }
   }
   else {
     char errbuf[PCAP_ERRBUF_SIZE];
     m_pcap = pcap_open_offline(inputFile.c_str(), errbuf);
     if (m_pcap == nullptr) {
-      throw Error("Cannot file " + inputFile + " for reading (" + errbuf + ")");
+      BOOST_THROW_EXCEPTION(Error("Cannot open file " + inputFile + " for reading (" + errbuf + ")"));
     }
   }
 
@@ -126,21 +126,21 @@ Ndndump::run()
     int res = pcap_compile(m_pcap, &program, pcapProgram.c_str(), 0, PCAP_NETMASK_UNKNOWN);
 
     if (res < 0) {
-      throw Error("Cannot parse tcpdump expression '" + pcapProgram +
-                  "' (" + pcap_geterr(m_pcap) + ")");
+      BOOST_THROW_EXCEPTION(Error("Cannot parse tcpdump expression '" + pcapProgram +
+                                  "' (" + pcap_geterr(m_pcap) + ")"));
     }
 
     res = pcap_setfilter(m_pcap, &program);
     pcap_freecode(&program);
 
     if (res < 0) {
-      throw Error(std::string("pcap_setfilter failed (") + pcap_geterr(m_pcap) + ")");
+      BOOST_THROW_EXCEPTION(Error(std::string("pcap_setfilter failed (") + pcap_geterr(m_pcap) + ")"));
     }
   }
 
   m_dataLinkType = pcap_datalink(m_pcap);
   if (m_dataLinkType != DLT_EN10MB && m_dataLinkType != DLT_PPP) {
-    throw Error("Unsupported pcap format (" + to_string(m_dataLinkType));
+    BOOST_THROW_EXCEPTION(Error("Unsupported pcap format (" + to_string(m_dataLinkType)));
   }
 
   pcap_loop(m_pcap, -1, &Ndndump::onCapturedPacket, reinterpret_cast<uint8_t*>(this));
