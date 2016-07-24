@@ -1,4 +1,4 @@
--- Copyright (c) 2015,  Regents of the University of California.
+-- Copyright (c) 2015-2016,  Regents of the University of California.
 --
 -- This file is part of ndn-tools (Named Data Networking Essential Tools).
 -- See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -238,16 +238,22 @@ end
 -----------------------------------------------------
 
 function readVarNumber(tvb, offset)
+   if offset >= tvb:len() then
+      return 0, 0
+   end
+
    local firstOctet = tvb(offset, 1):uint()
    if (firstOctet < 253) then
       return firstOctet, 1
-   elseif (firstOctet == 253) then
+   elseif (firstOctet == 253) and (offset + 3 < tvb:len()) then
       return tvb(offset + 1, 2):uint(), 3
-   elseif (firstOctet == 254) then
+   elseif (firstOctet == 254) and (offset + 5 < tvb:len()) then
       return tvb(offset + 1, 4):uint(), 5
-   elseif (firstOctet == 255) then
-      return tvb(offset + 1, 8):uint64(), 6
+   elseif (firstOctet == 255) and (offset + 9 < tvb:len()) then
+      return tvb(offset + 1, 8):uint64(), 9
    end
+
+   return 0, 0
 end
 
 function getBlock(tvb, offset)
@@ -256,7 +262,14 @@ function getBlock(tvb, offset)
    block.offset = offset
 
    block.type, block.typeLen = readVarNumber(block.tvb, block.offset)
+   if block.typeLen == 0 then
+      return nil
+   end
+
    block.length, block.lengthLen = readVarNumber(block.tvb, block.offset + block.typeLen)
+   if block.lengthLen == 0 then
+      return nil
+   end
 
    block.size = block.typeLen + block.lengthLen + block.length
 
@@ -277,7 +290,7 @@ function findNdnPacket(tvb)
    while offset + 2 < tvb:len() do
       local block = getBlock(tvb, offset)
 
-      if canBeValidNdnPacket(block) then
+      if (block ~= nil) and canBeValidNdnPacket(block) then
          return block
       end
 
@@ -292,8 +305,11 @@ function getSubBlocks(block)
    local subBlocks = {}
 
    while valueLeft > 0 do
-      local child = getBlock(block.tvb,
-                             block.offset + block.typeLen + block.lengthLen + (block.length - valueLeft))
+      local offset = block.offset + block.typeLen + block.lengthLen + (block.length - valueLeft)
+      local child = getBlock(block.tvb, offset)
+      if child == nil then
+         return nil
+      end
 
       valueLeft = valueLeft - child.size
       table.insert(subBlocks, child)

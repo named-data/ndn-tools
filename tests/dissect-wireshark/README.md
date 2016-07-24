@@ -105,3 +105,13 @@ Trace summary: Short capture, containing an NDN interest multicasted directly in
 
 Expected result of the dissection:
 - interest packet is dissected from packet 6.
+
+### 8. tvb Overflow
+
+Trace file: `bug3603.pcap`
+
+Trace summary: A Data whose payload could be read as incomplete TLV and may cause tvb overflow
+if parser does not check packet length.
+
+Expected result of the dissection:
+- data packet is dissected at packet 12 without Lua error.
