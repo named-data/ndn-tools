@@ -33,8 +33,12 @@
 #include "discover-version-fixed.hpp"
 #include "discover-version-iterative.hpp"
 #include "pipeline-interests-fixed-window.hpp"
+#include "pipeline-interests-aimd.hpp"
+#include "aimd-rtt-estimator.hpp"
+#include "aimd-statistics-collector.hpp"
 
 #include <ndn-cxx/security/validator-null.hpp>
+#include <fstream>
 
 namespace ndn {
 namespace chunks {
@@ -50,34 +54,87 @@ main(int argc, char** argv)
   int maxRetriesAfterVersionFound(1);
   std::string uri;
 
+  // congestion control parameters, CWA refers to conservative window adaptation,
+  // i.e. only reduce window size at most once per RTT
+  bool disableCwa(false), resetCwndToInit(false);
+  double aiStep(1.0), mdCoef(0.5), alpha(0.125), beta(0.25),
+         minRto(200.0), maxRto(4000.0);
+  int initCwnd(1), initSsthresh(std::numeric_limits<int>::max()), k(4);
+  std::string cwndPath, rttPath;
+
   namespace po = boost::program_options;
-  po::options_description visibleDesc("Options");
-  visibleDesc.add_options()
+  po::options_description basicDesc("Basic Options");
+  basicDesc.add_options()
     ("help,h",      "print this help message and exit")
     ("discover-version,d",  po::value<std::string>(&discoverType)->default_value(discoverType),
                             "version discovery algorithm to use; valid values are: 'fixed', 'iterative'")
+    ("pipeline-type,t",  po::value<std::string>(&pipelineType)->default_value(pipelineType),
+                         "type of Interest pipeline to use; valid values are: 'fixed', 'aimd'")
     ("fresh,f",     po::bool_switch(&options.mustBeFresh), "only return fresh content")
     ("lifetime,l",  po::value<uint64_t>()->default_value(options.interestLifetime.count()),
                     "lifetime of expressed Interests, in milliseconds")
-    ("pipeline,p",  po::value<size_t>(&maxPipelineSize)->default_value(maxPipelineSize),
-                    "maximum size of the Interest pipeline")
     ("retries,r",   po::value<int>(&options.maxRetriesOnTimeoutOrNack)->default_value(options.maxRetriesOnTimeoutOrNack),
                     "maximum number of retries in case of Nack or timeout (-1 = no limit)")
-    ("retries-iterative,i", po::value<int>(&maxRetriesAfterVersionFound)->default_value(maxRetriesAfterVersionFound),
-                            "number of timeouts that have to occur in order to confirm a discovered Data "
-                            "version as the latest one (only applicable to 'iterative' version discovery)")
     ("verbose,v",   po::bool_switch(&options.isVerbose), "turn on verbose output")
     ("version,V",   "print program version and exit")
     ;
 
-  po::options_description hiddenDesc("Hidden options");
+  po::options_description iterDiscoveryDesc("Iterative version discovery options");
+  iterDiscoveryDesc.add_options()
+    ("retries-iterative,i", po::value<int>(&maxRetriesAfterVersionFound)->default_value(maxRetriesAfterVersionFound),
+                            "number of timeouts that have to occur in order to confirm a discovered Data "
+                            "version as the latest one")
+    ;
+
+  po::options_description fixedPipeDesc("Fixed pipeline options");
+  fixedPipeDesc.add_options()
+    ("pipeline-size,s", po::value<size_t>(&maxPipelineSize)->default_value(maxPipelineSize),
+                        "size of the Interest pipeline")
+    ;
+
+  po::options_description aimdPipeDesc("AIMD pipeline options");
+  aimdPipeDesc.add_options()
+    ("aimd-debug-cwnd", po::value<std::string>(&cwndPath),
+                        "log file for AIMD cwnd statistics")
+    ("aimd-debug-rtt", po::value<std::string>(&rttPath),
+                       "log file for AIMD rtt statistics")
+    ("aimd-disable-cwa", po::bool_switch(&disableCwa),
+                         "disable Conservative Window Adaptation, "
+                         "i.e. reduce window on each timeout (instead of at most once per RTT)")
+    ("aimd-reset-cwnd-to-init", po::bool_switch(&resetCwndToInit),
+                                "reset cwnd to initial cwnd when loss event occurs, default is "
+                                "resetting to ssthresh")
+    ("aimd-initial-cwnd",       po::value<int>(&initCwnd)->default_value(initCwnd),
+                                "initial cwnd")
+    ("aimd-initial-ssthresh",   po::value<int>(&initSsthresh),
+                                "initial slow start threshold (defaults to infinity)")
+    ("aimd-aistep",    po::value<double>(&aiStep)->default_value(aiStep),
+                       "additive-increase step")
+    ("aimd-mdcoef",    po::value<double>(&mdCoef)->default_value(mdCoef),
+                       "multiplicative-decrease coefficient")
+    ("aimd-rto-alpha", po::value<double>(&alpha)->default_value(alpha),
+                       "alpha value for rto calculation")
+    ("aimd-rto-beta",  po::value<double>(&beta)->default_value(beta),
+                       "beta value for rto calculation")
+    ("aimd-rto-k",     po::value<int>(&k)->default_value(k),
+                       "k value for rto calculation")
+    ("aimd-rto-min",   po::value<double>(&minRto)->default_value(minRto),
+                       "min rto value in milliseconds")
+    ("aimd-rto-max",   po::value<double>(&maxRto)->default_value(maxRto),
+                       "max rto value in milliseconds")
+    ;
+
+  po::options_description visibleDesc;
+  visibleDesc.add(basicDesc).add(iterDiscoveryDesc).add(fixedPipeDesc).add(aimdPipeDesc);
+
+  po::options_description hiddenDesc;
   hiddenDesc.add_options()
     ("ndn-name,n", po::value<std::string>(&uri), "NDN name of the requested content");
 
   po::positional_options_description p;
   p.add("ndn-name", -1);
 
-  po::options_description optDesc("Allowed options");
+  po::options_description optDesc;
   optDesc.add(visibleDesc).add(hiddenDesc);
 
   po::variables_map vm;
@@ -153,10 +210,58 @@ main(int argc, char** argv)
     }
 
     unique_ptr<PipelineInterests> pipeline;
+    unique_ptr<aimd::StatisticsCollector> statsCollector;
+    unique_ptr<aimd::RttEstimator> rttEstimator;
+    std::ofstream statsFileCwnd;
+    std::ofstream statsFileRtt;
+
     if (pipelineType == "fixed") {
       PipelineInterestsFixedWindow::Options optionsPipeline(options);
       optionsPipeline.maxPipelineSize = maxPipelineSize;
       pipeline = make_unique<PipelineInterestsFixedWindow>(face, optionsPipeline);
+    }
+    else if (pipelineType == "aimd") {
+      aimd::RttEstimator::Options optionsRttEst;
+      optionsRttEst.isVerbose = options.isVerbose;
+      optionsRttEst.alpha = alpha;
+      optionsRttEst.beta = beta;
+      optionsRttEst.k = k;
+      optionsRttEst.minRto = aimd::Milliseconds(minRto);
+      optionsRttEst.maxRto = aimd::Milliseconds(maxRto);
+
+      rttEstimator = make_unique<aimd::RttEstimator>(optionsRttEst);
+
+      PipelineInterestsAimd::Options optionsPipeline;
+      optionsPipeline.isVerbose = options.isVerbose;
+      optionsPipeline.disableCwa = disableCwa;
+      optionsPipeline.resetCwndToInit = resetCwndToInit;
+      optionsPipeline.initCwnd = static_cast<double>(initCwnd);
+      optionsPipeline.initSsthresh = static_cast<double>(initSsthresh);
+      optionsPipeline.aiStep = aiStep;
+      optionsPipeline.mdCoef = mdCoef;
+
+      auto aimdPipeline = make_unique<PipelineInterestsAimd>(face, *rttEstimator, optionsPipeline);
+
+      if (!cwndPath.empty() || !rttPath.empty()) {
+        if (!cwndPath.empty()) {
+          statsFileCwnd.open(cwndPath);
+          if (statsFileCwnd.fail()) {
+            std::cerr << "ERROR: failed to open " << cwndPath << std::endl;
+            return 4;
+          }
+        }
+        if (!rttPath.empty()) {
+          statsFileRtt.open(rttPath);
+          if (statsFileRtt.fail()) {
+            std::cerr << "ERROR: failed to open " << rttPath << std::endl;
+            return 4;
+          }
+        }
+        statsCollector = make_unique<aimd::StatisticsCollector>(*aimdPipeline, *rttEstimator,
+                                                                statsFileCwnd, statsFileRtt);
+      }
+
+      pipeline = std::move(aimdPipeline);
     }
     else {
       std::cerr << "ERROR: Interest pipeline type not valid" << std::endl;

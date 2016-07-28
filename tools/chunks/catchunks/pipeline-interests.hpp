@@ -119,6 +119,8 @@ protected:
   Name m_prefix;
   uint64_t m_lastSegmentNo;
   uint64_t m_excludedSegmentNo;
+
+PUBLIC_WITH_TESTS_ELSE_PROTECTED:
   bool m_hasFinalBlockId; ///< true if the last segment number is known
 
 private:
