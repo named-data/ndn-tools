@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -114,7 +114,7 @@ Pib::initializeMgmtCert()
   shared_ptr<IdentityCertificate> mgmtCert = m_db.getMgmtCertificate();
 
   if (mgmtCert == nullptr ||
-      !m_tpm->doesKeyExistInTpm(mgmtCert->getPublicKeyName(), KEY_CLASS_PRIVATE)) {
+      !m_tpm->doesKeyExistInTpm(mgmtCert->getPublicKeyName(), KeyClass::PRIVATE)) {
     // If mgmt cert is set, or corresponding private key of the current mgmt cert is missing,
     // generate new mgmt cert
 
@@ -177,7 +177,7 @@ Pib::prepareCertificate(const Name& keyName, const KeyParams& keyParams,
   EncodingBuffer encoder;
   certificate->wireEncode(encoder, true);
   Block signatureValue = m_tpm->signInTpm(encoder.buf(), encoder.size(),
-                                          signingKeyName, DIGEST_ALGORITHM_SHA256);
+                                          signingKeyName, DigestAlgorithm::SHA256);
   certificate->wireEncode(encoder, signatureValue);
 
   return certificate;

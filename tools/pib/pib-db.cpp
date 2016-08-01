@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -585,7 +585,7 @@ PibDb::addKey(const Name& keyName, const PublicKey& key)
                      -1, &statement, nullptr);
   sqlite3_bind_block(statement, 1, identity.wireEncode(), SQLITE_TRANSIENT);
   sqlite3_bind_block(statement, 2, keyName.wireEncode(), SQLITE_TRANSIENT);
-  sqlite3_bind_int(statement, 3, key.getKeyType());
+  sqlite3_bind_int(statement, 3, static_cast<int>(key.getKeyType()));
   sqlite3_bind_blob(statement, 4, key.get().buf(), key.get().size(), SQLITE_STATIC);
   sqlite3_step(statement);
   sqlite3_finalize(statement);
