@@ -111,6 +111,14 @@ makeLink(const Name& name, std::initializer_list<std::pair<uint32_t, Name>> dele
 }
 
 lp::Nack
+makeNack(const Interest& interest, lp::NackReason reason)
+{
+  lp::Nack nack(interest);
+  nack.setReason(reason);
+  return nack;
+}
+
+lp::Nack
 makeNack(const Name& name, uint32_t nonce, lp::NackReason reason)
 {
   Interest interest(name);

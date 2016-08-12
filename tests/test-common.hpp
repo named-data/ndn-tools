@@ -115,6 +115,13 @@ shared_ptr<Link>
 makeLink(const Name& name, std::initializer_list<std::pair<uint32_t, Name>> delegations);
 
 /** \brief create a Nack
+ *  \param interest Interest
+ *  \param reason Nack reason
+ */
+lp::Nack
+makeNack(const Interest& interest, lp::NackReason reason);
+
+/** \brief create a Nack
  *  \param name Interest name
  *  \param nonce Interest nonce
  *  \param reason Nack reason

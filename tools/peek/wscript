@@ -2,14 +2,24 @@
 top = '../..'
 
 def build(bld):
-    bld.program(
-        features='cxx',
-        target='../../bin/ndnpeek',
-        source='ndn-peek.cpp',
+
+    bld(features='cxx',
+        name='peek-ndnpeek-objects',
+        source=bld.path.ant_glob('ndnpeek/*.cpp', excl='ndnpeek/main.cpp'),
         use='core-objects')
+
+    bld(features='cxx cxxprogram',
+        target='../../bin/ndnpeek',
+        source='ndnpeek/main.cpp',
+        use='peek-ndnpeek-objects')
 
     bld.program(
         features='cxx',
         target='../../bin/ndnpoke',
         source='ndn-poke.cpp',
         use='core-objects')
+
+    ## (for unit tests)
+
+    bld(name='peek-objects',
+        use='peek-ndnpeek-objects')
