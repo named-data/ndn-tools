@@ -6,12 +6,10 @@ def build(bld):
         features='cxx',
         target='../../bin/ndnpeek',
         source='ndn-peek.cpp',
-        use='core-objects',
-        )
+        use='core-objects')
 
     bld.program(
         features='cxx',
         target='../../bin/ndnpoke',
         source='ndn-poke.cpp',
-        use='core-objects',
-        )
+        use='core-objects')

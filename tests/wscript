@@ -11,5 +11,4 @@ def build(bld):
         use=['core-objects'] + ['%s-objects' % tool for tool in bld.env['BUILD_TOOLS']],
         headers='../common.hpp boost-test.hpp',
         install_path=None,
-        defines='TMP_TESTS_PATH=\"%s/tmp-tests\"' % bld.bldnode,
-        )
+        defines='TMP_TESTS_PATH=\"%s/tmp-tests\"' % bld.bldnode)

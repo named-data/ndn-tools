@@ -25,8 +25,8 @@ def configure(conf):
     conf.check(header_name="sys/bitypes.h", mandatory=False)
     conf.check(fragment=ATTRIBUTE_CHECK, msg="Checking for __attribute__", mandatory=False)
 
-    conf.check(header_name=["sys/types.h", "sys/time.h", "time.h"], define="TIME_WITH_SYS_TIME",
-               mandatory=False)
+    conf.check(header_name=["sys/types.h", "sys/time.h", "time.h"],
+               define="TIME_WITH_SYS_TIME", mandatory=False)
 
     conf.check_cfg(path='pcap-config',
                    package="libpcap", args=['--libs', '--cflags'],
@@ -38,8 +38,7 @@ def build(bld):
         source=bld.path.ant_glob('*.cpp', excl='main.cpp'),
         includes='.',
         export_includes='.',
-        use='core-objects BOOST PCAP',
-        )
+        use='core-objects BOOST PCAP')
 
     bld(features='cxx cxxprogram',
         target='../../bin/ndndump',

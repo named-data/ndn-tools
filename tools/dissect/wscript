@@ -7,11 +7,9 @@ def build(bld):
         source=bld.path.ant_glob('*.cpp', excl='main.cpp'),
         includes='.',
         export_includes='.',
-        use='core-objects',
-        )
+        use='core-objects')
 
     bld(features='cxx cxxprogram',
         target='../../bin/ndn-dissect',
         source='main.cpp',
-        use='dissect-objects',
-        )
+        use='dissect-objects')

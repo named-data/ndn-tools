@@ -8,15 +8,17 @@ import os
 
 def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
+    opt.load(['default-compiler-flags', 'sanitizers', 'sphinx_build', 'boost'],
+             tooldir=['.waf-tools'])
 
-    opt.load(['default-compiler-flags', 'sphinx_build', 'boost'], tooldir=['.waf-tools'])
     opt.add_option('--with-tests', action='store_true', default=False,
                    dest='with_tests', help='''Build unit tests''')
-    opt.recurse("tools")
+
+    opt.recurse('tools')
 
 def configure(conf):
     conf.load(['compiler_cxx', 'gnu_dirs',
-               'default-compiler-flags', 'sphinx_build', 'boost'])
+               'default-compiler-flags', 'sanitizers', 'sphinx_build', 'boost'])
 
     if 'PKG_CONFIG_PATH' not in os.environ:
         os.environ['PKG_CONFIG_PATH'] = Utils.subst_vars('${LIBDIR}/pkgconfig', conf.env)
@@ -35,14 +37,12 @@ def configure(conf):
 def build(bld):
     bld.env['VERSION'] = VERSION
 
-    bld(
-        target='core-objects',
+    bld(target='core-objects',
         name='core-objects',
         features='cxx',
         source=bld.path.ant_glob(['core/*.cpp']),
         use='NDN_CXX BOOST',
-        export_includes='.',
-        )
+        export_includes='.')
 
     bld.recurse('tools')
     bld.recurse('tests')
