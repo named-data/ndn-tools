@@ -19,10 +19,9 @@
 
 #include "tools/ping/server/ping-server.hpp"
 #include "tools/ping/client/ping.hpp"
-#include <ndn-cxx/util/dummy-client-face.hpp>
 
-#include "tests/test-common.hpp"
-#include "../identity-management-time-fixture.hpp"
+#include "tests/identity-management-fixture.hpp"
+#include <ndn-cxx/util/dummy-client-face.hpp>
 
 namespace ndn {
 namespace ping {
@@ -68,7 +67,8 @@ public:
   bool wantLoss;
 };
 
-BOOST_AUTO_TEST_SUITE(PingIntegrated)
+BOOST_AUTO_TEST_SUITE(Ping)
+BOOST_AUTO_TEST_SUITE(TestIntegrated)
 
 BOOST_FIXTURE_TEST_CASE(Normal, PingIntegratedFixture)
 {
@@ -134,7 +134,8 @@ BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
   BOOST_REQUIRE_EQUAL(0, server->getNPings());
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestIntegrated
+BOOST_AUTO_TEST_SUITE_END() // Ping
 
 } // namespace tests
 } // namespace ping

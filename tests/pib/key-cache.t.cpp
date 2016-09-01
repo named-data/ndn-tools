@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -27,7 +27,8 @@ namespace ndn {
 namespace pib {
 namespace tests {
 
-BOOST_AUTO_TEST_SUITE(PibKeyCache)
+BOOST_AUTO_TEST_SUITE(Pib)
+BOOST_AUTO_TEST_SUITE(TestKeyCache)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
@@ -68,7 +69,8 @@ BOOST_AUTO_TEST_CASE(Basic)
   BOOST_CHECK(static_cast<bool>(keyCache.find(name4)));
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestKeyCache
+BOOST_AUTO_TEST_SUITE_END() // Pib
 
 } // namespace tests
 } // namespace pib

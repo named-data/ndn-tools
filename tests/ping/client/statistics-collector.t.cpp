@@ -18,9 +18,9 @@
  */
 
 #include "tools/ping/client/statistics-collector.hpp"
-#include <ndn-cxx/util/dummy-client-face.hpp>
 
 #include "tests/test-common.hpp"
+#include <ndn-cxx/util/dummy-client-face.hpp>
 
 namespace ndn {
 namespace ping {
@@ -62,7 +62,8 @@ protected:
   StatisticsCollector sc;
 };
 
-BOOST_FIXTURE_TEST_SUITE(PingClientStatisticsCollector, StatisticsCollectorFixture)
+BOOST_AUTO_TEST_SUITE(Ping)
+BOOST_FIXTURE_TEST_SUITE(TestStatisticsCollector, StatisticsCollectorFixture)
 
 BOOST_AUTO_TEST_CASE(Resp50msResp50ms)
 {
@@ -184,7 +185,8 @@ BOOST_AUTO_TEST_CASE(NackLoss)
   BOOST_CHECK_CLOSE(stats.packetLossRate, 0.5, 0.001);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestStatisticsCollector
+BOOST_AUTO_TEST_SUITE_END() // Ping
 
 } // namespace tests
 } // namespace client

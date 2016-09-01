@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -22,11 +22,11 @@
 #include "tools/pib/pib-validator.hpp"
 #include "tools/pib/encoding/update-param.hpp"
 #include "tools/pib/encoding/delete-param.hpp"
-#include <ndn-cxx/security/key-chain.hpp>
 
-#include "../identity-management-time-fixture.hpp"
+#include "tests/identity-management-fixture.hpp"
+
+#include <ndn-cxx/security/key-chain.hpp>
 #include <boost/filesystem.hpp>
-#include "tests/test-common.hpp"
 
 namespace ndn {
 namespace pib {
@@ -52,7 +52,8 @@ public:
   bool isProcessed;
 };
 
-BOOST_FIXTURE_TEST_SUITE(PibPibValidator, PibValidatorFixture)
+BOOST_AUTO_TEST_SUITE(Pib)
+BOOST_FIXTURE_TEST_SUITE(TestPibValidator, PibValidatorFixture)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
@@ -130,7 +131,8 @@ BOOST_AUTO_TEST_CASE(Basic)
 
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestPibValidator
+BOOST_AUTO_TEST_SUITE_END() // Pib
 
 } // namespace tests
 } // namespace pib

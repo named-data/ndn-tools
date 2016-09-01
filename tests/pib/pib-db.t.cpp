@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -20,11 +20,10 @@
  */
 
 #include "tools/pib/pib-db.hpp"
-#include "../identity-management-time-fixture.hpp"
+
+#include "tests/identity-management-fixture.hpp"
 
 #include <boost/filesystem.hpp>
-
-#include "tests/test-common.hpp"
 
 namespace ndn {
 namespace pib {
@@ -54,7 +53,8 @@ public:
 };
 
 
-BOOST_FIXTURE_TEST_SUITE(PibPibDb, PibDbTestFixture)
+BOOST_AUTO_TEST_SUITE(Pib)
+BOOST_FIXTURE_TEST_SUITE(TestPibDb, PibDbTestFixture)
 
 BOOST_AUTO_TEST_CASE(MgmtTest)
 {
@@ -467,7 +467,8 @@ BOOST_AUTO_TEST_CASE(CertTest)
   BOOST_CHECK_EQUAL(deletedIds[0], id1);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestPibDb
+BOOST_AUTO_TEST_SUITE_END() // Pib
 
 } // namespace tests
 } // namespace pib

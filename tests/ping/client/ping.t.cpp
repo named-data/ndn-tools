@@ -18,9 +18,9 @@
  */
 
 #include "tools/ping/client/ping.hpp"
-#include <ndn-cxx/util/dummy-client-face.hpp>
 
 #include "tests/test-common.hpp"
+#include <ndn-cxx/util/dummy-client-face.hpp>
 
 namespace ndn {
 namespace ping {
@@ -29,7 +29,10 @@ namespace tests {
 
 using namespace ndn::tests;
 
-BOOST_AUTO_TEST_SUITE(PingClientPing)
+BOOST_AUTO_TEST_SUITE(Ping)
+BOOST_AUTO_TEST_SUITE(TestPing)
+
+using ping::client::Ping;
 
 BOOST_FIXTURE_TEST_CASE(Basic, UnitTestTimeFixture)
 {
@@ -91,7 +94,8 @@ BOOST_FIXTURE_TEST_CASE(Basic, UnitTestTimeFixture)
   io.stop();
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestPing
+BOOST_AUTO_TEST_SUITE_END() // Ping
 
 } // namespace tests
 } // namespace client

@@ -20,12 +20,11 @@
  */
 
 #include "tools/pib/cert-publisher.hpp"
-#include "../identity-management-time-fixture.hpp"
+
+#include "tests/identity-management-fixture.hpp"
+
 #include <ndn-cxx/util/dummy-client-face.hpp>
-
 #include <boost/filesystem.hpp>
-
-#include "tests/test-common.hpp"
 
 namespace ndn {
 namespace pib {
@@ -52,7 +51,8 @@ public:
   util::DummyClientFace face;
 };
 
-BOOST_FIXTURE_TEST_SUITE(PibCertPublisher, CertPublisherFixture)
+BOOST_AUTO_TEST_SUITE(Pib)
+BOOST_FIXTURE_TEST_SUITE(TestCertPublisher, CertPublisherFixture)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
@@ -125,7 +125,8 @@ BOOST_AUTO_TEST_CASE(Basic)
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 0);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestPibPublisher
+BOOST_AUTO_TEST_SUITE_END() // Pib
 
 } // namespace tests
 } // namespace pib

@@ -20,15 +20,14 @@
  */
 
 #include "tools/pib/pib.hpp"
-#include "../identity-management-time-fixture.hpp"
-#include <ndn-cxx/security/sec-tpm-file.hpp>
 #include "tools/pib/encoding/pib-encoding.hpp"
+
+#include "tests/identity-management-fixture.hpp"
+
+#include <ndn-cxx/security/sec-tpm-file.hpp>
 #include <ndn-cxx/util/io.hpp>
 #include <ndn-cxx/util/dummy-client-face.hpp>
-
 #include <boost/filesystem.hpp>
-
-#include "tests/test-common.hpp"
 
 namespace ndn {
 namespace pib {
@@ -75,7 +74,10 @@ public:
   util::DummyClientFace face;
 };
 
-BOOST_FIXTURE_TEST_SUITE(PibPib, PibTestFixture)
+BOOST_AUTO_TEST_SUITE(Pib)
+BOOST_FIXTURE_TEST_SUITE(TestPib, PibTestFixture)
+
+using ndn::pib::Pib;
 
 BOOST_AUTO_TEST_CASE(InitCertTest1)
 {
@@ -1382,7 +1384,8 @@ BOOST_AUTO_TEST_CASE(ReadCommandTest2)
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 0);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestPib
+BOOST_AUTO_TEST_SUITE_END() // Pib
 
 } // namespace tests
 } // namespace pib
