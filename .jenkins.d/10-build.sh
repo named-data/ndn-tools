@@ -1,19 +1,29 @@
 #!/usr/bin/env bash
-set -x
 set -e
 
 JDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "$JDIR"/util.sh
 
-# Cleanup
-sudo ./waf -j1 --color=yes distclean
-
-# Configure/build in release mode without tests
-./waf -j1 --color=yes configure
-./waf -j1 --color=yes build
+set -x
 
 # Cleanup
 sudo ./waf -j1 --color=yes distclean
+
+if [[ "$JOB_NAME" != *"limited-build" ]]; then
+  # Configure/build in optimized mode with tests
+  ./waf -j1 --color=yes configure --with-tests
+  ./waf -j1 --color=yes build
+
+  # Cleanup
+  sudo ./waf -j1 --color=yes distclean
+
+  # Configure/build in optimized mode without tests
+  ./waf -j1 --color=yes configure
+  ./waf -j1 --color=yes build
+
+  # Cleanup
+  sudo ./waf -j1 --color=yes distclean
+fi
 
 # Configure/build in debug mode with tests
 if [[ "$JOB_NAME" == *"code-coverage" ]]; then
@@ -25,3 +35,6 @@ fi
 ./waf -j1 --color=yes build
 
 # (tests will be run against debug version)
+
+# Install
+sudo ./waf -j1 --color=yes install
