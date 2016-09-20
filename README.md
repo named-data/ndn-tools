@@ -1,5 +1,7 @@
 # NDN Essential Tools
 
+[![Build Status](https://travis-ci.org/named-data/ndn-tools.svg?branch=master)](https://travis-ci.org/named-data/ndn-tools)
+
 **ndn-tools** is a collection of essential tools for
 [Named Data Networking](http://named-data.net/).
 These tools are recommended to be installed on all NDN nodes.  
