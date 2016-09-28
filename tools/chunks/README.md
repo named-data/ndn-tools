@@ -23,8 +23,7 @@
                version number.  The version is declared "latest" after a predefined number of
                data retrieval timeouts (default: 1).
 
-The default discovery method is `fixed`. Other methods will be implemented in future versions
-of the tool.
+The default discovery method is `iterative`.
 
 
 ## Usage examples
@@ -67,7 +66,7 @@ To fetch a specific version of a published file, you can use the `fixed` version
 if the version is known to be `%FD%00%00%01Qc%CF%17v`, the following command will fetch that
 exact version of the file:
 
-    ndncatchunks ndn:/localhost/demo/gpl3/%FD%00%00%01Qc%CF%17v
+    ndncatchunks -d fixed ndn:/localhost/demo/gpl3/%FD%00%00%01Qc%CF%17v
 
 
 For more information, run the programs with `--help` as argument.

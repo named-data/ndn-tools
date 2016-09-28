@@ -44,7 +44,7 @@ main(int argc, char** argv)
 {
   std::string programName(argv[0]);
   Options options;
-  std::string discoverType("fixed");
+  std::string discoverType("iterative");
   std::string pipelineType("fixed");
   size_t maxPipelineSize(1);
   int maxRetriesAfterVersionFound(1);
