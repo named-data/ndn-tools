@@ -28,8 +28,18 @@
 #include "core/version.hpp"
 #include "producer.hpp"
 
+namespace po = boost::program_options;
+
 namespace ndn {
 namespace chunks {
+
+static void
+usage(std::ostream& os, const std::string& programName, const po::options_description& visibleDesc) {
+  os << "Usage: " << programName << " [options] ndn:/name" << std::endl;
+  os << "\nPublish data under specified prefix. "
+     << "Note: this tool expects data from the standard input.\n" << std::endl;
+  os << visibleDesc;
+}
 
 static int
 main(int argc, char** argv)
@@ -42,7 +52,6 @@ main(int argc, char** argv)
   bool isVerbose = false;
   std::string prefix;
 
-  namespace po = boost::program_options;
   po::options_description visibleDesc("Options");
   visibleDesc.add_options()
     ("help,h",          "print this help message and exit")
@@ -82,8 +91,7 @@ main(int argc, char** argv)
   }
 
   if (vm.count("help") > 0) {
-    std::cout << "Usage: " << programName << " [options] ndn:/name" << std::endl;
-    std::cout << visibleDesc;
+    usage(std::cout, programName, visibleDesc);
     return 0;
   }
 
@@ -93,8 +101,7 @@ main(int argc, char** argv)
   }
 
   if (prefix.empty()) {
-    std::cerr << "Usage: " << programName << " [options] ndn:/name" << std::endl;
-    std::cerr << visibleDesc;
+    usage(std::cerr, programName, visibleDesc);
     return 2;
   }
 
