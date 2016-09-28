@@ -61,10 +61,10 @@ To retrieve the latest version of a published file, the following command can be
 
 This command will use the iterative method to discover the latest version of the file.
 
-To fetch a specific version of a published file, you can use the `fixed` version discovery method
-(the default). In this case the version needs to be supplied as part of the name.  For example,
-if the version is known to be `%FD%00%00%01Qc%CF%17v`, the following command will fetch that
-exact version of the file:
+To fetch a specific version of a published file, you can use the `fixed` version discovery method.
+In this case the version needs to be supplied as part of the name. For example, if the version
+is known to be `%FD%00%00%01Qc%CF%17v`, the following command will fetch that exact version of the
+file:
 
     ndncatchunks -d fixed ndn:/localhost/demo/gpl3/%FD%00%00%01Qc%CF%17v
 
