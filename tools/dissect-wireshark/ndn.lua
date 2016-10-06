@@ -18,7 +18,8 @@
 -- @author Seunghyun Yoo <http://relue2718.com/>
 -- @author Seungbae Kim  <https://sites.google.com/site/sbkimcv/>
 -- @author Alexander Afanasyev <http://lasr.cs.ucla.edu/afanasyev/index.html>
-
+-- @author Zipeng Wang
+-- @author Qianshan Yu
 
 -- inspect.lua (https://github.com/kikito/inspect.lua) can be used for debugging.
 -- See more at http://stackoverflow.com/q/15175859/2150331
@@ -26,6 +27,11 @@
 
 -- NDN protocol
 ndn = Proto("ndn", "Named Data Networking (NDN)")
+
+-- TODO with NDNLPv2 processing:
+-- * mark field "unknown" when the field is recognized but the relevant feature is disabled
+-- * colorize "unknown field"
+-- * for a field that appears out-of-order, display "out-of-order field " in red
 
 -----------------------------------------------------
 -----------------------------------------------------
@@ -60,6 +66,23 @@ function getUriFromName(nameBlock)
    end
 end
 
+function getNackReasonDetail(b)
+   local code = getNonNegativeInteger(b)
+   if (code == 0) then return "None"
+   elseif (code == 50) then return "Congestion"
+   elseif (code == 100) then return "Duplicate"
+   elseif (code == 150) then return "NoRoute"
+   else return "Unknown"
+   end
+end
+
+function getCachePolicyDetail(b)
+   local code = getNonNegativeInteger(b)
+   if (code == 1) then return "NoCache"
+   else return "Unknown"
+   end
+end
+
 function getNonNegativeInteger(b)
    if (b.length == 1) then
       return b.tvb(b.offset + b.typeLen + b.lengthLen, 1):uint()
@@ -84,20 +107,40 @@ function getTrue(block)
    return "Yes"
 end
 
-local AppPrivateBlock1 = 128
-local AppPrivateBlock2 = 32767
+local AppPrivateBlock1 = 100
+local AppPrivateBlock2 = 800
+local AppPrivateBlock3 = 1000
+
+function canIgnoreTlvType(t)
+   if (t < AppPrivateBlock2 or t >= AppPrivateBlock3) then
+      return false
+   else
+      local mod = math.fmod(t, 2)
+      if (mod == 1) then
+         return true
+      else
+         return false
+      end
+   end
+end
 
 function getGenericBlockInfo(block)
    local name = ""
 
-   if (block.type < AppPrivateBlock1) then
-      name = "RESERVED_1"
-   elseif (AppPrivateBlock1 <= block.type and block.type < 253) then
-      name = "APP_TAG_1"
-   elseif (253 <= block.type and block.type < AppPrivateBlock2) then
-      name = "RESERVED_3"
+   -- TODO: Properly format informational message based type value reservations
+   -- (http://named-data.net/doc/ndn-tlv/types.html#type-value-reservations)
+   if (block.type <= AppPrivateBlock1) then
+      name = "Unrecognized from the reserved range " .. 0 .. "-" .. AppPrivateBlock1 .. ""
+   elseif (AppPrivateBlock1 < block.type and block.type < AppPrivateBlock2) then
+      name = "Unrecognized from the reserved range " .. (AppPrivateBlock1 + 1) .. "-" .. (AppPrivateBlock2 - 1) .. ""
+   elseif (AppPrivateBlock2 <= block.type and block.type <= AppPrivateBlock3) then
+      if (canIgnoreTlvType(block.type)) then
+         name = "Unknown field (ignored)"
+      else
+      name = "Unknown field"
+      end
    else
-      name = "APP_TAG_3"
+      name = "RESERVED_3"
    end
 
    return name .. ", Type: " .. block.type .. ", Length: " .. block.length
@@ -150,8 +193,20 @@ local NDN_DICT = {
    [30] = {name = "LinkPreference"               , field = ProtoField.uint32("ndn.link_preference", "LinkPreference", base.DEC)    , value = getNonNegativeInteger},
    [31] = {name = "LinkDelegation"               , summary = true},
    [32] = {name = "SelectedDelegation"           , field = ProtoField.uint32("ndn.selected_delegation", "SelectedDelegation", base.DEC), value = getNonNegativeInteger},
-}
 
+   -- NDNLPv2 Packet field
+   [80] = {name = "Fragment"                     },
+   [81] = {name = "Sequence"                     , field = ProtoField.uint32("ndn.sequence", "Sequence", base.DEC), value = getNonNegativeInteger},
+   [82] = {name = "FragIndex"                    , field = ProtoField.uint32("ndn.fragindex", "FragIndex", base.DEC), value = getNonNegativeInteger},
+   [83] = {name = "FragCount"                    , field = ProtoField.uint32("ndn.fragcount", "FragCount", base.DEC), value = getNonNegativeInteger},
+   [100] = {name = "LpPacket"                    , summary = true},
+   [800] = {name = "Nack"                        , summary = true},
+   [801] = {name = "NackReason"                  , field = ProtoField.string("ndn.nack_reason", "NackReason"), value = getNackReasonDetail},
+   [816] = {name = "NextHopFaceId"               , field = ProtoField.uint32("ndn.nexthop_faceid", "NextHopFaceId", base.DEC), value = getNonNegativeInteger},
+   [817] = {name = "IncomingFaceId"              , field = ProtoField.uint32("ndn.incoming_faceid", "IncomingFaceId", base.DEC), value = getNonNegativeInteger},
+   [820] = {name = "CachePolicy"                 , summary = true},
+   [821] = {name = "CachePolicyType"             , field = ProtoField.string("ndn.cachepolicy_type", "CachePolicyType"), value = getCachePolicyDetail},
+}
 
 -- -- Add protofields in NDN protocol
 ndn.fields = {
@@ -159,7 +214,6 @@ ndn.fields = {
 for key, value in pairs(NDN_DICT) do
    table.insert(ndn.fields, value.field)
 end
-
 
 -----------------------------------------------------
 -----------------------------------------------------
@@ -179,6 +233,7 @@ function addInfo(block, root) -- may be add additional context later
    if (info == nil) then
       info = {}
       info.value = getGenericBlockInfo
+      -- color
    end
 
    local treeInfo
@@ -197,7 +252,7 @@ function addInfo(block, root) -- may be add additional context later
       if (info.field ~= nil) then
          treeInfo = root:add(info.field, block.tvb(block.offset, block.size), block.value)
       else
-         treeInfo = root:add(block.tvb(block.offset, block.size), info.name)
+         treeInfo = root:add(block.tvb(block.offset, block.size), block.value)
       end
    end
    block.root = treeInfo
@@ -277,7 +332,7 @@ function getBlock(tvb, offset)
 end
 
 function canBeValidNdnPacket(block)
-   if ((block.type == 5 or block.type == 6) and block.length <= 8800) then
+   if ((block.type == 5 or block.type == 6 or block.type == 100) and block.length <= 8800) then
       return true
    else
       return false
@@ -385,18 +440,22 @@ function ndn.dissector(tvb, pInfo, root) -- Tvb, Pinfo, TreeItem
 
       local info = NDN_DICT[block.type]
       if (info ~= nil) then
-         block.tree:append_text(", " .. NDN_DICT[block.type].name .. ", " .. block.summary)
+         if (block.summary ~= nil) then
+            block.tree:append_text(", " .. NDN_DICT[block.type].name .. ", " .. block.summary)
+         else
+            block.tree:append_text(", " .. NDN_DICT[block.type].name)
+         end
       end
 
       nBytesLeft = nBytesLeft - block.size
 
       if (nBytesLeft > 0) then
          ok, block = pcall(getBlock, tvb, tvb:len() - nBytesLeft)
-         if (not ok or not canBeValidNdnPacket(block)) then
+         if (not ok or block == nil or not canBeValidNdnPacket(block)) then
             break
          end
       end
-   end
+   end -- while(block.size <= nBytesLeft)
 
    pInfo.cols.protocol = tostring(pInfo.cols.protocol) .. " (" .. ndn.name .. ")"
 

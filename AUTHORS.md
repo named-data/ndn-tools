@@ -21,3 +21,5 @@ in ndn-tools:
 * Andrea Tosatto        <https://linkedin.com/in/tosattoandrea>
 * Vince Lehman          <http://vslehman.com>
 * Weiwei Liu            <https://www.linkedin.com/in/weiweiliu10>
+* Zipeng Wang
+* Qianshan Yu

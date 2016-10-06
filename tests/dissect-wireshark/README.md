@@ -115,3 +115,28 @@ if parser does not check packet length.
 
 Expected result of the dissection:
 - data packet is dissected at packet 12 without Lua error.
+
+### 9. NDNLPv2 Basic
+
+Trace file: `ndnlpv2.pcap`
+
+Trace summary: Short capture, containing NDN interest that was NACKed with the reason "NoRoute"
+
+Expected result of the dissection:
+- interest packet is dissected from packet 1
+- from packet 2, an NDNLPv2 packet is dissected which includes a NACK with the code "NoRoute" and
+  a fragment that includes an interest packet
+
+### 10. NDNLPv2 Extended
+
+Trace file: `ndnlpv2-more.pcap`
+
+Trace summary: Short capture of randomly generated NDNLPv2 packets (see
+https://gist.github.com/cawka/fcdde58cc4dc94d789025ab8300076dc) with multiple fields set to various
+values. Given the random generation, some fields are semantically meaningless.
+
+Expected results of the dissection:
+- 10 NDN (NDNLPv2) packets extracted from the reassembled TCP stream
+- the dissection results include Fragment (Interest/Data), Sequence (number), FragIndex (number),
+  FragCount (number), Nack (various reasons), NextHopFaceId, IncomingFaceId, CachingPolicy, and
+  unknown fields
