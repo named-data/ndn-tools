@@ -18,7 +18,7 @@ def options(opt):
 
 def configure(conf):
     conf.load(['compiler_cxx', 'gnu_dirs',
-               'default-compiler-flags', 'sanitizers', 'sphinx_build', 'boost'])
+               'default-compiler-flags', 'sphinx_build', 'boost'])
 
     if 'PKG_CONFIG_PATH' not in os.environ:
         os.environ['PKG_CONFIG_PATH'] = Utils.subst_vars('${LIBDIR}/pkgconfig', conf.env)
@@ -33,6 +33,8 @@ def configure(conf):
     conf.check_boost(lib=boost_libs)
 
     conf.recurse('tools')
+
+    conf.load('sanitizers')
 
 def build(bld):
     bld.env['VERSION'] = VERSION
