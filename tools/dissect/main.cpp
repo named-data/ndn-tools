@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2016,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -71,7 +71,7 @@ main(int argc, char* argv[])
               vm);
     po::notify(vm);
   }
-  catch (po::error& e) {
+  catch (const po::error& e) {
     std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
     usage(std::cerr, argv[0], visibleOptions);
     return 2;
@@ -92,6 +92,10 @@ main(int argc, char* argv[])
 
   if (vm.count("input-file") > 0 && inputFileName != "-") {
     inputFile.open(inputFileName);
+    if (!inputFile.is_open()) {
+      std::cerr << argv[0] << ": " << inputFileName << ": File does not exist or is unreadable" << std::endl;
+      return 3;
+    }
     inputStream = &inputFile;
   }
   else {
