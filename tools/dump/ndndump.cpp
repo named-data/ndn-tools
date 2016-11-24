@@ -140,7 +140,7 @@ Ndndump::run()
 
   m_dataLinkType = pcap_datalink(m_pcap);
   if (m_dataLinkType != DLT_EN10MB && m_dataLinkType != DLT_PPP) {
-    BOOST_THROW_EXCEPTION(Error("Unsupported pcap format (" + to_string(m_dataLinkType)));
+    BOOST_THROW_EXCEPTION(Error("Unsupported pcap format (" + to_string(m_dataLinkType) + ")"));
   }
 
   pcap_loop(m_pcap, -1, &Ndndump::onCapturedPacket, reinterpret_cast<uint8_t*>(this));
