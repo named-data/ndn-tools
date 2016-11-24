@@ -50,6 +50,8 @@ namespace dump {
 } // namespace dump
 } // namespace ndn
 
+#include <pcap/sll.h>
+
 #include <boost/lexical_cast.hpp>
 
 #include <iomanip>
@@ -139,7 +141,7 @@ Ndndump::run()
   }
 
   m_dataLinkType = pcap_datalink(m_pcap);
-  if (m_dataLinkType != DLT_EN10MB && m_dataLinkType != DLT_PPP) {
+  if (m_dataLinkType != DLT_EN10MB && m_dataLinkType != DLT_PPP && m_dataLinkType != DLT_LINUX_SLL) {
     BOOST_THROW_EXCEPTION(Error("Unsupported pcap format (" + to_string(m_dataLinkType) + ")"));
   }
 
@@ -294,6 +296,20 @@ Ndndump::skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& pay
         std::cerr << "Invalid PPP frame" << std::endl;
         return -1;
       }
+
+      break;
+    }
+    case DLT_LINUX_SLL: {
+      const sll_header* sllHeader = reinterpret_cast<const sll_header*>(payload);
+
+      if (payloadSize < SLL_HDR_LEN) {
+        std::cerr << "Invalid LINUX_SLL frame" << std::endl;
+        return -1;
+      }
+
+      frameType = ntohs(sllHeader->sll_protocol);
+      payloadSize -= SLL_HDR_LEN;
+      payload += SLL_HDR_LEN;
 
       break;
     }
