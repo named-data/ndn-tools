@@ -48,9 +48,14 @@ function escapeString(str)
    return str
 end
 
-function getUriFromNameComponent(block)
+-- @return TLV-VALUE portion of a TLV block
+function getValue(b)
+   return b.tvb(b.offset + b.typeLen + b.lengthLen, b.length)
+end
+
+function getUriFromNameComponent(b)
    -- @todo Implement proper proper URL escaping
-   return block.tvb(block.offset + block.typeLen + block.lengthLen, block.length):string()
+   return getValue(b):string()
 end
 
 function getUriFromName(nameBlock)
@@ -64,6 +69,11 @@ function getUriFromName(nameBlock)
 
       return "/" .. table.concat(components, "/")
    end
+end
+
+function getUriFromExclude(block)
+   -- @todo
+   return ""
 end
 
 function getNackReasonDetail(b)
@@ -84,12 +94,8 @@ function getCachePolicyDetail(b)
 end
 
 function getNonNegativeInteger(b)
-   if (b.length == 1) then
-      return b.tvb(b.offset + b.typeLen + b.lengthLen, 1):uint()
-   elseif (b.length == 2) then
-      return b.tvb(b.offset + b.typeLen + b.lengthLen, 2):uint()
-   elseif (b.length == 4) then
-      return b.tvb(b.offset + b.typeLen + b.lengthLen, 4):uint()
+   if (b.length == 1 or b.length == 2 or b.length == 4) then
+      return getValue(b):uint()
    -- Something strange with uint64, not supporting it for now
    -- elseif (b.length == 8) then
    --    return b.tvb(b.offset + b.typeLen + b.lengthLen, 8):uint64()
@@ -98,9 +104,12 @@ function getNonNegativeInteger(b)
    end
 end
 
-function getUriFromExclude(block)
-   -- @todo
-   return ""
+function getNonce(b)
+   assert(b.type == 10)
+   if (b.length ~= 4) then
+      return "invalid (should have 4 octets)"
+   end
+   return getValue(b):uint()
 end
 
 function getTrue(block)
@@ -161,7 +170,7 @@ local NDN_DICT = {
 
    -- Sub-fields of Interest packet
    [9]  = {name = "Selectors"                    , summary = true},
-   [10] = {name = "Nonce"                        , field = ProtoField.bytes("ndn.nonce", "Nonce")},
+   [10] = {name = "Nonce"                        , field = ProtoField.uint32("ndn.nonce", "Nonce", base.HEX)                       , value = getNonce},
    [12] = {name = "InterestLifetime"             , field = ProtoField.uint32("ndn.interestlifetime", "InterestLifetime", base.DEC) , value = getNonNegativeInteger},
 
    -- Sub-fields of Interest/Selector field
