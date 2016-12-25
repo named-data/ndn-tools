@@ -85,11 +85,26 @@ StatisticsCollector::computeStatistics()
   statistics.pingStartTime = m_pingStartTime;
   statistics.minRtt = m_minRtt;
   statistics.maxRtt = m_maxRtt;
-  statistics.packetLossRate = static_cast<double>(m_nSent - m_nReceived - m_nNacked) / static_cast<double>(m_nSent);
-  statistics.packetNackedRate = static_cast<double>(m_nNacked) / static_cast<double>(m_nSent);
+
+  if (m_nSent > 0) {
+    statistics.packetLossRate = static_cast<double>(m_nSent - m_nReceived - m_nNacked) / static_cast<double>(m_nSent);
+    statistics.packetNackedRate = static_cast<double>(m_nNacked) / static_cast<double>(m_nSent);
+  }
+  else {
+    statistics.packetLossRate = std::numeric_limits<double>::quiet_NaN();
+    statistics.packetNackedRate = std::numeric_limits<double>::quiet_NaN();
+  }
+
   statistics.sumRtt = m_sumRtt;
-  statistics.avgRtt = m_sumRtt / m_nReceived;
-  statistics.stdDevRtt = std::sqrt((m_sumRttSquared / m_nReceived) - (statistics.avgRtt * statistics.avgRtt));
+
+  if (m_nReceived > 0) {
+    statistics.avgRtt = m_sumRtt / m_nReceived;
+    statistics.stdDevRtt = std::sqrt((m_sumRttSquared / m_nReceived) - (statistics.avgRtt * statistics.avgRtt));
+  }
+  else {
+    statistics.avgRtt = std::numeric_limits<double>::quiet_NaN();
+    statistics.stdDevRtt = std::numeric_limits<double>::quiet_NaN();
+  }
 
   return statistics;
 }
@@ -97,24 +112,36 @@ StatisticsCollector::computeStatistics()
 std::ostream&
 Statistics::printSummary(std::ostream& os) const
 {
-  os << nReceived << "/" << nSent << " packets, " << packetLossRate * 100.0
-     << "% loss, min/avg/max/mdev = " << minRtt << "/" << avgRtt << "/" << maxRtt << "/"
-     << stdDevRtt << " ms" << std::endl;
+  os << nReceived << "/" << nSent << " packets";
 
-  return os;
+  if (nSent > 0) {
+    os << ", " << packetLossRate * 100.0 << "% lost, " << packetNackedRate * 100.0 << "% nacked";
+  }
+
+  if (nReceived > 0) {
+    os << ", min/avg/max/mdev = " << minRtt << "/" << avgRtt << "/" << maxRtt << "/" << stdDevRtt
+       << " ms";
+  }
+
+  return os << std::endl;
 }
 
 std::ostream&
 operator<<(std::ostream& os, const Statistics& statistics)
 {
   os << "\n";
-  os << "--- " << statistics.prefix <<" ping statistics ---\n";
+  os << "--- " << statistics.prefix << " ping statistics ---\n";
   os << statistics.nSent << " packets transmitted";
   os << ", " << statistics.nReceived << " received";
   os << ", " << statistics.nNacked << " nacked";
-  os << ", " << statistics.packetLossRate * 100.0 << "% packet loss";
-  os << ", " << statistics.packetNackedRate * 100.0 << "% nacked";
+
+  if (statistics.nSent > 0) {
+    os << ", " << statistics.packetLossRate * 100.0 << "% lost";
+    os << ", " << statistics.packetNackedRate * 100.0 << "% nacked";
+  }
+
   os << ", time " << statistics.sumRtt << " ms";
+
   if (statistics.nReceived > 0) {
     os << "\n";
     os << "rtt min/avg/max/mdev = ";

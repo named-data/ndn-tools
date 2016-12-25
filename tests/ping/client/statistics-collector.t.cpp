@@ -120,7 +120,14 @@ BOOST_AUTO_TEST_CASE(LossLoss)
   BOOST_CHECK_EQUAL(stats.prefix, pingOptions.prefix);
   BOOST_CHECK_EQUAL(stats.nSent, 2);
   BOOST_CHECK_EQUAL(stats.nReceived, 0);
+  BOOST_CHECK_EQUAL(stats.nNacked, 0);
   BOOST_CHECK_CLOSE(stats.packetLossRate, 1.0, 0.001);
+  BOOST_CHECK_CLOSE(stats.packetNackedRate, 0.0, 0.001);
+  BOOST_CHECK_CLOSE(stats.minRtt, std::numeric_limits<double>::max(), 0.001);
+  BOOST_CHECK_CLOSE(stats.maxRtt, 0.0, 0.001);
+  BOOST_CHECK_CLOSE(stats.sumRtt, 0.0, 0.001);
+  BOOST_CHECK(std::isnan(stats.avgRtt));
+  BOOST_CHECK(std::isnan(stats.stdDevRtt));
 }
 
 BOOST_AUTO_TEST_CASE(Resp50msLoss)
@@ -183,6 +190,22 @@ BOOST_AUTO_TEST_CASE(NackLoss)
   BOOST_CHECK_EQUAL(stats.nNacked, 1);
   BOOST_CHECK_CLOSE(stats.packetNackedRate, 0.5, 0.001);
   BOOST_CHECK_CLOSE(stats.packetLossRate, 0.5, 0.001);
+}
+
+BOOST_AUTO_TEST_CASE(NoneSent)
+{
+  Statistics stats = sc.computeStatistics();
+  BOOST_CHECK_EQUAL(stats.prefix, pingOptions.prefix);
+  BOOST_CHECK_EQUAL(stats.nSent, 0);
+  BOOST_CHECK_EQUAL(stats.nReceived, 0);
+  BOOST_CHECK_EQUAL(stats.nNacked, 0);
+  BOOST_CHECK(std::isnan(stats.packetLossRate));
+  BOOST_CHECK(std::isnan(stats.packetNackedRate));
+  BOOST_CHECK_CLOSE(stats.minRtt, std::numeric_limits<double>::max(), 0.001);
+  BOOST_CHECK_CLOSE(stats.maxRtt, 0.0, 0.001);
+  BOOST_CHECK_CLOSE(stats.sumRtt, 0.0, 0.001);
+  BOOST_CHECK(std::isnan(stats.avgRtt));
+  BOOST_CHECK(std::isnan(stats.stdDevRtt));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestStatisticsCollector
