@@ -1,5 +1,8 @@
 sudo: required
 language: generic
+env:
+  global:
+    - JOB_NAME=limited-build
 matrix:
   include:
     - os: linux
