@@ -9,7 +9,8 @@ import os
 
 def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
-    opt.load(['default-compiler-flags', 'sanitizers', 'sphinx_build', 'boost'],
+    opt.load(['default-compiler-flags', 'coverage', 'sanitizers', 'boost',
+              'sphinx_build'],
              tooldir=['.waf-tools'])
 
     opt.add_option('--with-tests', action='store_true', default=False,
@@ -32,6 +33,9 @@ def configure(conf):
         conf.define('WITH_TESTS', 1);
         boost_libs += ' unit_test_framework'
     conf.check_boost(lib=boost_libs)
+
+    # Loading "late" to prevent tests from being compiled with profiling flags
+    conf.load('coverage')
 
     conf.recurse('tools')
 

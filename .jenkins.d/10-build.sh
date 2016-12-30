@@ -27,7 +27,7 @@ fi
 
 # Configure/build in debug mode with tests
 if [[ $JOB_NAME == *"code-coverage" ]]; then
-    COVERAGE="" # TODO add code coverage support
+    COVERAGE="--with-coverage"
 elif ! has OSX-10.9 $NODE_LABELS && ! has OSX-10.11 $NODE_LABELS; then
     ASAN="--with-sanitizer=address"
 fi
