@@ -2,8 +2,9 @@
 
 VERSION = '0.3'
 APPNAME = 'ndn-tools'
+GIT_TAG_PREFIX = 'ndn-tools-'
 
-from waflib import Utils
+from waflib import Utils, Context
 import os
 
 def options(opt):
@@ -37,15 +38,66 @@ def configure(conf):
     conf.load('sanitizers')
 
 def build(bld):
-    bld.env['VERSION'] = VERSION
+    version(bld)
+
+    bld(features='subst',
+        source='core/version.cpp.in',
+        target='core/version.cpp',
+        VERSION_BUILD=VERSION)
 
     bld(target='core-objects',
         name='core-objects',
         features='cxx',
-        source=bld.path.ant_glob(['core/*.cpp']),
+        source=bld.path.ant_glob(['core/*.cpp']) + ['core/version.cpp'],
         use='NDN_CXX BOOST',
+        includes='.',
         export_includes='.')
 
     bld.recurse('tools')
     bld.recurse('tests')
     bld.recurse('manpages')
+
+def version(bld):
+    # Modified from ndn-cxx wscript
+    try:
+        cmd = ['git', 'describe', '--always', '--match', '%s*' % GIT_TAG_PREFIX]
+        p = Utils.subprocess.Popen(cmd, stdout=Utils.subprocess.PIPE,
+                                   stderr=None, stdin=None)
+        out = str(p.communicate()[0].strip())
+        didGetVersion = (p.returncode == 0 and out != "")
+        if didGetVersion:
+            if out.startswith(GIT_TAG_PREFIX):
+                Context.g_module.VERSION = out[len(GIT_TAG_PREFIX):]
+            else:
+                Context.g_module.VERSION = "%s-commit-%s" % (Context.g_module.VERSION, out)
+    except OSError:
+        pass
+
+    versionFile = bld.path.find_node('VERSION')
+
+    if not didGetVersion and versionFile is not None:
+        try:
+            Context.g_module.VERSION = versionFile.read()
+            return
+        except (OSError, IOError):
+            pass
+
+    # version was obtained from git, update VERSION file if necessary
+    if versionFile is not None:
+        try:
+            version = versionFile.read()
+            if version == Context.g_module.VERSION:
+                return # no need to update
+        except (OSError, IOError):
+            Logs.warn("VERSION file exists, but not readable")
+    else:
+        versionFile = bld.path.make_node('VERSION')
+
+    # neither git describe nor VERSION file contain the version, so fall back to constant in wscript
+    if versionFile is None:
+        Context.g_module.VERSION = VERSION
+
+    try:
+        versionFile.write(Context.g_module.VERSION)
+    except (OSError, IOError):
+        Logs.warn("VERSION file is not writeable")
