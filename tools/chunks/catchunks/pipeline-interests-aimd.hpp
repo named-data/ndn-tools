@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -118,13 +118,13 @@ private:
    * every segment until the last segment is successfully received or an error occurs.
    * The segment with segment number equal to m_excludedSegmentNo will not be fetched.
    */
-  virtual void
+  void
   doRun() final;
 
   /**
    * @brief stop all fetch operations
    */
-  virtual void
+  void
   doCancel() final;
 
   /**
@@ -186,20 +186,22 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   const Options m_options;
   RttEstimator& m_rttEstimator;
   Scheduler m_scheduler;
+  scheduler::ScopedEventId m_checkRtoEvent;
+
   uint64_t m_nextSegmentNo;
   size_t m_receivedSize;
 
   uint64_t m_highData; ///< the highest segment number of the Data packet the consumer has received so far
   uint64_t m_highInterest; ///< the highest segment number of the Interests the consumer has sent so far
-  uint64_t m_recPoint; ///< the value of m_highInterest when a packet loss event occurred
-                       ///< It remains fixed until the next packet loss event happens
+  uint64_t m_recPoint; ///< the value of m_highInterest when a packet loss event occurred,
+                       ///< it remains fixed until the next packet loss event happens
 
   uint64_t m_nInFlight; ///< # of segments in flight
   uint64_t m_nReceived; ///< # of segments received
   uint64_t m_nLossEvents; ///< # of loss events occurred
   uint64_t m_nRetransmitted; ///< # of segments retransmitted
 
-  time::steady_clock::TimePoint m_startTime; ///<  start time of pipelining
+  time::steady_clock::TimePoint m_startTime; ///< start time of pipelining
 
   double m_cwnd; ///< current congestion window size (in segments)
   double m_ssthresh; ///< current slow start threshold

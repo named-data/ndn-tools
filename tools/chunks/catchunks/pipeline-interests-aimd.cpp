@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -37,6 +37,7 @@ PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstima
   , m_options(options)
   , m_rttEstimator(rttEstimator)
   , m_scheduler(m_face.getIoService())
+  , m_checkRtoEvent(m_scheduler)
   , m_nextSegmentNo(0)
   , m_receivedSize(0)
   , m_highData(0)
@@ -71,7 +72,7 @@ PipelineInterestsAimd::doRun()
   m_nReceived++;
 
   // schedule the event to check retransmission timer
-  m_scheduler.scheduleEvent(m_options.rtoCheckInterval, [this] { checkRto(); });
+  m_checkRtoEvent = m_scheduler.scheduleEvent(m_options.rtoCheckInterval, [this] { checkRto(); });
 
   sendInterest(getNextSegmentNo(), false);
 }
@@ -80,11 +81,10 @@ void
 PipelineInterestsAimd::doCancel()
 {
   for (const auto& entry : m_segmentInfo) {
-    const SegmentInfo& segInfo = entry.second;
-    m_face.removePendingInterest(segInfo.interestId);
+    m_face.removePendingInterest(entry.second.interestId);
   }
+  m_checkRtoEvent.cancel();
   m_segmentInfo.clear();
-  m_scheduler.cancelAllEvents();
 }
 
 void
@@ -114,7 +114,7 @@ PipelineInterestsAimd::checkRto()
   }
 
   // schedule the next check after predefined interval
-  m_scheduler.scheduleEvent(m_options.rtoCheckInterval, [this] { checkRto(); });
+  m_checkRtoEvent = m_scheduler.scheduleEvent(m_options.rtoCheckInterval, [this] { checkRto(); });
 }
 
 void
