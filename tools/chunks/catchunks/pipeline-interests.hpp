@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -80,6 +80,12 @@ public:
   cancel();
 
 protected:
+  time::steady_clock::TimePoint
+  getStartTime() const
+  {
+    return m_startTime;
+  }
+
   bool
   isStopping() const
   {
@@ -126,8 +132,16 @@ PUBLIC_WITH_TESTS_ELSE_PROTECTED:
 private:
   DataCallback m_onData;
   FailureCallback m_onFailure;
+  time::steady_clock::TimePoint m_startTime;
   bool m_isStopping;
 };
+
+template<typename Packet>
+uint64_t
+getSegmentFromPacket(const Packet& packet)
+{
+  return packet.getName().at(-1).toSegment();
+}
 
 } // namespace chunks
 } // namespace ndn

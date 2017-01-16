@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -50,12 +50,15 @@ PipelineInterests::run(const Data& data, DataCallback onData, FailureCallback on
   m_onData = std::move(onData);
   m_onFailure = std::move(onFailure);
   m_prefix = data.getName().getPrefix(-1);
-  m_excludedSegmentNo = data.getName()[-1].toSegment();
+  m_excludedSegmentNo = getSegmentFromPacket(data);
 
   if (!data.getFinalBlockId().empty()) {
     m_lastSegmentNo = data.getFinalBlockId().toSegment();
     m_hasFinalBlockId = true;
   }
+
+  // record the start time of the pipeline
+  m_startTime = time::steady_clock::now();
 
   doRun();
 }

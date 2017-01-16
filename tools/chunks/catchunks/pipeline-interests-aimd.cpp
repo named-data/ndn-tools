@@ -1,3 +1,4 @@
+/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
@@ -65,9 +66,6 @@ PipelineInterestsAimd::~PipelineInterestsAimd()
 void
 PipelineInterestsAimd::doRun()
 {
-  // record the start time of running pipeline
-  m_startTime = time::steady_clock::now();
-
   // count the excluded segment
   m_nReceived++;
 
@@ -187,7 +185,9 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
 void
 PipelineInterestsAimd::schedulePackets()
 {
-  int availableWindowSize = static_cast<int>(m_cwnd) - m_nInFlight;
+  BOOST_ASSERT(m_nInFlight >= 0);
+  auto availableWindowSize = static_cast<int64_t>(m_cwnd) - m_nInFlight;
+
   while (availableWindowSize > 0) {
     if (!m_retxQueue.empty()) { // do retransmission first
       uint64_t retxSegNo = m_retxQueue.front();
@@ -228,7 +228,7 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
     }
   }
 
-  uint64_t recvSegNo = data.getName()[-1].toSegment();
+  uint64_t recvSegNo = getSegmentFromPacket(data);
   if (m_highData < recvSegNo) {
     m_highData = recvSegNo;
   }
@@ -261,8 +261,9 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
 
   if (segInfo.state == SegmentState::FirstTimeSent ||
       segInfo.state == SegmentState::InRetxQueue) { // do not sample RTT for retransmitted segments
-    size_t nExpectedSamples = std::max(static_cast<int>(std::ceil(m_nInFlight / 2.0)), 1);
-    m_rttEstimator.addMeasurement(recvSegNo, rtt, nExpectedSamples);
+    auto nExpectedSamples = std::max<int64_t>((m_nInFlight + 1) >> 1, 1);
+    BOOST_ASSERT(nExpectedSamples > 0);
+    m_rttEstimator.addMeasurement(recvSegNo, rtt, static_cast<size_t>(nExpectedSamples));
     m_segmentInfo.erase(recvSegNo); // remove the entry associated with the received segment
   }
   else { // retransmission
@@ -270,7 +271,8 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
   }
 
   BOOST_ASSERT(m_nReceived > 0);
-  if (m_hasFinalBlockId && m_nReceived - 1 >= m_lastSegmentNo) { // all segments have been received
+  if (m_hasFinalBlockId &&
+      static_cast<uint64_t>(m_nReceived - 1) >= m_lastSegmentNo) { // all segments have been received
     cancel();
     if (m_options.isVerbose) {
       printSummary();
@@ -291,7 +293,7 @@ PipelineInterestsAimd::handleNack(const Interest& interest, const lp::Nack& nack
     std::cerr << "Received Nack with reason " << nack.getReason()
               << " for Interest " << interest << std::endl;
 
-  uint64_t segNo = interest.getName()[-1].toSegment();
+  uint64_t segNo = getSegmentFromPacket(interest);
 
   switch (nack.getReason()) {
     case lp::NackReason::DUPLICATE: {
@@ -317,7 +319,7 @@ PipelineInterestsAimd::handleLifetimeExpiration(const Interest& interest)
   if (isStopping())
     return;
 
-  uint64_t segNo = interest.getName()[-1].toSegment();
+  uint64_t segNo = getSegmentFromPacket(interest);
   m_retxQueue.push(segNo); // put on retx queue
   m_segmentInfo[segNo].state = SegmentState::InRetxQueue; // update state
   handleTimeout(1);
@@ -343,11 +345,7 @@ PipelineInterestsAimd::handleTimeout(int timeoutCount)
     }
   }
 
-  if (m_nInFlight > static_cast<uint64_t>(timeoutCount))
-    m_nInFlight -= timeoutCount;
-  else
-    m_nInFlight = 0;
-
+  m_nInFlight = std::max<int64_t>(0, m_nInFlight - timeoutCount);
   schedulePackets();
 }
 
@@ -386,7 +384,7 @@ PipelineInterestsAimd::increaseWindow()
   } else {
     m_cwnd += m_options.aiStep / std::floor(m_cwnd); // congestion avoidance
   }
-  afterCwndChange(time::steady_clock::now() - m_startTime, m_cwnd);
+  afterCwndChange(time::steady_clock::now() - getStartTime(), m_cwnd);
 }
 
 void
@@ -395,7 +393,7 @@ PipelineInterestsAimd::decreaseWindow()
   // please refer to RFC 5681, Section 3.1 for the rationale behind it
   m_ssthresh = std::max(2.0, m_cwnd * m_options.mdCoef); // multiplicative decrease
   m_cwnd = m_options.resetCwndToInit ? m_options.initCwnd : m_ssthresh;
-  afterCwndChange(time::steady_clock::now() - m_startTime, m_cwnd);
+  afterCwndChange(time::steady_clock::now() - getStartTime(), m_cwnd);
 }
 
 uint64_t
@@ -427,8 +425,8 @@ PipelineInterestsAimd::cancelInFlightSegmentsGreaterThan(uint64_t segmentNo)
 void
 PipelineInterestsAimd::printSummary() const
 {
-  Milliseconds timePassed = time::steady_clock::now() - m_startTime;
-  double throughput = (8 * m_receivedSize * 1000) / timePassed.count();
+  Milliseconds timeElapsed = time::steady_clock::now() - getStartTime();
+  double throughput = (8 * m_receivedSize * 1000) / timeElapsed.count();
 
   int pow = 0;
   std::string throughputUnit;
@@ -455,9 +453,9 @@ PipelineInterestsAimd::printSummary() const
   }
 
   std::cerr << "\nAll segments have been received.\n"
+            << "Time elapsed: " << timeElapsed << "\n"
             << "Total # of segments received: " << m_nReceived << "\n"
-            << "Time used: " << timePassed.count() << " ms" << "\n"
-            << "Total # of packet loss burst: " << m_nLossEvents << "\n"
+            << "Total # of packet loss events: " << m_nLossEvents << "\n"
             << "Packet loss rate: "
             << static_cast<double>(m_nLossEvents) / static_cast<double>(m_nReceived) << "\n"
             << "Total # of retransmitted segments: " << m_nRetransmitted << "\n"

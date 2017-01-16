@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -79,12 +79,12 @@ BOOST_FIXTURE_TEST_CASE(FewerSegmentsThanPipelineCapacity, PipelineInterestFixed
     BOOST_CHECK_EQUAL(nReceivedSegments, i);
     BOOST_REQUIRE_EQUAL(face.sentInterests.size(), nDataSegments - 1);
     // check if the interest for the segment i+1 is well formed
-    auto sentInterest = face.sentInterests[i];
+    const auto& sentInterest = face.sentInterests[i];
     BOOST_CHECK_EQUAL(sentInterest.getExclude().size(), 0);
     BOOST_CHECK_EQUAL(sentInterest.getMaxSuffixComponents(), 1);
     BOOST_CHECK_EQUAL(sentInterest.getMustBeFresh(), opt.mustBeFresh);
     BOOST_CHECK_EQUAL(Name(name).isPrefixOf(sentInterest.getName()), true);
-    BOOST_CHECK_EQUAL(sentInterest.getName()[-1].toSegment(), i + 1);
+    BOOST_CHECK_EQUAL(getSegmentFromPacket(sentInterest), i + 1);
   }
 
   BOOST_CHECK_EQUAL(hasFailed, false);
@@ -110,12 +110,12 @@ BOOST_FIXTURE_TEST_CASE(FullPipeline, PipelineInterestFixedWindowFixture)
     if (i < nDataSegments - opt.maxPipelineSize - 1) {
       BOOST_REQUIRE_EQUAL(face.sentInterests.size(), opt.maxPipelineSize + i + 1);
       // check if the interest for the segment i+1 is well formed
-      auto sentInterest = face.sentInterests[i];
+      const auto& sentInterest = face.sentInterests[i];
       BOOST_CHECK_EQUAL(sentInterest.getExclude().size(), 0);
       BOOST_CHECK_EQUAL(sentInterest.getMaxSuffixComponents(), 1);
       BOOST_CHECK_EQUAL(sentInterest.getMustBeFresh(), opt.mustBeFresh);
       BOOST_CHECK_EQUAL(Name(name).isPrefixOf(sentInterest.getName()), true);
-      BOOST_CHECK_EQUAL(sentInterest.getName()[-1].toSegment(), i);
+      BOOST_CHECK_EQUAL(getSegmentFromPacket(sentInterest), i);
     }
     else {
       // all the interests have been sent for all the segments
@@ -142,8 +142,8 @@ BOOST_FIXTURE_TEST_CASE(TimeoutAllSegments, PipelineInterestFixedWindowFixture)
 
     // A single retry for every pipeline element
     for (size_t j = 0; j < opt.maxPipelineSize; ++j) {
-      auto interest = face.sentInterests[(opt.maxPipelineSize * (i + 1)) + j];
-      BOOST_CHECK_EQUAL(static_cast<size_t>(interest.getName()[-1].toSegment()), j);
+      const auto& interest = face.sentInterests[(opt.maxPipelineSize * (i + 1)) + j];
+      BOOST_CHECK_EQUAL(static_cast<size_t>(getSegmentFromPacket(interest)), j);
     }
   }
 
@@ -213,8 +213,8 @@ BOOST_FIXTURE_TEST_CASE(TimeoutBeforeFinalBlockIdReceived, PipelineInterestFixed
     face.receive(*makeDataWithSegment(i, false));
     advanceClocks(io, time::nanoseconds(1), 1);
 
-    auto lastInterest = face.sentInterests.back();
-    BOOST_CHECK_EQUAL(lastInterest.getName()[-1].toSegment(), opt.maxPipelineSize + i - 2);
+    const auto& lastInterest = face.sentInterests.back();
+    BOOST_CHECK_EQUAL(getSegmentFromPacket(lastInterest), opt.maxPipelineSize + i - 2);
   }
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), opt.maxPipelineSize * 3 - 2);
 
@@ -310,8 +310,8 @@ BOOST_FIXTURE_TEST_CASE(CongestionAllSegments, PipelineInterestFixedWindowFixtur
 
     // A single retry for every pipeline element
     for (size_t j = 0; j < opt.maxPipelineSize; ++j) {
-      auto interest = face.sentInterests[(opt.maxPipelineSize * i) + j];
-      BOOST_CHECK_LT(static_cast<size_t>(interest.getName()[-1].toSegment()), opt.maxPipelineSize);
+      const auto& interest = face.sentInterests[(opt.maxPipelineSize * i) + j];
+      BOOST_CHECK_LT(static_cast<size_t>(getSegmentFromPacket(interest)), opt.maxPipelineSize);
     }
 
     for (size_t j = 0; j < opt.maxPipelineSize; j++) {

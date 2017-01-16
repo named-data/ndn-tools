@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -120,7 +120,7 @@ PipelineInterestsFixedWindow::handleData(const Interest& interest, const Data& d
   BOOST_ASSERT(data.getName().equals(interest.getName()));
 
   if (m_options.isVerbose)
-    std::cerr << "Received segment #" << data.getName()[-1].toSegment() << std::endl;
+    std::cerr << "Received segment #" << getSegmentFromPacket(data) << std::endl;
 
   onData(interest, data);
 

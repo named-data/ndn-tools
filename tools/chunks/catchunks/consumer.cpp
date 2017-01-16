@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -82,7 +82,7 @@ Consumer::onDataValidated(shared_ptr<const Data> data)
     throw ApplicationNackError(*data);
   }
 
-  m_bufferedData[data->getName()[-1].toSegment()] = data;
+  m_bufferedData[getSegmentFromPacket(*data)] = data;
   writeInOrderData();
 }
 
