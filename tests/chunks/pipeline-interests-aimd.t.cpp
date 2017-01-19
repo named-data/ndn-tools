@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -292,12 +292,12 @@ BOOST_AUTO_TEST_CASE(SpuriousFailureBeforeFinalBlockIdReceived)
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 6);
 
   // receive nack with NackReason::NONE for segment 4
-  auto nack= makeNack(face.sentInterests[3], lp::NackReason::NONE);
+  auto nack = makeNack(face.sentInterests[3], lp::NackReason::NONE);
   face.receive(nack);
   advanceClocks(io, time::nanoseconds(1));
 
   // error not triggered
-  // pending interests for segment > 4 haven been removed
+  // pending interests for segment > 4 have been removed
   BOOST_CHECK_EQUAL(hasFailed, false);
   BOOST_CHECK_EQUAL(face.getNPendingInterests(), 2);
 
@@ -306,7 +306,7 @@ BOOST_AUTO_TEST_CASE(SpuriousFailureBeforeFinalBlockIdReceived)
   advanceClocks(io, time::nanoseconds(1));
 
   // timeout segment 3
-  advanceClocks(io, time::milliseconds(250));
+  advanceClocks(io, time::seconds(1));
 
   // segment 3 is retransmitted
   BOOST_CHECK_EQUAL(aimdPipeline->m_retxCount[3], 1);

@@ -72,7 +72,7 @@ PipelineInterestsAimd::doRun()
   // schedule the event to check retransmission timer
   m_checkRtoEvent = m_scheduler.scheduleEvent(m_options.rtoCheckInterval, [this] { checkRto(); });
 
-  sendInterest(getNextSegmentNo(), false);
+  schedulePackets();
 }
 
 void
@@ -91,7 +91,7 @@ PipelineInterestsAimd::checkRto()
   if (isStopping())
     return;
 
-  int timeoutCount = 0;
+  bool hasTimeout = false;
 
   for (auto& entry : m_segmentInfo) {
     SegmentInfo& segInfo = entry.second;
@@ -99,16 +99,15 @@ PipelineInterestsAimd::checkRto()
         segInfo.state != SegmentState::RetxReceived) { // or already-received retransmitted segments
       Milliseconds timeElapsed = time::steady_clock::now() - segInfo.timeSent;
       if (timeElapsed.count() > segInfo.rto.count()) { // timer expired?
-        uint64_t timedoutSeg = entry.first;
-        m_retxQueue.push(timedoutSeg); // put on retx queue
-        segInfo.state = SegmentState::InRetxQueue; // update status
-        timeoutCount++;
+        hasTimeout = true;
+        enqueueForRetransmission(entry.first);
       }
     }
   }
 
-  if (timeoutCount > 0) {
-    handleTimeout(timeoutCount);
+  if (hasTimeout) {
+    recordTimeout();
+    schedulePackets();
   }
 
   // schedule the next check after predefined interval
@@ -128,14 +127,13 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
     return;
 
   if (m_options.isVerbose) {
-    if (isRetransmission)
-      std::cerr << "Retransmitting segment #" << segNo << std::endl;
-    else
-      std::cerr << "Requesting segment #" << segNo << std::endl;
+    std::cerr << (isRetransmission ? "Retransmitting" : "Requesting")
+              << " segment #" << segNo << std::endl;
   }
 
   if (isRetransmission) {
-    auto ret = m_retxCount.insert(std::make_pair(segNo, 1));
+    // keep track of retx count for this segment
+    auto ret = m_retxCount.emplace(segNo, 1);
     if (ret.second == false) { // not the first retransmission
       m_retxCount[segNo] += 1;
       if (m_retxCount[segNo] > m_options.maxRetriesOnTimeoutOrNack) {
@@ -168,17 +166,17 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
 
   if (isRetransmission) {
     SegmentInfo& segInfo = m_segmentInfo[segNo];
-    segInfo.state = SegmentState::Retransmitted;
-    segInfo.rto = m_rttEstimator.getEstimatedRto();
     segInfo.timeSent = time::steady_clock::now();
+    segInfo.rto = m_rttEstimator.getEstimatedRto();
+    segInfo.state = SegmentState::Retransmitted;
     m_nRetransmitted++;
   }
   else {
     m_highInterest = segNo;
-    Milliseconds rto = m_rttEstimator.getEstimatedRto();
-    SegmentInfo segInfo{interestId, SegmentState::FirstTimeSent, rto, time::steady_clock::now()};
-
-    m_segmentInfo.emplace(segNo, segInfo);
+    m_segmentInfo[segNo] = {interestId,
+                            time::steady_clock::now(),
+                            m_rttEstimator.getEstimatedRto(),
+                            SegmentState::FirstTimeSent};
   }
 }
 
@@ -229,10 +227,6 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
   }
 
   uint64_t recvSegNo = getSegmentFromPacket(data);
-  if (m_highData < recvSegNo) {
-    m_highData = recvSegNo;
-  }
-
   SegmentInfo& segInfo = m_segmentInfo[recvSegNo];
   if (segInfo.state == SegmentState::RetxReceived) {
     m_segmentInfo.erase(recvSegNo);
@@ -240,21 +234,24 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
   }
 
   Milliseconds rtt = time::steady_clock::now() - segInfo.timeSent;
-
   if (m_options.isVerbose) {
     std::cerr << "Received segment #" << recvSegNo
               << ", rtt=" << rtt.count() << "ms"
               << ", rto=" << segInfo.rto.count() << "ms" << std::endl;
   }
 
-  // for segments in retransmission queue, no need to decrement m_nInFlight since
-  // it's already been decremented when segments timed out
-  if (segInfo.state != SegmentState::InRetxQueue && m_nInFlight > 0) {
+  if (m_highData < recvSegNo) {
+    m_highData = recvSegNo;
+  }
+
+  // for segments in retx queue, we must not decrement m_nInFlight
+  // because it was already decremented when the segment timed out
+  if (segInfo.state != SegmentState::InRetxQueue) {
     m_nInFlight--;
   }
 
-  m_receivedSize += data.getContent().value_size();
   m_nReceived++;
+  m_receivedSize += data.getContent().value_size();
 
   increaseWindow();
   onData(interest, data);
@@ -267,6 +264,7 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
     m_segmentInfo.erase(recvSegNo); // remove the entry associated with the received segment
   }
   else { // retransmission
+    BOOST_ASSERT(segInfo.state == SegmentState::Retransmitted);
     segInfo.state = SegmentState::RetxReceived;
   }
 
@@ -296,20 +294,19 @@ PipelineInterestsAimd::handleNack(const Interest& interest, const lp::Nack& nack
   uint64_t segNo = getSegmentFromPacket(interest);
 
   switch (nack.getReason()) {
-    case lp::NackReason::DUPLICATE: {
-      break; // ignore duplicates
-    }
-    case lp::NackReason::CONGESTION: { // treated the same as timeout for now
-      m_retxQueue.push(segNo); // put on retx queue
-      m_segmentInfo[segNo].state = SegmentState::InRetxQueue; // update state
-      handleTimeout(1);
+    case lp::NackReason::DUPLICATE:
+      // ignore duplicates
       break;
-    }
-    default: {
+    case lp::NackReason::CONGESTION:
+      // treated the same as timeout for now
+      enqueueForRetransmission(segNo);
+      recordTimeout();
+      schedulePackets();
+      break;
+    default:
       handleFail(segNo, "Could not retrieve data for " + interest.getName().toUri() +
                  ", reason: " + boost::lexical_cast<std::string>(nack.getReason()));
       break;
-    }
   }
 }
 
@@ -319,18 +316,14 @@ PipelineInterestsAimd::handleLifetimeExpiration(const Interest& interest)
   if (isStopping())
     return;
 
-  uint64_t segNo = getSegmentFromPacket(interest);
-  m_retxQueue.push(segNo); // put on retx queue
-  m_segmentInfo[segNo].state = SegmentState::InRetxQueue; // update state
-  handleTimeout(1);
+  enqueueForRetransmission(getSegmentFromPacket(interest));
+  recordTimeout();
+  schedulePackets();
 }
 
 void
-PipelineInterestsAimd::handleTimeout(int timeoutCount)
+PipelineInterestsAimd::recordTimeout()
 {
-  if (timeoutCount <= 0)
-    return;
-
   if (m_options.disableCwa || m_highData > m_recPoint) {
     // react to only one timeout per RTT (conservative window adaptation)
     m_recPoint = m_highInterest;
@@ -344,9 +337,15 @@ PipelineInterestsAimd::handleTimeout(int timeoutCount)
                 << ", ssthresh = " << m_ssthresh << std::endl;
     }
   }
+}
 
-  m_nInFlight = std::max<int64_t>(0, m_nInFlight - timeoutCount);
-  schedulePackets();
+void
+PipelineInterestsAimd::enqueueForRetransmission(uint64_t segNo)
+{
+  BOOST_ASSERT(m_nInFlight > 0);
+  m_nInFlight--;
+  m_retxQueue.push(segNo);
+  m_segmentInfo.at(segNo).state = SegmentState::InRetxQueue;
 }
 
 void
@@ -361,8 +360,7 @@ PipelineInterestsAimd::handleFail(uint64_t segNo, const std::string& reason)
 
   if (!m_hasFinalBlockId) {
     m_segmentInfo.erase(segNo);
-    if (m_nInFlight > 0)
-      m_nInFlight--;
+    m_nInFlight--;
 
     if (m_segmentInfo.empty()) {
       onFailure("Fetching terminated but no final segment number has been found");
@@ -384,6 +382,7 @@ PipelineInterestsAimd::increaseWindow()
   } else {
     m_cwnd += m_options.aiStep / std::floor(m_cwnd); // congestion avoidance
   }
+
   afterCwndChange(time::steady_clock::now() - getStartTime(), m_cwnd);
 }
 
@@ -393,6 +392,7 @@ PipelineInterestsAimd::decreaseWindow()
   // please refer to RFC 5681, Section 3.1 for the rationale behind it
   m_ssthresh = std::max(2.0, m_cwnd * m_options.mdCoef); // multiplicative decrease
   m_cwnd = m_options.resetCwndToInit ? m_options.initCwnd : m_ssthresh;
+
   afterCwndChange(time::steady_clock::now() - getStartTime(), m_cwnd);
 }
 
@@ -406,15 +406,14 @@ PipelineInterestsAimd::getNextSegmentNo()
 }
 
 void
-PipelineInterestsAimd::cancelInFlightSegmentsGreaterThan(uint64_t segmentNo)
+PipelineInterestsAimd::cancelInFlightSegmentsGreaterThan(uint64_t segNo)
 {
   for (auto it = m_segmentInfo.begin(); it != m_segmentInfo.end();) {
     // cancel fetching all segments that follow
-    if (it->first > segmentNo) {
+    if (it->first > segNo) {
       m_face.removePendingInterest(it->second.interestId);
       it = m_segmentInfo.erase(it);
-      if (m_nInFlight > 0)
-        m_nInFlight--;
+      m_nInFlight--;
     }
     else {
       ++it;
@@ -479,26 +478,21 @@ operator<<(std::ostream& os, SegmentState state)
     os << "RetxReceived";
     break;
   }
-
   return os;
 }
 
 std::ostream&
 operator<<(std::ostream& os, const PipelineInterestsAimdOptions& options)
 {
-  os << "PipelineInterestsAimd initial parameters:" << "\n"
+  os << "PipelineInterestsAimd initial parameters:\n"
      << "\tInitial congestion window size = " << options.initCwnd << "\n"
      << "\tInitial slow start threshold = " << options.initSsthresh << "\n"
-     << "\tMultiplicative decrease factor = " << options.mdCoef << "\n"
      << "\tAdditive increase step = " << options.aiStep << "\n"
+     << "\tMultiplicative decrease factor = " << options.mdCoef << "\n"
      << "\tRTO check interval = " << options.rtoCheckInterval << "\n"
-     << "\tMax retries on timeout or Nack = " << options.maxRetriesOnTimeoutOrNack << "\n";
-
-  std::string cwaStatus = options.disableCwa ? "disabled" : "enabled";
-  os << "\tConservative Window Adaptation " << cwaStatus << "\n";
-
-  std::string cwndStatus = options.resetCwndToInit ? "initCwnd" : "ssthresh";
-  os << "\tResetting cwnd to " << cwndStatus << " when loss event occurs" << "\n";
+     << "\tMax retries on timeout or Nack = " << options.maxRetriesOnTimeoutOrNack << "\n"
+     << "\tConservative Window Adaptation " << (options.disableCwa ? "disabled" : "enabled") << "\n"
+     << "\tResetting cwnd to " << (options.resetCwndToInit ? "initCwnd" : "ssthresh") << " upon loss event\n";
   return os;
 }
 

@@ -74,12 +74,10 @@ operator<<(std::ostream& os, SegmentState state);
  */
 struct SegmentInfo
 {
-  const PendingInterestId* interestId; ///< The pending interest ID returned by
-                                       ///< ndn::Face::expressInterest. It can be used with
-                                       ///< removePendingInterest before retransmitting this Interest.
-  SegmentState state;
-  Milliseconds rto;
+  const PendingInterestId* interestId; ///< pending interest ID returned by ndn::Face::expressInterest
   time::steady_clock::TimePoint timeSent;
+  Milliseconds rto;
+  SegmentState state;
 };
 
 /**
@@ -161,7 +159,10 @@ private:
   handleLifetimeExpiration(const Interest& interest);
 
   void
-  handleTimeout(int timeoutCount);
+  recordTimeout();
+
+  void
+  enqueueForRetransmission(uint64_t segNo);
 
   void
   handleFail(uint64_t segNo, const std::string& reason);
@@ -185,7 +186,7 @@ private:
   getNextSegmentNo();
 
   void
-  cancelInFlightSegmentsGreaterThan(uint64_t segmentNo);
+  cancelInFlightSegmentsGreaterThan(uint64_t segNo);
 
   void
   printSummary() const;
@@ -212,14 +213,13 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   double m_cwnd; ///< current congestion window size (in segments)
   double m_ssthresh; ///< current slow start threshold
 
-  std::queue<uint64_t> m_retxQueue;
-
-  std::unordered_map<uint64_t, SegmentInfo> m_segmentInfo; ///< the map keeps all the internal information
-                                                           ///< of the sent but not ackownledged segments
-
-  std::unordered_map<uint64_t, int> m_retxCount; ///< maps segment number to its retransmission count.
+  std::unordered_map<uint64_t, SegmentInfo> m_segmentInfo; ///< keeps all the internal information
+                                                           ///< on sent but not acked segments
+  std::unordered_map<uint64_t, int> m_retxCount; ///< maps segment number to its retransmission count;
                                                  ///< if the count reaches to the maximum number of
                                                  ///< timeout/nack retries, the pipeline will be aborted
+  std::queue<uint64_t> m_retxQueue;
+
   bool m_hasFailure;
   uint64_t m_failedSegNo;
   std::string m_failureReason;
