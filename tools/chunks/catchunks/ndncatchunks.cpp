@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -231,8 +231,7 @@ main(int argc, char** argv)
 
       rttEstimator = make_unique<aimd::RttEstimator>(optionsRttEst);
 
-      PipelineInterestsAimd::Options optionsPipeline;
-      optionsPipeline.isVerbose = options.isVerbose;
+      PipelineInterestsAimd::Options optionsPipeline(options);
       optionsPipeline.disableCwa = disableCwa;
       optionsPipeline.resetCwndToInit = resetCwndToInit;
       optionsPipeline.initCwnd = static_cast<double>(initCwnd);

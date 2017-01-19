@@ -8,7 +8,7 @@ in ndn-tools:
 
 * Jerald Paul Abraham   <http://www.cs.arizona.edu/people/jeraldabraham/>
 * Alexander Afanasyev   <http://lasr.cs.ucla.edu/afanasyev/index.html>
-* Davide Pesavento      <http://www.lip6.fr/actualite/personnes-fiche.php?ident=D1469>
+* Davide Pesavento      <https://www.linkedin.com/in/davidepesavento>
 * Junxiao Shi           <http://www.cs.arizona.edu/people/shijunxiao/>
 * Eric Newberry         <http://cs.arizona.edu/~enewberry/>
 * Xiaoke Jiang          <http://netarchlab.tsinghua.edu.cn/~shock/>

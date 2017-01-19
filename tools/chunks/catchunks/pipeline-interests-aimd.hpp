@@ -37,14 +37,21 @@ namespace ndn {
 namespace chunks {
 namespace aimd {
 
-struct PipelineInterestsAimdOptions : public Options
+class PipelineInterestsAimdOptions : public Options
 {
-  bool isVerbose = false;
+public:
+  explicit
+  PipelineInterestsAimdOptions(const Options& options = Options())
+    : Options(options)
+  {
+  }
+
+public:
   double initCwnd = 1.0; ///< initial congestion window size
-  double initSsthresh = std::numeric_limits<double>::max(); ///<  initial slow start threshold
+  double initSsthresh = std::numeric_limits<double>::max(); ///< initial slow start threshold
+  double aiStep = 1.0; ///< additive increase step (in segments)
   double mdCoef = 0.5; ///< multiplicative decrease coefficient
-  double aiStep = 1.0; ///< additive increase step (unit: segment)
-  time::milliseconds rtoCheckInterval = time::milliseconds(10); ///<  time interval for checking retransmission timer
+  time::milliseconds rtoCheckInterval{10}; ///< interval for checking retransmission timer
   bool disableCwa = false; ///< disable Conservative Window Adaptation
   bool resetCwndToInit = false; ///< reduce cwnd to initCwnd when loss event occurs
 };
