@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+#export DH_VERBOSE = 1
+
+# hardening=+all fails, so at least we should push the minimum
+export DEB_BUILD_MAINT_OPTIONS=hardening=+bindnow+relro+pie
+architecture=$(shell dpkg-architecture -q DEB_BUILD_MULTIARCH)
+
+%:
+	dh $@ --buildsystem=waf
+
+override_dh_auto_configure:
+	# patch around a bug in waf not supporting boost on arm
+	dh_auto_configure -- --boost-libs=/usr/lib/${architecture}
+
