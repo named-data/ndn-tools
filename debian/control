@@ -1,0 +1,45 @@
+Source: ndn-tools
+Section: net
+Priority: optional
+Maintainer: Niv Sardi <xaiki@endlessm.com>
+Build-Depends:
+ debhelper (>= 9),
+ dh-waf,
+ libboost-chrono-dev,
+ libboost-date-time-dev,
+ libboost-dev,
+ libboost-filesystem-dev,
+ libboost-iostreams-dev,
+ libboost-log-dev,
+ libboost-program-options-dev,
+ libboost-random-dev,
+ libboost-system-dev,
+ libboost-thread-dev,
+ libcrypto++-dev,
+ libndn-cxx-dev,
+ libpcap-dev,
+ libsqlite3-dev,
+ libssl-dev,
+ pkg-config,
+ python-sphinx,
+Standards-Version: 3.9.8
+Homepage: http://named-data.net
+Vcs-Git: https://github.com/endlessm/ndn-tools
+Vcs-Browser: https://github.com/endlessm/ndn-tools
+
+Package: ndn-tools
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+Description: Collection of tools for Named Data Networking (NDN)
+ this package contains tools recommended to be installed on all NDN nodes:
+  - peek: transmit a single packet between a consumer and a producer
+  - chunks: segmented file transfer between a consumer and producer
+  - ping: test reachability between two nodes
+  - dump: analyze traffic on wire
+  - dissect: inspect TLV structure of NDN packet format
+  - dissect-wireshark: Wireshark extension to inspect TLV structure of NDN
+         packets
+  - pib: a service to manage the public information of keys and publish
+         certificates
