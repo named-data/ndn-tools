@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2016,  University of Memphis.
+ * Copyright (c) 2014-2017,  University of Memphis.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -19,13 +19,13 @@
 
 #include "tools/dump/ndndump.hpp"
 
-#include "tests/test-common.hpp"
-
-#include <boost/test/output_test_stream.hpp>
-
 #include <ndn-cxx/lp/packet.hpp>
 #include <ndn-cxx/security/key-chain.hpp>
 #include <ndn-cxx/util/ethernet.hpp>
+
+#include "tests/test-common.hpp"
+#include "tests/identity-management-fixture.hpp"
+#include <boost/test/output_test_stream.hpp>
 
 namespace ndn {
 namespace dump {
@@ -52,7 +52,7 @@ private:
   std::streambuf* originalBuffer;
 };
 
-class NdnDumpFixture
+class NdnDumpFixture : public IdentityManagementFixture
 {
 protected:
   NdnDumpFixture()
@@ -60,23 +60,23 @@ protected:
     dump.m_dataLinkType = DLT_EN10MB;
   }
 
-  template <typename Packet>
+  template<typename Packet>
   void
   receive(const Packet& packet)
   {
-    ndn::EncodingBuffer buffer(packet.wireEncode());
+    EncodingBuffer buffer(packet.wireEncode());
     receive(buffer);
   }
 
   void
-  receive(ndn::EncodingBuffer& buffer)
+  receive(EncodingBuffer& buffer)
   {
-    ndn::util::ethernet::Address host;
+    util::ethernet::Address host;
 
     // Ethernet header
-    uint16_t frameType = htons(ndn::util::ethernet::ETHERTYPE_NDN);
+    uint16_t frameType = htons(util::ethernet::ETHERTYPE_NDN);
     buffer.prependByteArray(reinterpret_cast<const uint8_t*>(&frameType),
-                            ndn::util::ethernet::TYPE_LEN);
+                            util::ethernet::TYPE_LEN);
     buffer.prependByteArray(host.data(), host.size());
     buffer.prependByteArray(host.data(), host.size());
 
@@ -98,7 +98,7 @@ BOOST_FIXTURE_TEST_SUITE(NdnDump, NdnDumpFixture)
 
 BOOST_AUTO_TEST_CASE(CaptureInterest)
 {
-  ndn::Interest interest("/test");
+  Interest interest("/test");
   interest.setNonce(0);
 
   this->receive(interest);
@@ -111,10 +111,8 @@ BOOST_AUTO_TEST_CASE(CaptureInterest)
 
 BOOST_AUTO_TEST_CASE(CaptureData)
 {
-  ndn::security::KeyChain keyChain;
-
-  ndn::Data data("/test");
-  keyChain.sign(data);
+  Data data("/test");
+  m_keyChain.sign(data);
 
   this->receive(data);
 
@@ -125,11 +123,11 @@ BOOST_AUTO_TEST_CASE(CaptureData)
 
 BOOST_AUTO_TEST_CASE(CaptureNack)
 {
-  ndn::Interest interest("/test");
+  Interest interest("/test");
   interest.setNonce(0);
 
-  ndn::lp::Nack nack(interest);
-  nack.setReason(ndn::lp::NackReason::DUPLICATE);
+  lp::Nack nack(interest);
+  nack.setReason(lp::NackReason::DUPLICATE);
 
   lp::Packet lpPacket(interest.wireEncode());
   lpPacket.add<lp::NackField>(nack.getHeader());
@@ -149,7 +147,7 @@ BOOST_AUTO_TEST_CASE(CaptureLpFragment)
         0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
   };
 
-  ndn::Buffer buffer(data, 4);
+  Buffer buffer(data, 4);
 
   lp::Packet lpPacket;
   lpPacket.add<lp::FragmentField>(std::make_pair(buffer.begin(), buffer.end()));
@@ -201,7 +199,7 @@ BOOST_AUTO_TEST_CASE(CaptureIncompletePacket)
 
 BOOST_AUTO_TEST_CASE(CaptureUnknownNetworkPacket)
 {
-  EncodingBuffer buffer(ndn::encoding::makeEmptyBlock(tlv::Name));
+  EncodingBuffer buffer(encoding::makeEmptyBlock(tlv::Name));
 
   this->receive(buffer);
 

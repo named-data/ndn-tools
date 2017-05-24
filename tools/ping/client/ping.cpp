@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2016,  Arizona Board of Regents.
+ * Copyright (c) 2014-2017,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -22,6 +22,7 @@
  */
 
 #include "ping.hpp"
+#include <ndn-cxx/util/random.hpp>
 
 namespace ndn {
 namespace ping {

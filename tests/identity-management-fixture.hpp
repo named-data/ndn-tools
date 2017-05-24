@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2016,  Regents of the University of California.
+ * Copyright (c) 2014-2017,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -27,14 +27,14 @@
 namespace ndn {
 namespace tests {
 
-/** \brief a fixture that cleans up KeyChain identities and certificate files upon destruction
+/** \brief a fixture providing an in-memory KeyChain
  */
 class IdentityManagementFixture
 {
 public:
   IdentityManagementFixture();
 
-  /** \brief deletes created identities and saved certificate files
+  /** \brief deletes saved certificate files
    */
   ~IdentityManagementFixture();
 
@@ -42,7 +42,7 @@ public:
    *  \return whether successful
    */
   bool
-  addIdentity(const Name& identity, const KeyParams& params = KeyChain::DEFAULT_KEY_PARAMS);
+  addIdentity(const Name& identity, const KeyParams& params = KeyChain::getDefaultKeyParams());
 
   /** \brief save identity certificate to a file
    *  \param identity identity name
@@ -53,14 +53,10 @@ public:
   bool
   saveIdentityCertificate(const Name& identity, const std::string& filename, bool wantAdd = false);
 
-private:
-  std::string m_keyChainPath;
-
 protected:
   KeyChain m_keyChain;
 
 private:
-  std::vector<Name> m_identities;
   std::vector<std::string> m_certFiles;
 };
 

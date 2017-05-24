@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017,  Regents of the University of California,
+ *                           Colorado State University,
+ *                           University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -25,11 +25,13 @@
 
 #include "tools/chunks/putchunks/producer.hpp"
 
-#include "tests/test-common.hpp"
+#include <ndn-cxx/security/pib/identity.hpp>
+#include <ndn-cxx/security/pib/key.hpp>
 #include <ndn-cxx/util/dummy-client-face.hpp>
-#include <ndn-cxx/security/validator-null.hpp>
-
 #include <cmath>
+
+#include "tests/test-common.hpp"
+#include "tests/identity-management-fixture.hpp"
 
 namespace ndn {
 namespace chunks {
@@ -37,16 +39,38 @@ namespace tests {
 
 using namespace ndn::tests;
 
+class ProducerFixture : public IdentityManagementFixture
+{
+protected:
+  ProducerFixture()
+    : face(io, {true, true})
+    , prefix("/ndn/chunks/test")
+    , testString(std::string(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget "
+        "dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, "
+        "nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, "
+        "sem. Nulla consequat massa Donec pede justo,"))
+    ,keyLocatorName(m_keyChain.createIdentity("/ProducerFixture").getDefaultKey().getName())
+  {
+  }
+
+protected:
+  boost::asio::io_service io;
+  util::DummyClientFace face;
+  security::SigningInfo signingInfo;
+  Name prefix;
+  time::milliseconds freshnessPeriod = time::seconds(10);
+  size_t maxSegmentSize = 40;
+  std::istringstream testString;
+  uint64_t version = 1449227841747;
+  Name keyLocatorName;
+};
+
 BOOST_AUTO_TEST_SUITE(Chunks)
-BOOST_AUTO_TEST_SUITE(TestProducer)
+BOOST_FIXTURE_TEST_SUITE(TestProducer, ProducerFixture)
 
 BOOST_AUTO_TEST_CASE(InputData)
 {
-  util::DummyClientFace face;
-  KeyChain keyChain;
-  security::SigningInfo signingInfo;
-  Name prefix("/ndn/chunks/test");
-  int maxSegmentSize = 40;
   std::vector<std::string> testStrings {
       "",
 
@@ -63,7 +87,7 @@ BOOST_AUTO_TEST_CASE(InputData)
 
   for (size_t i = 0; i <  testStrings.size(); ++i) {
     std::istringstream str(testStrings[i]);
-    Producer prod(prefix, face, keyChain, signingInfo, time::seconds(4), maxSegmentSize, false,
+    Producer prod(prefix, face, m_keyChain, signingInfo, time::seconds(4), maxSegmentSize, false,
                   false, str);
 
     size_t expectedSize = std::ceil(static_cast<double>(testStrings[i].size()) / maxSegmentSize);
@@ -76,22 +100,7 @@ BOOST_AUTO_TEST_CASE(InputData)
 
 BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
 {
-  boost::asio::io_service io;
-  util::DummyClientFace face(io, {true, true});
-  KeyChain keyChain;
-  security::SigningInfo signingInfo;
-  Name prefix("/ndn/chunks/test");
-  time::milliseconds freshnessPeriod(time::seconds(10));
-  size_t maxSegmentSize(40);
-  std::istringstream testString(std::string(
-          "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget "
-          "dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, "
-          "nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, "
-          "sem. Nulla consequat massa Donec pede justo,"));
-
-  Name keyLocatorName = keyChain.getDefaultCertificateName().getPrefix(-1);
-
-  Producer producer(prefix, face, keyChain, signingInfo, freshnessPeriod, maxSegmentSize,
+  Producer producer(prefix, face, m_keyChain, signingInfo, freshnessPeriod, maxSegmentSize,
                     false, false, testString);
   io.poll();
 
@@ -128,23 +137,7 @@ BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
 
 BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
 {
-  boost::asio::io_service io;
-  util::DummyClientFace face(io, {true, true});
-  KeyChain keyChain;
-  security::SigningInfo signingInfo;
-  Name prefix("/ndn/chunks/test");
-  time::milliseconds freshnessPeriod(time::seconds(10));
-  size_t maxSegmentSize(40);
-  std::istringstream testString(std::string(
-          "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget "
-          "dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, "
-          "nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, "
-          "sem. Nulla consequat massa Donec pede justo,"));
-
-  uint64_t version = 1449227841747;
-  Name keyLocatorName = keyChain.getDefaultCertificateName().getPrefix(-1);
-
-  Producer producer(prefix.appendVersion(version), face, keyChain, signingInfo, freshnessPeriod,
+  Producer producer(prefix.appendVersion(version), face, m_keyChain, signingInfo, freshnessPeriod,
                     maxSegmentSize, false, false, testString);
   io.poll();
 
@@ -182,22 +175,7 @@ BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
 
 BOOST_AUTO_TEST_CASE(RequestNotExistingSegment)
 {
-  boost::asio::io_service io;
-  util::DummyClientFace face(io, {true, true});
-  KeyChain keyChain;
-  security::SigningInfo signingInfo;
-  Name prefix("/ndn/chunks/test");
-  time::milliseconds freshnessPeriod(time::seconds(10));
-  size_t maxSegmentSize(40);
-  std::istringstream testString(std::string(
-          "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget "
-          "dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, "
-          "nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, "
-          "sem. Nulla consequat massa Donec pede justo,"));
-
-  Name keyLocatorName = keyChain.getDefaultCertificateName().getPrefix(-1);
-
-  Producer producer(prefix, face, keyChain, signingInfo, freshnessPeriod, maxSegmentSize,
+  Producer producer(prefix, face, m_keyChain, signingInfo, freshnessPeriod, maxSegmentSize,
                     false, false, testString);
   io.poll();
 
