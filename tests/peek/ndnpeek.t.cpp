@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2016,  Arizona Board of Regents.
+ * Copyright (c) 2014-2017,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Default, OutputCheck, OutputChecks)
   BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), DEFAULT_INTEREST_LIFETIME);
   BOOST_CHECK_EQUAL(face.sentInterests.back().hasLink(), false);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), false);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getChildSelector(), -1);
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getChildSelector(), DEFAULT_CHILD_SELECTOR);
   BOOST_CHECK(peek->getResultCode() == ResultCode::DATA);
 }
 
@@ -202,7 +202,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Selectors, OutputCheck, OutputChecks)
   BOOST_CHECK_EQUAL(face.sentInterests.back().hasLink(), true);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getLink(), *options.link);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), true);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getChildSelector(), true);
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getChildSelector(), 1);
   BOOST_CHECK(peek->getResultCode() == ResultCode::DATA);
 }
 
