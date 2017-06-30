@@ -28,7 +28,7 @@ fi
 # Configure/build in debug mode with tests
 if [[ $JOB_NAME == *"code-coverage" ]]; then
     COVERAGE="--with-coverage"
-elif ! has OSX-10.9 $NODE_LABELS && ! has OSX-10.11 $NODE_LABELS; then
+elif [[ -n $BUILD_WITH_ASAN || -z $TRAVIS ]]; then
     ASAN="--with-sanitizer=address"
 fi
 ./waf -j1 --color=yes configure --debug --with-tests $COVERAGE $ASAN
