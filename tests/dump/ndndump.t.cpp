@@ -20,8 +20,8 @@
 #include "tools/dump/ndndump.hpp"
 
 #include <ndn-cxx/lp/packet.hpp>
+#include <ndn-cxx/net/ethernet.hpp>
 #include <ndn-cxx/security/key-chain.hpp>
-#include <ndn-cxx/util/ethernet.hpp>
 
 #include "tests/test-common.hpp"
 #include "tests/identity-management-fixture.hpp"
@@ -71,12 +71,11 @@ protected:
   void
   receive(EncodingBuffer& buffer)
   {
-    util::ethernet::Address host;
+    ethernet::Address host;
 
     // Ethernet header
-    uint16_t frameType = htons(util::ethernet::ETHERTYPE_NDN);
-    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(&frameType),
-                            util::ethernet::TYPE_LEN);
+    uint16_t frameType = htons(ethernet::ETHERTYPE_NDN);
+    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(&frameType), ethernet::TYPE_LEN);
     buffer.prependByteArray(host.data(), host.size());
     buffer.prependByteArray(host.data(), host.size());
 
