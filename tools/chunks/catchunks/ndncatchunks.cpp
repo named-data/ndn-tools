@@ -27,18 +27,18 @@
  * @author Weiwei Liu
  */
 
-#include "core/version.hpp"
-#include "options.hpp"
+#include "aimd-statistics-collector.hpp"
+#include "aimd-rtt-estimator.hpp"
 #include "consumer.hpp"
 #include "discover-version-fixed.hpp"
 #include "discover-version-iterative.hpp"
-#include "pipeline-interests-fixed-window.hpp"
 #include "pipeline-interests-aimd.hpp"
-#include "aimd-rtt-estimator.hpp"
-#include "aimd-statistics-collector.hpp"
+#include "pipeline-interests-fixed-window.hpp"
+#include "options.hpp"
+#include "core/version.hpp"
 
-#include <ndn-cxx/security/validator-null.hpp>
 #include <fstream>
+#include <ndn-cxx/security/validator-null.hpp>
 
 namespace ndn {
 namespace chunks {
@@ -267,8 +267,7 @@ main(int argc, char** argv)
       return 2;
     }
 
-    ValidatorNull validator;
-    Consumer consumer(validator, options.isVerbose);
+    Consumer consumer(security::v2::getAcceptAllValidator(), options.isVerbose);
 
     BOOST_ASSERT(discover != nullptr);
     BOOST_ASSERT(pipeline != nullptr);

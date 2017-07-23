@@ -30,7 +30,7 @@
 namespace ndn {
 namespace chunks {
 
-Consumer::Consumer(Validator& validator, bool isVerbose, std::ostream& os)
+Consumer::Consumer(security::v2::Validator& validator, bool isVerbose, std::ostream& os)
   : m_validator(validator)
   , m_outputStream(os)
   , m_nextToPrint(0)
@@ -47,49 +47,44 @@ Consumer::run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests
   m_bufferedData.clear();
 
   m_discover->onDiscoverySuccess.connect(bind(&Consumer::startPipeline, this, _1));
-  m_discover->onDiscoveryFailure.connect(bind(&Consumer::onFailure, this, _1));
+  m_discover->onDiscoveryFailure.connect([] (const std::string& msg) {
+    BOOST_THROW_EXCEPTION(std::runtime_error(msg));
+  });
   m_discover->run();
 }
 
 void
 Consumer::startPipeline(const Data& data)
 {
-  m_validator.validate(data,
-                       bind(&Consumer::onDataValidated, this, _1),
-                       bind(&Consumer::onFailure, this, _2));
+  this->handleData(data);
 
   m_pipeline->run(data,
-                  bind(&Consumer::onData, this, _1, _2),
-                  bind(&Consumer::onFailure, this, _1));
+    [this] (const Interest&, const Data& data) { this->handleData(data); },
+    [] (const std::string& msg) { BOOST_THROW_EXCEPTION(std::runtime_error(msg)); });
 }
 
 void
-Consumer::onData(const Interest& interest, const Data& data)
+Consumer::handleData(const Data& data)
 {
+  auto dataPtr = data.shared_from_this();
+
   m_validator.validate(data,
-                       bind(&Consumer::onDataValidated, this, _1),
-                       bind(&Consumer::onFailure, this, _2));
-}
+    [this, dataPtr] (const Data& data) {
+      if (data.getContentType() == ndn::tlv::ContentType_Nack) {
+        if (m_isVerbose) {
+          std::cerr << "Application level NACK: " << data << std::endl;
+        }
+        m_pipeline->cancel();
+        BOOST_THROW_EXCEPTION(ApplicationNackError(data));
+      }
 
-void
-Consumer::onDataValidated(shared_ptr<const Data> data)
-{
-  if (data->getContentType() == ndn::tlv::ContentType_Nack) {
-    if (m_isVerbose)
-      std::cerr << "Application level NACK: " << *data << std::endl;
-
-    m_pipeline->cancel();
-    throw ApplicationNackError(*data);
-  }
-
-  m_bufferedData[getSegmentFromPacket(*data)] = data;
-  writeInOrderData();
-}
-
-void
-Consumer::onFailure(const std::string& reason)
-{
-  throw std::runtime_error(reason);
+      // 'data' passed to callback comes from DataValidationState and was not created with make_shared
+      m_bufferedData[getSegmentFromPacket(data)] = dataPtr;
+      writeInOrderData();
+    },
+    [this] (const Data& data, const security::v2::ValidationError& error) {
+      BOOST_THROW_EXCEPTION(DataValidationError(error));
+    });
 }
 
 void

@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -28,10 +28,10 @@
 #include "tools/chunks/catchunks/pipeline-interests.hpp"
 
 #include "tests/test-common.hpp"
-#include <ndn-cxx/util/dummy-client-face.hpp>
-#include <ndn-cxx/security/validator-null.hpp>
 
 #include <boost/test/output_test_stream.hpp>
+#include <ndn-cxx/security/validator-null.hpp>
+#include <ndn-cxx/util/dummy-client-face.hpp>
 
 namespace ndn {
 namespace chunks {
@@ -65,9 +65,8 @@ BOOST_AUTO_TEST_CASE(OutputDataSequential)
   };
 
   util::DummyClientFace face;
-  ValidatorNull validator;
   output_test_stream output("");
-  Consumer cons(validator, false, output);
+  Consumer cons(security::v2::getAcceptAllValidator(), false, output);
 
   auto interest = makeInterest(name);
 
@@ -105,9 +104,8 @@ BOOST_AUTO_TEST_CASE(OutputDataUnordered)
   };;
 
   util::DummyClientFace face;
-  ValidatorNull validator;
   output_test_stream output("");
-  Consumer cons(validator, false, output);
+  Consumer cons(security::v2::getAcceptAllValidator(), false, output);
 
   auto interest = makeInterest(name);
   std::vector<shared_ptr<Data>> dataStore;
@@ -198,8 +196,7 @@ BOOST_FIXTURE_TEST_CASE(RunBasic, UnitTestTimeFixture)
 {
   boost::asio::io_service io;
   util::DummyClientFace face(io);
-  ValidatorNull validator;
-  Consumer consumer(validator, false);
+  Consumer consumer(security::v2::getAcceptAllValidator(), false);
 
   Name prefix("/ndn/chunks/test");
   auto discover = make_unique<DiscoverVersionDummy>(prefix, face, Options());
