@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Default, OutputCheck, OutputChecks)
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMaxSuffixComponents(), -1);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMinSuffixComponents(), -1);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), DEFAULT_INTEREST_LIFETIME);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().hasLink(), false);
+  BOOST_CHECK(face.sentInterests.back().getForwardingHint().empty());
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), false);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getChildSelector(), DEFAULT_CHILD_SELECTOR);
   BOOST_CHECK(peek->getResultCode() == ResultCode::DATA);
@@ -199,8 +199,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Selectors, OutputCheck, OutputChecks)
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMaxSuffixComponents(), 1);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMinSuffixComponents(), 1);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), time::milliseconds(200));
-  BOOST_CHECK_EQUAL(face.sentInterests.back().hasLink(), true);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getLink(), *options.link);
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint(), options.link->getDelegationList());
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), true);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getChildSelector(), 1);
   BOOST_CHECK(peek->getResultCode() == ResultCode::DATA);
