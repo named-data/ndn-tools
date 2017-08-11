@@ -7,7 +7,7 @@ source "$JDIR"/util.sh
 set -x
 
 # Cleanup
-sudo ./waf -j1 --color=yes distclean
+sudo env "PATH=$PATH" ./waf --color=yes distclean
 
 if [[ $JOB_NAME != *"code-coverage" && $JOB_NAME != *"limited-build" ]]; then
   # Configure/build in optimized mode with tests
@@ -15,14 +15,14 @@ if [[ $JOB_NAME != *"code-coverage" && $JOB_NAME != *"limited-build" ]]; then
   ./waf -j1 --color=yes build
 
   # Cleanup
-  sudo ./waf -j1 --color=yes distclean
+  sudo env "PATH=$PATH" ./waf --color=yes distclean
 
   # Configure/build in optimized mode without tests
   ./waf -j1 --color=yes configure
   ./waf -j1 --color=yes build
 
   # Cleanup
-  sudo ./waf -j1 --color=yes distclean
+  sudo env "PATH=$PATH" ./waf --color=yes distclean
 fi
 
 # Configure/build in debug mode with tests
@@ -37,4 +37,4 @@ fi
 # (tests will be run against debug version)
 
 # Install
-sudo ./waf -j1 --color=yes install
+sudo env "PATH=$PATH" ./waf --color=yes install
