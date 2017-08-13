@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2016,  Regents of the University of California,
+ * Copyright (c) 2014-2017,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -28,9 +28,8 @@
 
 #include "boost-test.hpp"
 
-#include <ndn-cxx/interest.hpp>
 #include <ndn-cxx/data.hpp>
-#include <ndn-cxx/link.hpp>
+#include <ndn-cxx/interest.hpp>
 #include <ndn-cxx/lp/nack.hpp>
 #include <ndn-cxx/util/time-unit-test-clock.hpp>
 
@@ -106,13 +105,6 @@ signData(shared_ptr<Data> data)
   signData(*data);
   return data;
 }
-
-/** \brief create a Link object with fake signature
- *  \note Link may be modified afterwards without losing the fake signature.
- *        If a real signature is desired, sign again with KeyChain.
- */
-shared_ptr<Link>
-makeLink(const Name& name, std::initializer_list<std::pair<uint32_t, Name>> delegations);
 
 /** \brief create a Nack
  *  \param interest Interest

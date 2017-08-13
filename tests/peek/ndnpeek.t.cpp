@@ -20,6 +20,7 @@
 #include "tools/peek/ndnpeek/ndnpeek.hpp"
 
 #include "tests/test-common.hpp"
+
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
 #include <boost/mpl/vector.hpp>
@@ -178,7 +179,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Selectors, OutputCheck, OutputChecks)
   options.minSuffixComponents = 1;
   options.maxSuffixComponents = 1;
   options.interestLifetime = time::milliseconds(200);
-  options.link = makeLink("/net/ndnsim", {{10, "/telia/terabits"}, {20, "/ucla/cs"}});
   options.mustBeFresh = true;
   options.wantRightmostChild = true;
   initialize(options);
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Selectors, OutputCheck, OutputChecks)
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMaxSuffixComponents(), 1);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMinSuffixComponents(), 1);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), time::milliseconds(200));
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint(), options.link->getDelegationList());
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint().size(), 0);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), true);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getChildSelector(), 1);
   BOOST_CHECK(peek->getResultCode() == ResultCode::DATA);

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2016,  Regents of the University of California,
+ * Copyright (c) 2014-2017,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -98,16 +98,7 @@ signData(Data& data)
   fakeSignature.setValue(ndn::encoding::makeEmptyBlock(tlv::SignatureValue));
   data.setSignature(fakeSignature);
   data.wireEncode();
-
   return data;
-}
-
-shared_ptr<Link>
-makeLink(const Name& name, std::initializer_list<std::pair<uint32_t, Name>> delegations)
-{
-  auto link = make_shared<Link>(name, delegations);
-  signData(link);
-  return link;
 }
 
 lp::Nack
@@ -123,9 +114,7 @@ makeNack(const Name& name, uint32_t nonce, lp::NackReason reason)
 {
   Interest interest(name);
   interest.setNonce(nonce);
-  lp::Nack nack(std::move(interest));
-  nack.setReason(reason);
-  return nack;
+  return makeNack(interest, reason);
 }
 
 } // namespace tests
