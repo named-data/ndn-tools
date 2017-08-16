@@ -11,15 +11,15 @@ sudo env "PATH=$PATH" ./waf --color=yes distclean
 
 if [[ $JOB_NAME != *"code-coverage" && $JOB_NAME != *"limited-build" ]]; then
   # Configure/build in optimized mode with tests
-  ./waf -j1 --color=yes configure --with-tests
-  ./waf -j1 --color=yes build
+  ./waf --color=yes configure --with-tests
+  ./waf --color=yes build -j${WAF_JOBS:-1}
 
   # Cleanup
   sudo env "PATH=$PATH" ./waf --color=yes distclean
 
   # Configure/build in optimized mode without tests
-  ./waf -j1 --color=yes configure
-  ./waf -j1 --color=yes build
+  ./waf --color=yes configure
+  ./waf --color=yes build -j${WAF_JOBS:-1}
 
   # Cleanup
   sudo env "PATH=$PATH" ./waf --color=yes distclean
@@ -31,8 +31,8 @@ if [[ $JOB_NAME == *"code-coverage" ]]; then
 elif [[ -n $BUILD_WITH_ASAN || -z $TRAVIS ]]; then
     ASAN="--with-sanitizer=address"
 fi
-./waf -j1 --color=yes configure --debug --with-tests $COVERAGE $ASAN
-./waf -j1 --color=yes build
+./waf --color=yes configure --debug --with-tests $COVERAGE $ASAN
+./waf --color=yes build -j${WAF_JOBS:-1}
 
 # (tests will be run against debug version)
 

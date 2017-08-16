@@ -42,8 +42,8 @@ sudo rm -f /usr/local/lib/pkgconfig/libndn-cxx.pc
 
 pushd ndn-cxx >/dev/null
 
-./waf configure -j1 --color=yes --enable-shared --disable-static --without-osx-keychain
-./waf -j1 --color=yes
+./waf configure --color=yes --enable-shared --disable-static --without-osx-keychain
+./waf build --color=yes -j${WAF_JOBS:-1}
 sudo env "PATH=$PATH" ./waf install --color=yes
 
 popd >/dev/null
