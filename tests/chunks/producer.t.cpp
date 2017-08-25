@@ -25,13 +25,15 @@
 
 #include "tools/chunks/putchunks/producer.hpp"
 
+#include "tests/test-common.hpp"
+#include "tests/identity-management-fixture.hpp"
+
 #include <ndn-cxx/security/pib/identity.hpp>
 #include <ndn-cxx/security/pib/key.hpp>
 #include <ndn-cxx/util/dummy-client-face.hpp>
-#include <cmath>
 
-#include "tests/test-common.hpp"
-#include "tests/identity-management-fixture.hpp"
+#include <cmath>
+#include <sstream>
 
 namespace ndn {
 namespace chunks {

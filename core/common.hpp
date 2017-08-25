@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2016,  Regents of the University of California,
+ * Copyright (c) 2014-2017,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -40,13 +40,12 @@
 
 #include <cinttypes>
 #include <cstddef>
-
 #include <iostream>
 #include <list>
 #include <map>
 #include <set>
-#include <unordered_map>
-#include <unordered_set>
+#include <stdexcept>
+#include <utility>
 #include <vector>
 
 #include <boost/asio.hpp>
@@ -76,7 +75,6 @@ using boost::noncopyable;
 
 namespace signal = util::signal;
 namespace scheduler = util::scheduler;
-
 
 } // namespace ndn
 

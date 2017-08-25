@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2017,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -41,7 +41,6 @@
 #include "ndn-dissect.hpp"
 
 #include <algorithm>
-#include <map>
 
 #include <ndn-cxx/name-component.hpp>
 #include <ndn-cxx/util/indented-stream.hpp>
@@ -49,7 +48,7 @@
 namespace ndn {
 namespace dissect {
 
-std::map<uint32_t, std::string> TLV_DICT = {
+static const std::map<uint32_t, std::string> TLV_DICT = {
   {tlv::Interest                     , "Interest"},
   {tlv::Data                         , "Data"},
   {tlv::Name                         , "Name"},
@@ -82,8 +81,9 @@ NdnDissect::printType(std::ostream& os, uint32_t type)
 {
   os << type << " (";
 
-  if (TLV_DICT.count(type) != 0) {
-    os << TLV_DICT[type];
+  auto it = TLV_DICT.find(type);
+  if (it != TLV_DICT.end()) {
+    os << it->second;
   }
   else if (type < tlv::AppPrivateBlock1) {
     os << "RESERVED_1";
@@ -97,6 +97,7 @@ NdnDissect::printType(std::ostream& os, uint32_t type)
   else {
     os << "APP_TAG_3";
   }
+
   os << ")";
 }
 
@@ -110,7 +111,7 @@ NdnDissect::printBlock(std::ostream& os, const Block& block)
     // if (block.type() != tlv::Content && block.type() != tlv::SignatureValue)
     block.parse();
   }
-  catch (tlv::Error& e) {
+  catch (const tlv::Error&) {
     // pass (e.g., leaf block reached)
 
     // @todo: Figure how to deterministically figure out that value is not recursive TLV block
@@ -138,7 +139,7 @@ NdnDissect::dissect(std::ostream& os, std::istream& is)
       Block block = Block::fromStream(is);
       this->printBlock(os, block);
     }
-    catch (std::exception& e) {
+    catch (const std::exception& e) {
       std::cerr << "ERROR: " << e.what() << std::endl;
     }
   }

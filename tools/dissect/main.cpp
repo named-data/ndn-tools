@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2016,  Regents of the University of California.
+ * Copyright (c) 2014-2017,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -24,12 +24,14 @@
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 
+#include <fstream>
+
 namespace po = boost::program_options;
 
 namespace ndn {
 namespace dissect {
 
-void
+static void
 usage(std::ostream& os, const std::string& appName, const po::options_description& options)
 {
   os << "Usage:\n"
@@ -38,7 +40,7 @@ usage(std::ostream& os, const std::string& appName, const po::options_descriptio
      << options;
 }
 
-int
+static int
 main(int argc, char* argv[])
 {
   po::options_description visibleOptions;

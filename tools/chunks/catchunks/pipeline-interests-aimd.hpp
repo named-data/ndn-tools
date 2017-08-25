@@ -32,6 +32,7 @@
 #include "pipeline-interests.hpp"
 
 #include <queue>
+#include <unordered_map>
 
 namespace ndn {
 namespace chunks {

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2017,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -24,21 +24,21 @@
 
 #include "pib-db.hpp"
 #include "key-cache.hpp"
+
 #include <ndn-cxx/security/validator.hpp>
-#include <unordered_map>
 
 namespace ndn {
 namespace pib {
 
-
 /*
  * @brief The validator to verify the command interests to PIB service
  *
- * @sa http://redmine.named-data.net/projects/ndn-cxx/wiki/PublicKey_Info_Base
+ * @sa https://redmine.named-data.net/projects/ndn-cxx/wiki/PublicKey_Info_Base
  */
 class PibValidator : public Validator
 {
   struct UserKeyCache;
+
 public:
   explicit
   PibValidator(const PibDb& pibDb,
@@ -47,22 +47,21 @@ public:
   ~PibValidator();
 
 protected:
-  virtual void
+  void
   checkPolicy(const Interest& interest,
               int nSteps,
               const OnInterestValidated& onValidated,
               const OnInterestValidationFailed& onValidationFailed,
-              std::vector<shared_ptr<ValidationRequest>>& nextSteps);
+              std::vector<shared_ptr<ValidationRequest>>& nextSteps) override;
 
-  virtual void
+  void
   checkPolicy(const Data& data,
               int nSteps,
               const OnDataValidated& onValidated,
               const OnDataValidationFailed& onValidationFailed,
-              std::vector<shared_ptr<ValidationRequest>>& nextSteps);
+              std::vector<shared_ptr<ValidationRequest>>& nextSteps) override;
 
 private:
-
   const PibDb& m_db;
 
   bool m_isMgmtReady;

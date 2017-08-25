@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Arizona Board of Regents.
+ * Copyright (c) 2014-2017,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -57,7 +57,7 @@ public:
       m_ping.start();
       m_face.processEvents();
     }
-    catch (std::exception& e) {
+    catch (const std::exception& e) {
       m_tracer.onError(e.what());
       return 2;
     }
@@ -102,7 +102,7 @@ private:
 
     m_statisticsCollector.computeStatistics().printSummary(std::cout);
     m_signalSetQuit.async_wait(bind(&Runner::afterQuitSignal, this, _1));
-  };
+  }
 
 private:
   Face m_face;

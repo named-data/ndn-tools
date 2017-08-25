@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2015,  Regents of the University of California.
+ * Copyright (c) 2014-2017,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -17,8 +17,12 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef NDN_TOOLS_DISSECT_NDN_DISSECT_HPP
+#define NDN_TOOLS_DISSECT_NDN_DISSECT_HPP
+
+#include "core/common.hpp"
+
 #include <ndn-cxx/encoding/block.hpp>
-#include <fstream>
 
 namespace ndn {
 namespace dissect {
@@ -39,3 +43,5 @@ private:
 
 } // namespace dissect
 } // namespace ndn
+
+#endif // NDN_TOOLS_DISSECT_NDN_DISSECT_HPP

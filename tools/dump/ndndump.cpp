@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
- * Copyright (c) 2014-2016,  Regents of the University of California.
+ * Copyright (c) 2014-2017,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -55,6 +55,7 @@ namespace dump {
 #include <boost/lexical_cast.hpp>
 
 #include <iomanip>
+#include <sstream>
 
 #include <ndn-cxx/interest.hpp>
 #include <ndn-cxx/data.hpp>
@@ -251,7 +252,8 @@ Ndndump::printInterceptTime(std::ostream& os, const pcap_pkthdr* header) const
   //   os << (int) header->ts.tv_sec
   //      << "."
   //      << setfill('0') << setw(6) << (int)header->ts.tv_usec;
-  // } else {
+  // }
+  // else {
   //   tm = localtime(&(header->ts.tv_sec));
   //   os << (int)tm->tm_hour << ":"
   //      << setfill('0') << setw(2) << (int)tm->tm_min<< ":"
