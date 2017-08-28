@@ -2,11 +2,11 @@
 
 ## Licensing Requirements
 
-Contributions to ndn-tools MUST be licensed under GPL 3.0 or a compatible license.  
+Contributions to ndn-tools MUST be licensed under GPL 3.0 or a compatible license.
 If you choose GPL 3.0, include the following license boilerplate into all C++ code files:
 
     /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-    /**
+    /*
      * Copyright (c) [Year(s)],  [Copyright Holder(s)].
      *
      * This file is part of ndn-tools (Named Data Networking Essential Tools).
@@ -81,17 +81,17 @@ For example:
 
     namespace ndn {
     namespace foo {
-    
+
     class Bar
     {
     public:
       explicit
       Bar(Face& face);
-      
+
       void
       run();
     };
-    
+
     int
     main(int argc, char** argv)
     {
@@ -100,10 +100,10 @@ For example:
       program.run();
       return 0;
     }
-    
+
     } // namespace foo
     } // namespace ndn
-    
+
     int
     main(int argc, char** argv)
     {
