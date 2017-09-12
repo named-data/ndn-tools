@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -82,7 +82,7 @@ Consumer::handleData(const Data& data)
       m_bufferedData[getSegmentFromPacket(data)] = dataPtr;
       writeInOrderData();
     },
-    [this] (const Data& data, const security::v2::ValidationError& error) {
+    [] (const Data& data, const security::v2::ValidationError& error) {
       BOOST_THROW_EXCEPTION(DataValidationError(error));
     });
 }
