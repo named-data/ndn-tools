@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
+/*
+ * Copyright (c) 2016-2017,  Regents of the University of California,
  *                      Colorado State University,
  *                      University Pierre & Marie Curie, Sorbonne University.
  *
@@ -23,6 +23,7 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Klaus Schneider
  */
 
 #include "core/version.hpp"
@@ -50,6 +51,7 @@ main(int argc, char** argv)
   size_t maxChunkSize = MAX_NDN_PACKET_SIZE >> 1;
   std::string signingStr;
   bool isVerbose = false;
+  bool isQuiet = false;
   std::string prefix;
 
   po::options_description visibleDesc("Options");
@@ -62,7 +64,8 @@ main(int argc, char** argv)
                         "maximum chunk size, in bytes")
     ("signing-info,S",  po::value<std::string>(&signingStr)->default_value(signingStr),
                         "set signing information")
-    ("verbose,v",       po::bool_switch(&isVerbose), "turn on verbose output")
+    ("quiet,q",         po::bool_switch(&isQuiet), "turn off all non-error output")
+    ("verbose,v",       po::bool_switch(&isVerbose), "turn on verbose output (per Interest information)")
     ("version,V",       "print program version and exit")
     ;
 
@@ -110,6 +113,11 @@ main(int argc, char** argv)
     return 2;
   }
 
+  if (isQuiet && isVerbose) {
+    std::cerr << "ERROR: Cannot use flags -q and -v at the same time\n";
+    return 2;
+  }
+
   security::SigningInfo signingInfo;
   try {
     signingInfo = security::SigningInfo(signingStr);
@@ -123,7 +131,7 @@ main(int argc, char** argv)
     Face face;
     KeyChain keyChain;
     Producer producer(prefix, face, keyChain, signingInfo, time::milliseconds(freshnessPeriod),
-                      maxChunkSize, isVerbose, printVersion, std::cin);
+                      maxChunkSize, isQuiet, isVerbose, printVersion, std::cin);
     producer.run();
   }
   catch (const std::exception& e) {

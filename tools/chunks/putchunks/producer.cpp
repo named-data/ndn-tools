@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
+/*
+ * Copyright (c) 2016-2017,  Regents of the University of California,
  *                      Colorado State University,
  *                      University Pierre & Marie Curie, Sorbonne University.
  *
@@ -23,6 +23,7 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Klaus Schneider
  */
 
 #include "producer.hpp"
@@ -36,6 +37,7 @@ Producer::Producer(const Name& prefix,
                    const security::SigningInfo& signingInfo,
                    time::milliseconds freshnessPeriod,
                    size_t maxSegmentSize,
+                   bool isQuiet,
                    bool isVerbose,
                    bool needToPrintVersion,
                    std::istream& is)
@@ -44,6 +46,7 @@ Producer::Producer(const Name& prefix,
   , m_signingInfo(signingInfo)
   , m_freshnessPeriod(freshnessPeriod)
   , m_maxSegmentSize(maxSegmentSize)
+  , m_isQuiet(isQuiet)
   , m_isVerbose(isVerbose)
 {
   if (prefix.size() > 0 && prefix[-1].isVersion()) {
@@ -65,7 +68,7 @@ Producer::Producer(const Name& prefix,
                            RegisterPrefixSuccessCallback(),
                            bind(&Producer::onRegisterFailed, this, _1, _2));
 
-  if (m_isVerbose)
+  if (!m_isQuiet)
     std::cerr << "Data published with name: " << m_versionedPrefix << std::endl;
 }
 
@@ -113,7 +116,7 @@ Producer::populateStore(std::istream& is)
 {
   BOOST_ASSERT(m_store.size() == 0);
 
-  if (m_isVerbose)
+  if (!m_isQuiet)
     std::cerr << "Loading input ..." << std::endl;
 
   std::vector<uint8_t> buffer(m_maxSegmentSize);
@@ -141,7 +144,7 @@ Producer::populateStore(std::istream& is)
     m_keyChain.sign(*data, m_signingInfo);
   }
 
-  if (m_isVerbose)
+  if (!m_isQuiet)
     std::cerr << "Created " << m_store.size() << " chunks for prefix " << m_prefix << std::endl;
 }
 

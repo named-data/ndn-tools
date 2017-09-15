@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(InputData)
   for (size_t i = 0; i <  testStrings.size(); ++i) {
     std::istringstream str(testStrings[i]);
     Producer prod(prefix, face, m_keyChain, signingInfo, time::seconds(4), maxSegmentSize, false,
-                  false, str);
+                  false, false, str);
 
     size_t expectedSize = std::ceil(static_cast<double>(testStrings[i].size()) / maxSegmentSize);
     if (testStrings[i].size() == 0)
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(InputData)
 BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
 {
   Producer producer(prefix, face, m_keyChain, signingInfo, freshnessPeriod, maxSegmentSize,
-                    false, false, testString);
+                    false, false, false, testString);
   io.poll();
 
   size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / maxSegmentSize);
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
 BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
 {
   Producer producer(prefix.appendVersion(version), face, m_keyChain, signingInfo, freshnessPeriod,
-                    maxSegmentSize, false, false, testString);
+                    maxSegmentSize, false, false, false, testString);
   io.poll();
 
   size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / maxSegmentSize);
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
 BOOST_AUTO_TEST_CASE(RequestNotExistingSegment)
 {
   Producer producer(prefix, face, m_keyChain, signingInfo, freshnessPeriod, maxSegmentSize,
-                    false, false, testString);
+                    false, false, false, testString);
   io.poll();
 
   size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / maxSegmentSize);

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
+/*
+ * Copyright (c) 2016-2017,  Regents of the University of California,
  *                      Colorado State University,
  *                      University Pierre & Marie Curie, Sorbonne University.
  *
@@ -23,6 +23,7 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Klaus Schneider
  */
 
 #ifndef NDN_TOOLS_CHUNKS_PUTCHUNKS_PRODUCER_HPP
@@ -51,8 +52,8 @@ public:
    */
   Producer(const Name& prefix, Face& face, KeyChain& keyChain,
            const security::SigningInfo& signingInfo, time::milliseconds freshnessPeriod,
-           size_t maxSegmentSize, bool isVerbose = false, bool needToPrintVersion = false,
-           std::istream& is = std::cin);
+           size_t maxSegmentSize, bool isQuiet = false, bool isVerbose = false,
+           bool needToPrintVersion = false, std::istream& is = std::cin);
 
   /**
    * @brief Run the Producer
@@ -91,6 +92,7 @@ private:
   security::SigningInfo m_signingInfo;
   time::milliseconds m_freshnessPeriod;
   size_t m_maxSegmentSize;
+  bool m_isQuiet;
   bool m_isVerbose;
 };
 
