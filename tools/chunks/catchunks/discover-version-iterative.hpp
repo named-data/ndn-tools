@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
+/*
+ * Copyright (c) 2016-2017,  Regents of the University of California,
  *                      Colorado State University,
  *                      University Pierre & Marie Curie, Sorbonne University.
  *
@@ -23,6 +23,7 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Klaus Schneider
  */
 
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_DISCOVER_VERSION_ITERATIVE_HPP
@@ -44,12 +45,14 @@ public:
   explicit
   DiscoverVersionIterativeOptions(const Options& opt = Options())
     : Options(opt)
-    , maxRetriesAfterVersionFound(1)
+    , maxRetriesAfterVersionFound(0)
+    , discoveryTimeout(time::milliseconds(300))
   {
   }
 
 public:
-  int maxRetriesAfterVersionFound;  // used only in timeout handling
+  int maxRetriesAfterVersionFound;      // how many times to retry after a discoveryTimeout
+  time::milliseconds discoveryTimeout;  // timeout for version discovery
 };
 
 /**

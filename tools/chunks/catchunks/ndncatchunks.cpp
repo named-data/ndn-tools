@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -25,6 +25,7 @@
  * @author Andrea Tosatto
  * @author Davide Pesavento
  * @author Weiwei Liu
+ * @author Klaus Schneider
  */
 
 #include "aimd-statistics-collector.hpp"
@@ -51,7 +52,8 @@ main(int argc, char** argv)
   std::string discoverType("iterative");
   std::string pipelineType("fixed");
   size_t maxPipelineSize(1);
-  int maxRetriesAfterVersionFound(1);
+  int maxRetriesAfterVersionFound(0);
+  int64_t discoveryTimeoutMs(300);
   std::string uri;
 
   // congestion control parameters, CWA refers to conservative window adaptation,
@@ -66,12 +68,12 @@ main(int argc, char** argv)
   po::options_description basicDesc("Basic Options");
   basicDesc.add_options()
     ("help,h",      "print this help message and exit")
-    ("discover-version,d",  po::value<std::string>(&discoverType)->default_value(discoverType),
+    ("discover-version,d", po::value<std::string>(&discoverType)->default_value(discoverType),
                             "version discovery algorithm to use; valid values are: 'fixed', 'iterative'")
-    ("pipeline-type,t",  po::value<std::string>(&pipelineType)->default_value(pipelineType),
+    ("pipeline-type,p", po::value<std::string>(&pipelineType)->default_value(pipelineType),
                          "type of Interest pipeline to use; valid values are: 'fixed', 'aimd'")
     ("fresh,f",     po::bool_switch(&options.mustBeFresh), "only return fresh content")
-    ("lifetime,l",  po::value<uint64_t>()->default_value(options.interestLifetime.count()),
+    ("lifetime,l",  po::value<int64_t>()->default_value(options.interestLifetime.count()),
                     "lifetime of expressed Interests, in milliseconds")
     ("retries,r",   po::value<int>(&options.maxRetriesOnTimeoutOrNack)->default_value(options.maxRetriesOnTimeoutOrNack),
                     "maximum number of retries in case of Nack or timeout (-1 = no limit)")
@@ -84,6 +86,8 @@ main(int argc, char** argv)
     ("retries-iterative,i", po::value<int>(&maxRetriesAfterVersionFound)->default_value(maxRetriesAfterVersionFound),
                             "number of timeouts that have to occur in order to confirm a discovered Data "
                             "version as the latest one")
+    ("discovery-timeout,t", po::value<int64_t>(&discoveryTimeoutMs)->default_value(discoveryTimeoutMs),
+                            "discovery timeout (in milliseconds)")
     ;
 
   po::options_description fixedPipeDesc("Fixed pipeline options");
@@ -190,7 +194,17 @@ main(int argc, char** argv)
     return 2;
   }
 
-  options.interestLifetime = time::milliseconds(vm["lifetime"].as<uint64_t>());
+  if (discoveryTimeoutMs < 0) {
+    std::cerr << "ERROR: timeout cannot be negative" << std::endl;
+    return 2;
+  }
+
+  if (vm["lifetime"].as<int64_t>() < 0) {
+    std::cerr << "ERROR: lifetime cannot be negative" << std::endl;
+    return 2;
+  }
+
+  options.interestLifetime = time::milliseconds(vm["lifetime"].as<int64_t>());
 
   try {
     Face face;
@@ -202,6 +216,7 @@ main(int argc, char** argv)
     else if (discoverType == "iterative") {
       DiscoverVersionIterative::Options optionsIterative(options);
       optionsIterative.maxRetriesAfterVersionFound = maxRetriesAfterVersionFound;
+      optionsIterative.discoveryTimeout = time::milliseconds(discoveryTimeoutMs);
       discover = make_unique<DiscoverVersionIterative>(prefix, face, optionsIterative);
     }
     else {

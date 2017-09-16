@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
+/*
+ * Copyright (c) 2016-2017,  Regents of the University of California,
  *                      Colorado State University,
  *                      University Pierre & Marie Curie, Sorbonne University.
  *
@@ -23,6 +23,7 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Klaus Schneider
  */
 
 #include "discover-version-iterative.hpp"
@@ -92,6 +93,7 @@ DiscoverVersionIterative::handleData(const Interest& interest, const Data& data)
   Interest newInterest(interest);
   newInterest.refreshNonce();
   newInterest.setExclude(exclude);
+  newInterest.setInterestLifetime(discoveryTimeout);
 
   if (m_foundVersion)
     expressInterest(newInterest, maxRetriesOnTimeoutOrNack, maxRetriesAfterVersionFound);
