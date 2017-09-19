@@ -132,6 +132,7 @@ class GccBasicFlags(CompilerFlags):
                               '-Wall',
                               '-Wextra',
                               '-Werror',
+                              '-Wnon-virtual-dtor',
                               '-Wno-error=deprecated-declarations', # Bug #3795
                               '-Wno-error=maybe-uninitialized', # Bug #1615
                               '-Wno-unused-parameter',
@@ -146,6 +147,7 @@ class GccBasicFlags(CompilerFlags):
                               '-pedantic',
                               '-Wall',
                               '-Wextra',
+                              '-Wnon-virtual-dtor',
                               '-Wno-unused-parameter',
                               ]
         flags['LINKFLAGS'] += ['-fuse-ld=gold', '-Wl,-O1']
