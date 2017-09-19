@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -23,6 +23,7 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Davide Pesavento
  * @author Klaus Schneider
  */
 
@@ -35,7 +36,7 @@ namespace ndn {
 namespace chunks {
 
 /**
- * @brief Segmented version Producer
+ * @brief Segmented & versioned data publisher
  *
  * Packetizes and publishes data from an input stream under /prefix/<version>/<segment number>.
  * The current time is used as the version number. The store has always at least one element (also
@@ -44,16 +45,25 @@ namespace chunks {
 class Producer : noncopyable
 {
 public:
+  struct Options
+  {
+    security::SigningInfo signingInfo;
+    time::milliseconds freshnessPeriod{10000};
+    size_t maxSegmentSize = MAX_NDN_PACKET_SIZE >> 1;
+    bool isQuiet = false;
+    bool isVerbose = false;
+    bool wantShowVersion = false;
+  };
+
+public:
   /**
    * @brief Create the Producer
    *
-   * @prefix prefix used to publish data, if the last component of prefix is not a version number
-   *         the current time is used as version number.
+   * @param prefix prefix used to publish data; if the last component is not a valid
+   *               version number, the current system time is used as version number.
    */
-  Producer(const Name& prefix, Face& face, KeyChain& keyChain,
-           const security::SigningInfo& signingInfo, time::milliseconds freshnessPeriod,
-           size_t maxSegmentSize, bool isQuiet = false, bool isVerbose = false,
-           bool needToPrintVersion = false, std::istream& is = std::cin);
+  Producer(const Name& prefix, Face& face, KeyChain& keyChain, std::istream& is,
+           const Options& opts);
 
   /**
    * @brief Run the Producer
@@ -62,9 +72,6 @@ public:
   run();
 
 private:
-  void
-  onInterest(const Interest& interest);
-
   /**
    * @brief Split the input stream in data packets and save them to the store
    *
@@ -79,6 +86,9 @@ private:
   populateStore(std::istream& is);
 
   void
+  onInterest(const Interest& interest);
+
+  void
   onRegisterFailed(const Name& prefix, const std::string& reason);
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
@@ -89,11 +99,7 @@ private:
   Name m_versionedPrefix;
   Face& m_face;
   KeyChain& m_keyChain;
-  security::SigningInfo m_signingInfo;
-  time::milliseconds m_freshnessPeriod;
-  size_t m_maxSegmentSize;
-  bool m_isQuiet;
-  bool m_isVerbose;
+  const Options m_options;
 };
 
 } // namespace chunks

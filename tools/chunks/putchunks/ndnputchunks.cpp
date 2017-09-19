@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -23,6 +23,7 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Davide Pesavento
  * @author Klaus Schneider
  */
 
@@ -35,48 +36,47 @@ namespace ndn {
 namespace chunks {
 
 static void
-usage(std::ostream& os, const std::string& programName, const po::options_description& visibleDesc) {
-  os << "Usage: " << programName << " [options] ndn:/name" << std::endl;
-  os << "\nPublish data under specified prefix. "
-     << "Note: this tool expects data from the standard input.\n" << std::endl;
-  os << visibleDesc;
+usage(std::ostream& os, const std::string& programName, const po::options_description& desc)
+{
+  os << "Usage: " << programName << " [options] ndn:/name\n"
+     << "\n"
+     << "Publish data under the specified prefix.\n"
+     << "Note: this tool expects data from the standard input.\n"
+     << "\n"
+     << desc;
 }
 
 static int
 main(int argc, char** argv)
 {
   std::string programName = argv[0];
-  uint64_t freshnessPeriod = 10000;
-  bool printVersion = false;
-  size_t maxChunkSize = MAX_NDN_PACKET_SIZE >> 1;
-  std::string signingStr;
-  bool isVerbose = false;
-  bool isQuiet = false;
   std::string prefix;
+  std::string signingStr;
+  Producer::Options opts;
 
   po::options_description visibleDesc("Options");
   visibleDesc.add_options()
     ("help,h",          "print this help message and exit")
-    ("freshness,f",     po::value<uint64_t>(&freshnessPeriod)->default_value(freshnessPeriod),
-                        "specify FreshnessPeriod, in milliseconds")
-    ("print-data-version,p",  po::bool_switch(&printVersion), "print Data version to the standard output")
-    ("size,s",          po::value<size_t>(&maxChunkSize)->default_value(maxChunkSize),
+    ("freshness,f",     po::value<time::milliseconds::rep>()->default_value(opts.freshnessPeriod.count()),
+                        "FreshnessPeriod of the published Data packets, in milliseconds")
+    ("print-data-version,p", po::bool_switch(&opts.wantShowVersion),
+                             "print Data version to the standard output")
+    ("size,s",          po::value<size_t>(&opts.maxSegmentSize)->default_value(opts.maxSegmentSize),
                         "maximum chunk size, in bytes")
-    ("signing-info,S",  po::value<std::string>(&signingStr)->default_value(signingStr),
-                        "set signing information")
-    ("quiet,q",         po::bool_switch(&isQuiet), "turn off all non-error output")
-    ("verbose,v",       po::bool_switch(&isVerbose), "turn on verbose output (per Interest information)")
+    ("signing-info,S",  po::value<std::string>(&signingStr), "signing information")
+    ("quiet,q",         po::bool_switch(&opts.isQuiet), "turn off all non-error output")
+    ("verbose,v",       po::bool_switch(&opts.isVerbose), "turn on verbose output (per Interest information)")
     ("version,V",       "print program version and exit")
     ;
 
-  po::options_description hiddenDesc("Hidden options");
+  po::options_description hiddenDesc;
   hiddenDesc.add_options()
     ("ndn-name,n", po::value<std::string>(&prefix), "NDN name for the served content");
 
   po::positional_options_description p;
   p.add("ndn-name", -1);
 
-  po::options_description optDesc("Allowed options");
+  po::options_description optDesc;
   optDesc.add(visibleDesc).add(hiddenDesc);
 
   po::variables_map vm;
@@ -108,30 +108,34 @@ main(int argc, char** argv)
     return 2;
   }
 
-  if (maxChunkSize < 1 || maxChunkSize > MAX_NDN_PACKET_SIZE) {
+  opts.freshnessPeriod = time::milliseconds(vm["freshness"].as<time::milliseconds::rep>());
+  if (opts.freshnessPeriod < time::milliseconds::zero()) {
+    std::cerr << "ERROR: FreshnessPeriod cannot be negative" << std::endl;
+    return 2;
+  }
+
+  if (opts.maxSegmentSize < 1 || opts.maxSegmentSize > MAX_NDN_PACKET_SIZE) {
     std::cerr << "ERROR: Maximum chunk size must be between 1 and " << MAX_NDN_PACKET_SIZE << std::endl;
     return 2;
   }
 
-  if (isQuiet && isVerbose) {
-    std::cerr << "ERROR: Cannot use flags -q and -v at the same time\n";
-    return 2;
-  }
-
-  security::SigningInfo signingInfo;
   try {
-    signingInfo = security::SigningInfo(signingStr);
+    opts.signingInfo = security::SigningInfo(signingStr);
   }
   catch (const std::invalid_argument& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 2;
   }
 
+  if (opts.isQuiet && opts.isVerbose) {
+    std::cerr << "ERROR: Cannot be quiet and verbose at the same time" << std::endl;
+    return 2;
+  }
+
   try {
     Face face;
     KeyChain keyChain;
-    Producer producer(prefix, face, keyChain, signingInfo, time::milliseconds(freshnessPeriod),
-                      maxChunkSize, isQuiet, isVerbose, printVersion, std::cin);
+    Producer producer(prefix, face, keyChain, std::cin, opts);
     producer.run();
   }
   catch (const std::exception& e) {

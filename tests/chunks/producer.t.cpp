@@ -47,25 +47,26 @@ protected:
   ProducerFixture()
     : face(io, {true, true})
     , prefix("/ndn/chunks/test")
+    , version(1449227841747)
+    , keyLocatorName(m_keyChain.createIdentity("/ProducerFixture").getDefaultKey().getName())
     , testString(std::string(
         "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget "
         "dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, "
         "nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, "
         "sem. Nulla consequat massa Donec pede justo,"))
-    ,keyLocatorName(m_keyChain.createIdentity("/ProducerFixture").getDefaultKey().getName())
   {
+    options.maxSegmentSize = 40;
+    options.isQuiet = true;
   }
 
 protected:
   boost::asio::io_service io;
   util::DummyClientFace face;
-  security::SigningInfo signingInfo;
   Name prefix;
-  time::milliseconds freshnessPeriod = time::seconds(10);
-  size_t maxSegmentSize = 40;
-  std::istringstream testString;
-  uint64_t version = 1449227841747;
+  Producer::Options options;
+  uint64_t version;
   Name keyLocatorName;
+  std::istringstream testString;
 };
 
 BOOST_AUTO_TEST_SUITE(Chunks)
@@ -73,7 +74,7 @@ BOOST_FIXTURE_TEST_SUITE(TestProducer, ProducerFixture)
 
 BOOST_AUTO_TEST_CASE(InputData)
 {
-  std::vector<std::string> testStrings {
+  std::vector<std::string> testStrings{
       "",
 
       "a1b2c3%^&(#$&%^$$/><",
@@ -87,13 +88,12 @@ BOOST_AUTO_TEST_CASE(InputData)
       "consequat massa Donec pede justo,"
   };
 
-  for (size_t i = 0; i <  testStrings.size(); ++i) {
-    std::istringstream str(testStrings[i]);
-    Producer prod(prefix, face, m_keyChain, signingInfo, time::seconds(4), maxSegmentSize, false,
-                  false, false, str);
+  for (size_t i = 0; i < testStrings.size(); ++i) {
+    std::istringstream input(testStrings[i]);
+    Producer prod(prefix, face, m_keyChain, input, options);
 
-    size_t expectedSize = std::ceil(static_cast<double>(testStrings[i].size()) / maxSegmentSize);
-    if (testStrings[i].size() == 0)
+    size_t expectedSize = std::ceil(static_cast<double>(testStrings[i].size()) / options.maxSegmentSize);
+    if (testStrings[i].empty())
       expectedSize = 1;
 
     BOOST_CHECK_EQUAL(prod.m_store.size(), expectedSize);
@@ -102,11 +102,9 @@ BOOST_AUTO_TEST_CASE(InputData)
 
 BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
 {
-  Producer producer(prefix, face, m_keyChain, signingInfo, freshnessPeriod, maxSegmentSize,
-                    false, false, false, testString);
+  Producer producer(prefix, face, m_keyChain, testString, options);
   io.poll();
-
-  size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / maxSegmentSize);
+  size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / options.maxSegmentSize);
 
   // version request
   face.receive(*makeInterest(prefix));
@@ -139,11 +137,9 @@ BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
 
 BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
 {
-  Producer producer(prefix.appendVersion(version), face, m_keyChain, signingInfo, freshnessPeriod,
-                    maxSegmentSize, false, false, false, testString);
+  Producer producer(prefix.appendVersion(version), face, m_keyChain, testString, options);
   io.poll();
-
-  size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / maxSegmentSize);
+  size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / options.maxSegmentSize);
 
   // version request
   face.receive(*makeInterest(prefix));
@@ -177,11 +173,9 @@ BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
 
 BOOST_AUTO_TEST_CASE(RequestNotExistingSegment)
 {
-  Producer producer(prefix, face, m_keyChain, signingInfo, freshnessPeriod, maxSegmentSize,
-                    false, false, false, testString);
+  Producer producer(prefix, face, m_keyChain, testString, options);
   io.poll();
-
-  size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / maxSegmentSize);
+  size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / options.maxSegmentSize);
 
   // version request
   face.receive(*makeInterest(prefix));

@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -23,6 +23,7 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Davide Pesavento
  * @author Klaus Schneider
  */
 
@@ -31,23 +32,11 @@
 namespace ndn {
 namespace chunks {
 
-Producer::Producer(const Name& prefix,
-                   Face& face,
-                   KeyChain& keyChain,
-                   const security::SigningInfo& signingInfo,
-                   time::milliseconds freshnessPeriod,
-                   size_t maxSegmentSize,
-                   bool isQuiet,
-                   bool isVerbose,
-                   bool needToPrintVersion,
-                   std::istream& is)
+Producer::Producer(const Name& prefix, Face& face, KeyChain& keyChain, std::istream& is,
+                   const Options& opts)
   : m_face(face)
   , m_keyChain(keyChain)
-  , m_signingInfo(signingInfo)
-  , m_freshnessPeriod(freshnessPeriod)
-  , m_maxSegmentSize(maxSegmentSize)
-  , m_isQuiet(isQuiet)
-  , m_isVerbose(isVerbose)
+  , m_options(opts)
 {
   if (prefix.size() > 0 && prefix[-1].isVersion()) {
     m_prefix = prefix.getPrefix(-1);
@@ -60,7 +49,7 @@ Producer::Producer(const Name& prefix,
 
   populateStore(is);
 
-  if (needToPrintVersion)
+  if (m_options.wantShowVersion)
     std::cout << m_versionedPrefix[-1] << std::endl;
 
   m_face.setInterestFilter(m_prefix,
@@ -68,7 +57,7 @@ Producer::Producer(const Name& prefix,
                            RegisterPrefixSuccessCallback(),
                            bind(&Producer::onRegisterFailed, this, _1, _2));
 
-  if (!m_isQuiet)
+  if (!m_options.isQuiet)
     std::cerr << "Data published with name: " << m_versionedPrefix << std::endl;
 }
 
@@ -83,7 +72,7 @@ Producer::onInterest(const Interest& interest)
 {
   BOOST_ASSERT(m_store.size() > 0);
 
-  if (m_isVerbose)
+  if (m_options.isVerbose)
     std::cerr << "Interest: " << interest << std::endl;
 
   const Name& name = interest.getName();
@@ -104,7 +93,7 @@ Producer::onInterest(const Interest& interest)
   }
 
   if (data != nullptr) {
-    if (m_isVerbose)
+    if (m_options.isVerbose)
       std::cerr << "Data: " << *data << std::endl;
 
     m_face.put(*data);
@@ -114,37 +103,37 @@ Producer::onInterest(const Interest& interest)
 void
 Producer::populateStore(std::istream& is)
 {
-  BOOST_ASSERT(m_store.size() == 0);
+  BOOST_ASSERT(m_store.empty());
 
-  if (!m_isQuiet)
+  if (!m_options.isQuiet)
     std::cerr << "Loading input ..." << std::endl;
 
-  std::vector<uint8_t> buffer(m_maxSegmentSize);
+  std::vector<uint8_t> buffer(m_options.maxSegmentSize);
   while (is.good()) {
     is.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
     const auto nCharsRead = is.gcount();
+
     if (nCharsRead > 0) {
       auto data = make_shared<Data>(Name(m_versionedPrefix).appendSegment(m_store.size()));
-      data->setFreshnessPeriod(m_freshnessPeriod);
-      data->setContent(&buffer[0], nCharsRead);
-
+      data->setFreshnessPeriod(m_options.freshnessPeriod);
+      data->setContent(buffer.data(), static_cast<size_t>(nCharsRead));
       m_store.push_back(data);
     }
   }
 
   if (m_store.empty()) {
     auto data = make_shared<Data>(Name(m_versionedPrefix).appendSegment(0));
-    data->setFreshnessPeriod(m_freshnessPeriod);
+    data->setFreshnessPeriod(m_options.freshnessPeriod);
     m_store.push_back(data);
   }
 
   auto finalBlockId = name::Component::fromSegment(m_store.size() - 1);
   for (const auto& data : m_store) {
     data->setFinalBlockId(finalBlockId);
-    m_keyChain.sign(*data, m_signingInfo);
+    m_keyChain.sign(*data, m_options.signingInfo);
   }
 
-  if (!m_isQuiet)
+  if (!m_options.isQuiet)
     std::cerr << "Created " << m_store.size() << " chunks for prefix " << m_prefix << std::endl;
 }
 
