@@ -31,9 +31,8 @@
 namespace ndn {
 namespace chunks {
 
-DiscoverVersion::DiscoverVersion(const Name& prefix, Face& face, const Options& options)
-  : Options(options)
-  , m_prefix(prefix)
+DiscoverVersion::DiscoverVersion(const Name& prefix, Face& face)
+  : m_prefix(prefix)
   , m_face(face)
 {
 }

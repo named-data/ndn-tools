@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -43,16 +43,14 @@ class DiscoverVersionIterativeOptions : public virtual Options
 {
 public:
   explicit
-  DiscoverVersionIterativeOptions(const Options& opt = Options())
-    : Options(opt)
-    , maxRetriesAfterVersionFound(0)
-    , discoveryTimeout(time::milliseconds(300))
+  DiscoverVersionIterativeOptions(const Options& opts = Options())
+    : Options(opts)
   {
   }
 
 public:
-  int maxRetriesAfterVersionFound;      // how many times to retry after a discoveryTimeout
-  time::milliseconds discoveryTimeout;  // timeout for version discovery
+  int maxRetriesAfterVersionFound{0};       ///< how many times to retry after a discoveryTimeout
+  time::milliseconds discoveryTimeout{300}; ///< timeout for version discovery
 };
 
 /**

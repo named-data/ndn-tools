@@ -62,7 +62,7 @@ public:
   /**
    * @brief create a DiscoverVersion service
    */
-  DiscoverVersion(const Name& prefix, Face& face, const Options& options);
+  DiscoverVersion(const Name& prefix, Face& face);
 
   virtual
   ~DiscoverVersion();

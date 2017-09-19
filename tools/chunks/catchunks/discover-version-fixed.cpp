@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+/*
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -25,16 +25,12 @@
 
 #include "discover-version-fixed.hpp"
 
-#include <cmath>
-#include <boost/lexical_cast.hpp>
-
 namespace ndn {
 namespace chunks {
 
 DiscoverVersionFixed::DiscoverVersionFixed(const Name& prefix, Face& face, const Options& options)
   : Options(options)
-  , DiscoverVersion(prefix, face, options)
-  , m_strayExcludes()
+  , DiscoverVersion(prefix, face)
 {
 }
 

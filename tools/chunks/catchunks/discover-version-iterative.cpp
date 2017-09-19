@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -34,10 +34,9 @@ namespace chunks {
 DiscoverVersionIterative::DiscoverVersionIterative(const Name& prefix, Face& face,
                                                    const Options& options)
   : chunks::Options(options)
-  , DiscoverVersion(prefix, face, options)
+  , DiscoverVersion(prefix, face)
   , Options(options)
   , m_latestVersion(0)
-  , m_latestVersionData(nullptr)
   , m_foundVersion(false)
 {
 }

@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -138,7 +138,8 @@ class DiscoverVersionDummy : public DiscoverVersion
 {
 public:
   DiscoverVersionDummy(const Name& prefix, Face& face, const Options& options)
-    : DiscoverVersion(prefix, face, options)
+    : Options(options)
+    , DiscoverVersion(prefix, face)
     , isDiscoverRunning(false)
     , m_prefix(prefix)
   {
