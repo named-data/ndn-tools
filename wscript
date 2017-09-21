@@ -34,10 +34,12 @@ def configure(conf):
         boost_libs += ' unit_test_framework'
     conf.check_boost(lib=boost_libs)
 
+    conf.recurse('tools')
+
+    conf.check_compiler_flags()
+
     # Loading "late" to prevent tests from being compiled with profiling flags
     conf.load('coverage')
-
-    conf.recurse('tools')
 
     conf.load('sanitizers')
 
