@@ -1,6 +1,22 @@
 Release Notes
 =============
 
+## Version 0.5
+
+all:
+- Switch to version 2 of certificates, `KeyChain`, and `Validator` (Issue #4089)
+- Compilation fixes (Issue #4259)
+
+peek:
+- Convert use of `Link` into `ForwardingHint` (Issue #4055)
+
+chunks:
+- Make `ndnputchunks` display some output by default. A new `-q` flag makes output
+  completely silent, except for errors (Issue #4286)
+- Refactor `ndnputchunks` options handling
+- Reduce initial timeout of iterative version discovery in `ndncatchunks` (Issue #4291)
+- Fix potential `ndncatchunks` crash on exit
+
 ## Version 0.4
 
 **NOTE**
