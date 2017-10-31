@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -22,6 +22,7 @@
  *
  * @author Shuo Yang
  * @author Weiwei Liu
+ * @author Chavoosh Ghasemi
  */
 
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_AIMD_HPP
@@ -190,7 +191,7 @@ private:
   cancelInFlightSegmentsGreaterThan(uint64_t segNo);
 
   void
-  printSummary() const;
+  printSummary() const final;
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   const Options m_options;
@@ -199,7 +200,6 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   scheduler::ScopedEventId m_checkRtoEvent;
 
   uint64_t m_nextSegmentNo;
-  size_t m_receivedSize;
 
   uint64_t m_highData; ///< the highest segment number of the Data packet the consumer has received so far
   uint64_t m_highInterest; ///< the highest segment number of the Interests the consumer has sent so far
@@ -207,7 +207,6 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
                        ///< it remains fixed until the next packet loss event happens
 
   int64_t m_nInFlight; ///< # of segments in flight
-  int64_t m_nReceived; ///< # of segments received
   int64_t m_nLossEvents; ///< # of loss events occurred
   int64_t m_nRetransmitted; ///< # of segments retransmitted
 

@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -24,6 +24,7 @@
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
  * @author Davide Pesavento
+ * @author Chavoosh Ghasemi
  */
 
 #include "pipeline-interests-fixed-window.hpp"
@@ -122,6 +123,9 @@ PipelineInterestsFixedWindow::handleData(const Interest& interest, const Data& d
   if (m_options.isVerbose)
     std::cerr << "Received segment #" << getSegmentFromPacket(data) << std::endl;
 
+  m_nReceived++;
+  m_receivedSize += data.getContent().value_size();
+
   onData(interest, data);
 
   if (!m_hasFinalBlockId && !data.getFinalBlockId().empty()) {
@@ -143,7 +147,16 @@ PipelineInterestsFixedWindow::handleData(const Interest& interest, const Data& d
     }
   }
 
-  fetchNextSegment(pipeNo);
+  BOOST_ASSERT(m_nReceived > 0);
+  if (m_hasFinalBlockId &&
+      static_cast<uint64_t>(m_nReceived - 1) >= m_lastSegmentNo) { // all segments have been received
+    if (m_options.isVerbose) {
+      printSummary();
+    }
+  }
+  else {
+    fetchNextSegment(pipeNo);
+  }
 }
 
 void PipelineInterestsFixedWindow::handleFail(const std::string& reason, std::size_t pipeNo)

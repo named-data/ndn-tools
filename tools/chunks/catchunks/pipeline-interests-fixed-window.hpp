@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+/*
+ * Copyright (c) 2016-2017,  Regents of the University of California,
+ *                           Colorado State University,
+ *                           University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -24,7 +24,11 @@
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
  * @author Davide Pesavento
+ * @author Chavoosh Ghasemi
  */
+
+#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_WINDOW_HPP
+#define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_WINDOW_HPP
 
 #include "options.hpp"
 #include "pipeline-interests.hpp"
@@ -116,3 +120,5 @@ private:
 
 } // namespace chunks
 } // namespace ndn
+
+#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_WINDOW_HPP

@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -25,6 +25,7 @@
  * @author Andrea Tosatto
  * @author Davide Pesavento
  * @author Weiwei Liu
+ * @author Chavoosh Ghasemi
  */
 
 #include "pipeline-interests.hpp"
@@ -36,6 +37,8 @@ PipelineInterests::PipelineInterests(Face& face)
   : m_face(face)
   , m_lastSegmentNo(0)
   , m_excludedSegmentNo(0)
+  , m_receivedSize(0)
+  , m_nReceived(0)
   , m_hasFinalBlockId(false)
   , m_isStopping(false)
 {
@@ -60,6 +63,8 @@ PipelineInterests::run(const Data& data, DataCallback onData, FailureCallback on
   // record the start time of the pipeline
   m_startTime = time::steady_clock::now();
 
+  m_nReceived++;
+  m_receivedSize += data.getContent().value_size();
   doRun();
 }
 
@@ -83,6 +88,43 @@ PipelineInterests::onFailure(const std::string& reason)
 
   if (m_onFailure)
     m_face.getIoService().post([this, reason] { m_onFailure(reason); });
+}
+
+std::string
+PipelineInterests::formatThroughput(double throughput)
+{
+  int pow = 0;
+  while (throughput >= 1000.0 && pow < 4) {
+    throughput /= 1000.0;
+    pow++;
+  }
+  switch (pow) {
+    case 0:
+      return to_string(throughput) + " bit/s";
+    case 1:
+      return to_string(throughput) + " kbit/s";
+    case 2:
+      return to_string(throughput) + " Mbit/s";
+    case 3:
+      return to_string(throughput) + " Gbit/s";
+    case 4:
+      return to_string(throughput) + " Tbit/s";
+  }
+  return "";
+}
+
+void
+PipelineInterests::printSummary() const
+{
+  typedef time::duration<double, time::milliseconds::period> Milliseconds;
+  Milliseconds timeElapsed = time::steady_clock::now() - getStartTime();
+  double throughput = (8 * m_receivedSize * 1000) / timeElapsed.count();
+
+  std::cerr << "\nAll segments have been received.\n"
+            << "Time elapsed: " << timeElapsed << "\n"
+            << "Total # of segments received: " << m_nReceived << "\n"
+            << "Total size: " << static_cast<double>(m_receivedSize) / 1000 << "kB" << "\n"
+            << "Goodput: " << formatThroughput(throughput) << "\n";
 }
 
 } // namespace chunks

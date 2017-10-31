@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -25,6 +25,7 @@
  * @author Andrea Tosatto
  * @author Davide Pesavento
  * @author Weiwei Liu
+ * @author Chavoosh Ghasemi
  */
 
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_HPP
@@ -104,6 +105,20 @@ protected:
   void
   onFailure(const std::string& reason);
 
+  /**
+   * @param throughput The throughput in bits/s
+   */
+  static std::string
+  formatThroughput(double throughput);
+
+  /**
+   * @brief print statistics about quality of packet delivery
+   *
+   * This method should be overriden by each pipeline (e.g. AIMD)
+   */
+  virtual void
+  printSummary() const;
+
 private:
   /**
    * @brief perform subclass-specific operations to fetch all the segments
@@ -125,6 +140,9 @@ protected:
   Name m_prefix;
   uint64_t m_lastSegmentNo;
   uint64_t m_excludedSegmentNo;
+
+  size_t m_receivedSize;  ///< size of received data in bytes
+  int64_t m_nReceived; ///< number of segments received
 
 PUBLIC_WITH_TESTS_ELSE_PROTECTED:
   bool m_hasFinalBlockId; ///< true if the last segment number is known

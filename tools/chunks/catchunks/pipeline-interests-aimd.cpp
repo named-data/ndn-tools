@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -22,6 +22,7 @@
  *
  * @author Shuo Yang
  * @author Weiwei Liu
+ * @author Chavoosh Ghasemi
  */
 
 #include "pipeline-interests-aimd.hpp"
@@ -40,12 +41,10 @@ PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstima
   , m_scheduler(m_face.getIoService())
   , m_checkRtoEvent(m_scheduler)
   , m_nextSegmentNo(0)
-  , m_receivedSize(0)
   , m_highData(0)
   , m_highInterest(0)
   , m_recPoint(0)
   , m_nInFlight(0)
-  , m_nReceived(0)
   , m_nLossEvents(0)
   , m_nRetransmitted(0)
   , m_cwnd(m_options.initCwnd)
@@ -66,9 +65,6 @@ PipelineInterestsAimd::~PipelineInterestsAimd()
 void
 PipelineInterestsAimd::doRun()
 {
-  // count the excluded segment
-  m_nReceived++;
-
   // schedule the event to check retransmission timer
   m_checkRtoEvent = m_scheduler.scheduleEvent(m_options.rtoCheckInterval, [this] { checkRto(); });
 
@@ -221,7 +217,8 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
     if (m_hasFailure && m_lastSegmentNo >= m_failedSegNo) {
       // previously failed segment is part of the content
       return onFailure(m_failureReason);
-    } else {
+    }
+    else {
       m_hasFailure = false;
     }
   }
@@ -379,7 +376,8 @@ PipelineInterestsAimd::increaseWindow()
 {
   if (m_cwnd < m_ssthresh) {
     m_cwnd += m_options.aiStep; // additive increase
-  } else {
+  }
+  else {
     m_cwnd += m_options.aiStep / std::floor(m_cwnd); // congestion avoidance
   }
 
@@ -424,41 +422,11 @@ PipelineInterestsAimd::cancelInFlightSegmentsGreaterThan(uint64_t segNo)
 void
 PipelineInterestsAimd::printSummary() const
 {
-  Milliseconds timeElapsed = time::steady_clock::now() - getStartTime();
-  double throughput = (8 * m_receivedSize * 1000) / timeElapsed.count();
-
-  int pow = 0;
-  std::string throughputUnit;
-  while (throughput >= 1000.0 && pow < 4) {
-    throughput /= 1000.0;
-    pow++;
-  }
-  switch (pow) {
-    case 0:
-      throughputUnit = "bit/s";
-      break;
-    case 1:
-      throughputUnit = "kbit/s";
-      break;
-    case 2:
-      throughputUnit = "Mbit/s";
-      break;
-    case 3:
-      throughputUnit = "Gbit/s";
-      break;
-    case 4:
-      throughputUnit = "Tbit/s";
-      break;
-  }
-
-  std::cerr << "\nAll segments have been received.\n"
-            << "Time elapsed: " << timeElapsed << "\n"
-            << "Total # of segments received: " << m_nReceived << "\n"
-            << "Total # of packet loss events: " << m_nLossEvents << "\n"
+  PipelineInterests::printSummary();
+  std::cerr << "Total # of packet loss events: " << m_nLossEvents << "\n"
             << "Packet loss rate: "
             << static_cast<double>(m_nLossEvents) / static_cast<double>(m_nReceived) << "\n"
-            << "Total # of retransmitted segments: " << m_nRetransmitted << "\n"
-            << "Goodput: " << throughput << " " << throughputUnit << "\n";
+            << "Total # of retransmitted segments: " << m_nRetransmitted << "\n";
 }
 
 std::ostream&
