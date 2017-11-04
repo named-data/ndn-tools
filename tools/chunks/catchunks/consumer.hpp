@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -79,9 +79,6 @@ public:
   run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests> pipeline);
 
 private:
-  void
-  startPipeline(const Data& data);
-
   void
   handleData(const Data& data);
 

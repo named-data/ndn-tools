@@ -46,21 +46,15 @@ Consumer::run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests
   m_nextToPrint = 0;
   m_bufferedData.clear();
 
-  m_discover->onDiscoverySuccess.connect(bind(&Consumer::startPipeline, this, _1));
+  m_discover->onDiscoverySuccess.connect([this] (const Data& data) {
+    m_pipeline->run(data,
+      [this] (const Data& data) { handleData(data); },
+      [] (const std::string& msg) { BOOST_THROW_EXCEPTION(std::runtime_error(msg)); });
+  });
   m_discover->onDiscoveryFailure.connect([] (const std::string& msg) {
     BOOST_THROW_EXCEPTION(std::runtime_error(msg));
   });
   m_discover->run();
-}
-
-void
-Consumer::startPipeline(const Data& data)
-{
-  this->handleData(data);
-
-  m_pipeline->run(data,
-    [this] (const Interest&, const Data& data) { this->handleData(data); },
-    [] (const std::string& msg) { BOOST_THROW_EXCEPTION(std::runtime_error(msg)); });
 }
 
 void
@@ -82,7 +76,7 @@ Consumer::handleData(const Data& data)
       m_bufferedData[getSegmentFromPacket(data)] = dataPtr;
       writeInOrderData();
     },
-    [] (const Data& data, const security::v2::ValidationError& error) {
+    [] (const Data&, const security::v2::ValidationError& error) {
       BOOST_THROW_EXCEPTION(DataValidationError(error));
     });
 }

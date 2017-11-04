@@ -35,10 +35,10 @@ namespace chunks {
 
 PipelineInterests::PipelineInterests(Face& face)
   : m_face(face)
+  , m_hasFinalBlockId(false)
   , m_lastSegmentNo(0)
   , m_nReceived(0)
   , m_receivedSize(0)
-  , m_hasFinalBlockId(false)
   , m_nextSegmentNo(0)
   , m_excludedSegmentNo(0)
   , m_isStopping(false)
@@ -48,11 +48,11 @@ PipelineInterests::PipelineInterests(Face& face)
 PipelineInterests::~PipelineInterests() = default;
 
 void
-PipelineInterests::run(const Data& data, DataCallback onData, FailureCallback onFailure)
+PipelineInterests::run(const Data& data, DataCallback dataCb, FailureCallback failureCb)
 {
-  BOOST_ASSERT(onData != nullptr);
-  m_onData = std::move(onData);
-  m_onFailure = std::move(onFailure);
+  BOOST_ASSERT(dataCb != nullptr);
+  m_onData = std::move(dataCb);
+  m_onFailure = std::move(failureCb);
   m_prefix = data.getName().getPrefix(-1);
   m_excludedSegmentNo = getSegmentFromPacket(data);
 
@@ -61,11 +61,11 @@ PipelineInterests::run(const Data& data, DataCallback onData, FailureCallback on
     m_hasFinalBlockId = true;
   }
 
+  onData(data);
+
   // record the start time of the pipeline
   m_startTime = time::steady_clock::now();
 
-  m_nReceived++;
-  m_receivedSize += data.getContent().value_size();
   doRun();
 }
 
@@ -87,6 +87,15 @@ PipelineInterests::getNextSegmentNo()
     m_nextSegmentNo++;
 
   return m_nextSegmentNo++;
+}
+
+void
+PipelineInterests::onData(const Data& data)
+{
+  m_nReceived++;
+  m_receivedSize += data.getContent().value_size();
+
+  m_onData(data);
 }
 
 void

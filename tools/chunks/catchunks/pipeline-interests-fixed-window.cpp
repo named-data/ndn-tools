@@ -119,10 +119,7 @@ PipelineInterestsFixedWindow::handleData(const Interest& interest, const Data& d
   if (m_options.isVerbose)
     std::cerr << "Received segment #" << getSegmentFromPacket(data) << std::endl;
 
-  m_nReceived++;
-  m_receivedSize += data.getContent().value_size();
-
-  onData(interest, data);
+  onData(data);
 
   if (!m_hasFinalBlockId && !data.getFinalBlockId().empty()) {
     m_lastSegmentNo = data.getFinalBlockId().toSegment();

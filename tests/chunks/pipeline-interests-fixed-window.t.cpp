@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -44,6 +44,7 @@ public:
   {
     setPipeline(make_unique<PipelineInterestsFixedWindow>(face, PipelineInterestsFixedWindow::Options(opt)));
   }
+
 protected:
   Options opt;
 
@@ -61,9 +62,9 @@ private:
 };
 
 BOOST_AUTO_TEST_SUITE(Chunks)
-BOOST_AUTO_TEST_SUITE(TestPipelineInterestsFixedWindow)
+BOOST_FIXTURE_TEST_SUITE(TestPipelineInterestsFixedWindow, PipelineInterestFixedWindowFixture)
 
-BOOST_FIXTURE_TEST_CASE(FewerSegmentsThanPipelineCapacity, PipelineInterestFixedWindowFixture)
+BOOST_AUTO_TEST_CASE(FewerSegmentsThanPipelineCapacity)
 {
   nDataSegments = 3;
   BOOST_ASSERT(nDataSegments <= opt.maxPipelineSize);
@@ -72,11 +73,11 @@ BOOST_FIXTURE_TEST_CASE(FewerSegmentsThanPipelineCapacity, PipelineInterestFixed
   advanceClocks(io, time::nanoseconds(1), 1);
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), nDataSegments - 1);
 
-  for (uint64_t i = 0; i < nDataSegments - 1; ++i) {
+  for (uint64_t i = 1; i < nDataSegments - 1; ++i) {
     face.receive(*makeDataWithSegment(i));
     advanceClocks(io, time::nanoseconds(1), 1);
 
-    BOOST_CHECK_EQUAL(nReceivedSegments, i);
+    BOOST_CHECK_EQUAL(pipeline->m_nReceived, i + 1);
     BOOST_REQUIRE_EQUAL(face.sentInterests.size(), nDataSegments - 1);
     // check if the interest for the segment i+1 is well formed
     const auto& sentInterest = face.sentInterests[i];
@@ -93,7 +94,7 @@ BOOST_FIXTURE_TEST_CASE(FewerSegmentsThanPipelineCapacity, PipelineInterestFixed
   BOOST_CHECK_EQUAL(hasFailed, true);
 }
 
-BOOST_FIXTURE_TEST_CASE(FullPipeline, PipelineInterestFixedWindowFixture)
+BOOST_AUTO_TEST_CASE(FullPipeline)
 {
   nDataSegments = 13;
   BOOST_ASSERT(nDataSegments > opt.maxPipelineSize);
@@ -105,7 +106,7 @@ BOOST_FIXTURE_TEST_CASE(FullPipeline, PipelineInterestFixedWindowFixture)
   for (uint64_t i = 0; i < nDataSegments - 1; ++i) {
     face.receive(*makeDataWithSegment(i));
     advanceClocks(io, time::nanoseconds(1), 1);
-    BOOST_CHECK_EQUAL(nReceivedSegments, i + 1);
+    BOOST_CHECK_EQUAL(pipeline->m_nReceived, i + 2);
 
     if (i < nDataSegments - opt.maxPipelineSize - 1) {
       BOOST_REQUIRE_EQUAL(face.sentInterests.size(), opt.maxPipelineSize + i + 1);
@@ -126,7 +127,7 @@ BOOST_FIXTURE_TEST_CASE(FullPipeline, PipelineInterestFixedWindowFixture)
   BOOST_CHECK_EQUAL(hasFailed, false);
 }
 
-BOOST_FIXTURE_TEST_CASE(TimeoutAllSegments, PipelineInterestFixedWindowFixture)
+BOOST_AUTO_TEST_CASE(TimeoutAllSegments)
 {
   nDataSegments = 13;
   BOOST_ASSERT(nDataSegments > opt.maxPipelineSize);
@@ -138,7 +139,7 @@ BOOST_FIXTURE_TEST_CASE(TimeoutAllSegments, PipelineInterestFixedWindowFixture)
   for (int i = 0; i < opt.maxRetriesOnTimeoutOrNack; ++i) {
     advanceClocks(io, opt.interestLifetime, 1);
     BOOST_REQUIRE_EQUAL(face.sentInterests.size(), opt.maxPipelineSize * (i + 2));
-    BOOST_CHECK_EQUAL(nReceivedSegments, 0);
+    BOOST_CHECK_EQUAL(pipeline->m_nReceived, 1);
 
     // A single retry for every pipeline element
     for (size_t j = 0; j < opt.maxPipelineSize; ++j) {
@@ -151,7 +152,7 @@ BOOST_FIXTURE_TEST_CASE(TimeoutAllSegments, PipelineInterestFixedWindowFixture)
   BOOST_CHECK_EQUAL(hasFailed, true);
 }
 
-BOOST_FIXTURE_TEST_CASE(TimeoutAfterFinalBlockIdReceived, PipelineInterestFixedWindowFixture)
+BOOST_AUTO_TEST_CASE(TimeoutAfterFinalBlockIdReceived)
 {
   // the FinalBlockId is sent with the first segment, after the first segment failure the pipeline
   // should fail
@@ -196,7 +197,7 @@ BOOST_FIXTURE_TEST_CASE(TimeoutAfterFinalBlockIdReceived, PipelineInterestFixedW
   BOOST_CHECK_EQUAL(face.getNPendingInterests(), 0);
 }
 
-BOOST_FIXTURE_TEST_CASE(TimeoutBeforeFinalBlockIdReceived, PipelineInterestFixedWindowFixture)
+BOOST_AUTO_TEST_CASE(TimeoutBeforeFinalBlockIdReceived)
 {
   // the FinalBlockId is sent only with the last segment, all segments are sent except for the
   // second one (segment #1); all segments are received correctly until the FinalBlockId is received
@@ -245,11 +246,11 @@ BOOST_FIXTURE_TEST_CASE(TimeoutBeforeFinalBlockIdReceived, PipelineInterestFixed
   // timeout for the second pipeline element (segment #1), this should trigger an error
   advanceClocks(io, opt.interestLifetime, 1);
 
-  BOOST_CHECK_EQUAL(nReceivedSegments, nDataSegments - 2);
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, nDataSegments - 1);
   BOOST_CHECK_EQUAL(hasFailed, true);
 }
 
-BOOST_FIXTURE_TEST_CASE(SegmentReceivedAfterTimeout, PipelineInterestFixedWindowFixture)
+BOOST_AUTO_TEST_CASE(SegmentReceivedAfterTimeout)
 {
   // the FinalBlockId is never sent, all the pipeline elements with a segment number greater than
   // segment #0 will fail, after this failure also segment #0 fail and this should trigger an error
@@ -278,11 +279,11 @@ BOOST_FIXTURE_TEST_CASE(SegmentReceivedAfterTimeout, PipelineInterestFixedWindow
   face.receive(*makeDataWithSegment(0, false));
   advanceClocks(io, time::nanoseconds(1), 1);
 
-  BOOST_CHECK_EQUAL(nReceivedSegments, 1);
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 2);
   BOOST_CHECK_EQUAL(hasFailed, true);
 }
 
-BOOST_FIXTURE_TEST_CASE(CongestionAllSegments, PipelineInterestFixedWindowFixture)
+BOOST_AUTO_TEST_CASE(CongestionAllSegments)
 {
   nDataSegments = 13;
   BOOST_ASSERT(nDataSegments > opt.maxPipelineSize);

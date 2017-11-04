@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+/*
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -21,6 +21,7 @@
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
  *
  * @author Andrea Tosatto
+ * @author Davide Pesavento
  * @author Weiwei Liu
  */
 
@@ -30,6 +31,7 @@
 #include "tools/chunks/catchunks/pipeline-interests.hpp"
 
 #include "tests/test-common.hpp"
+
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
 namespace ndn {
@@ -45,7 +47,6 @@ public:
     : face(io)
     , name("/ndn/chunks/test")
     , nDataSegments(0)
-    , nReceivedSegments(0)
     , hasFailed(false)
   {
   }
@@ -70,21 +71,8 @@ protected:
   runWithData(const Data& data)
   {
     pipeline->run(data,
-                  bind(&PipelineInterestsFixture::onData, this, _1, _2),
-                  bind(&PipelineInterestsFixture::onFailure, this, _1));
-  }
-
-private:
-  void
-  onData(const Interest& interest, const Data& data)
-  {
-    nReceivedSegments++;
-  }
-
-  void
-  onFailure(const std::string& reason)
-  {
-    hasFailed = true;
+                  [this] (const Data&) {},
+                  [this] (const std::string&) { hasFailed = true; });
   }
 
 protected:
@@ -93,7 +81,6 @@ protected:
   Name name;
   unique_ptr<PipelineInterests> pipeline;
   uint64_t nDataSegments;
-  uint64_t nReceivedSegments;
   bool hasFailed;
 };
 

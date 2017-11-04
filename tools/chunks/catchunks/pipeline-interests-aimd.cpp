@@ -154,9 +154,7 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
   auto interestId = m_face.expressInterest(interest,
                                            bind(&PipelineInterestsAimd::handleData, this, _1, _2),
                                            bind(&PipelineInterestsAimd::handleNack, this, _1, _2),
-                                           bind(&PipelineInterestsAimd::handleLifetimeExpiration,
-                                                this, _1));
-
+                                           bind(&PipelineInterestsAimd::handleLifetimeExpiration, this, _1));
   m_nInFlight++;
 
   if (isRetransmission) {
@@ -246,11 +244,8 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
     m_nInFlight--;
   }
 
-  m_nReceived++;
-  m_receivedSize += data.getContent().value_size();
-
   increaseWindow();
-  onData(interest, data);
+  onData(data);
 
   if (segInfo.state == SegmentState::FirstTimeSent ||
       segInfo.state == SegmentState::InRetxQueue) { // do not sample RTT for retransmitted segments

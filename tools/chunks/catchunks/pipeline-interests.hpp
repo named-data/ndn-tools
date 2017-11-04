@@ -49,14 +49,14 @@ namespace chunks {
 class PipelineInterests
 {
 public:
-  typedef function<void(const std::string& reason)> FailureCallback;
+  using DataCallback = function<void(const Data&)>;
+  using FailureCallback = function<void(const std::string& reason)>;
 
-public:
   /**
    * @brief create a PipelineInterests service
    *
-   * Configures the pipelining service without specifying the retrieval namespace. After this
-   * configuration the method run must be called to start the Pipeline.
+   * Configures the pipelining service without specifying the retrieval namespace.
+   * After construction, the method run() must be called in order to start the pipeline.
    */
   explicit
   PipelineInterests(Face& face);
@@ -100,11 +100,11 @@ protected:
   uint64_t
   getNextSegmentNo();
 
+  /**
+   * @brief subclasses must call this method to notify successful retrieval of a segment
+   */
   void
-  onData(const Interest& interest, const Data& data) const
-  {
-    m_onData(interest, data);
-  }
+  onData(const Data& data);
 
   /**
    * @brief subclasses can call this method to signal an unrecoverable failure
@@ -131,7 +131,7 @@ private:
    * @brief perform subclass-specific operations to fetch all the segments
    *
    * When overriding this function, at a minimum, the subclass should implement the retrieving
-   * of all the segments. Subclass must guarantee that onData is called at least once for every
+   * of all the segments. Subclass must guarantee that `onData` is called once for every
    * segment that is fetched successfully.
    *
    * @note m_lastSegmentNo contains a valid value only if m_hasFinalBlockId is true.
@@ -145,12 +145,12 @@ private:
 protected:
   Face& m_face;
   Name m_prefix;
-  uint64_t m_lastSegmentNo; ///< valid only if m_hasFinalBlockId == true
-  int64_t m_nReceived; ///< number of segments received
-  size_t m_receivedSize; ///< size of received data in bytes
 
 PUBLIC_WITH_TESTS_ELSE_PROTECTED:
-  bool m_hasFinalBlockId; ///< true if the last segment number is known
+  bool m_hasFinalBlockId;   ///< true if the last segment number is known
+  uint64_t m_lastSegmentNo; ///< valid only if m_hasFinalBlockId == true
+  int64_t m_nReceived;      ///< number of segments received
+  size_t m_receivedSize;    ///< size of received data in bytes
 
 private:
   DataCallback m_onData;

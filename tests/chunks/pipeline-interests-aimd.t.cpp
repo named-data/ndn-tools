@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
+/*
  * Copyright (c) 2016-2017, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
@@ -92,14 +92,16 @@ BOOST_AUTO_TEST_CASE(SlowStart)
   double preCwnd = aimdPipeline->m_cwnd;
   runWithData(*makeDataWithSegment(0));
   advanceClocks(io, time::nanoseconds(1));
-  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
 
   for (uint64_t i = 1; i < nDataSegments - 1; ++i) {
     face.receive(*makeDataWithSegment(i));
     advanceClocks(io, time::nanoseconds(1));
-    BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd - preCwnd, 1, 0.1);
+    BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd - preCwnd, 1, 0.1);
     preCwnd = aimdPipeline->m_cwnd;
   }
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, nDataSegments - 1);
 }
 
 BOOST_AUTO_TEST_CASE(CongestionAvoidance)
@@ -111,7 +113,7 @@ BOOST_AUTO_TEST_CASE(CongestionAvoidance)
   double preCwnd = aimdPipeline->m_cwnd;
   runWithData(*makeDataWithSegment(0));
   advanceClocks(io, time::nanoseconds(1));
-  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
 
   for (uint64_t i = 1; i < aimdPipeline->m_ssthresh; ++i) { // slow start
     face.receive(*makeDataWithSegment(i));
@@ -119,14 +121,16 @@ BOOST_AUTO_TEST_CASE(CongestionAvoidance)
     preCwnd = aimdPipeline->m_cwnd;
   }
 
-  BOOST_REQUIRE_CLOSE(preCwnd, aimdPipeline->m_ssthresh, 0.1);
+  BOOST_CHECK_CLOSE(preCwnd, aimdPipeline->m_ssthresh, 0.1);
 
   for (uint64_t i = aimdPipeline->m_ssthresh; i < nDataSegments - 1; ++i) { // congestion avoidance
     face.receive(*makeDataWithSegment(i));
     advanceClocks(io, time::nanoseconds(1));
-    BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd - preCwnd, opt.aiStep / floor(aimdPipeline->m_cwnd), 0.1);
+    BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd - preCwnd, opt.aiStep / floor(aimdPipeline->m_cwnd), 0.1);
     preCwnd = aimdPipeline->m_cwnd;
   }
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, nDataSegments - 1);
 }
 
 BOOST_AUTO_TEST_CASE(Timeout)
@@ -137,7 +141,7 @@ BOOST_AUTO_TEST_CASE(Timeout)
 
   runWithData(*makeDataWithSegment(0));
   advanceClocks(io, time::nanoseconds(1));
-  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
 
   // receive segment 1 and segment 2
   for (uint64_t i = 1; i < 3; ++i) {
@@ -145,8 +149,9 @@ BOOST_AUTO_TEST_CASE(Timeout)
     advanceClocks(io, time::nanoseconds(1));
   }
 
-  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 3, 0.1);
-  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 5); // request for segment 5 has been sent
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 3);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 3, 0.1);
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 5); // request for segment 5 has been sent
 
   advanceClocks(io, time::milliseconds(100));
 
@@ -158,20 +163,23 @@ BOOST_AUTO_TEST_CASE(Timeout)
   face.receive(*makeDataWithSegment(5));
   advanceClocks(io, time::nanoseconds(1));
 
-  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 4.25, 0.1);
-  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 7); // all the segment requests have been sent
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 5);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 4.25, 0.1);
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 7); // all the segment requests have been sent
 
   // timeout segment 3
   advanceClocks(io, time::milliseconds(150));
 
-  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 2.125, 0.1); // window size drop to 1/2 of previous size
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 5);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.125, 0.1); // window size drop to 1/2 of previous size
   BOOST_CHECK_EQUAL(aimdPipeline->m_retxQueue.size(), 1);
 
   // receive segment 6, retransmit 3
   face.receive(*makeDataWithSegment(6));
   advanceClocks(io, time::nanoseconds(1));
 
-  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 2.625, 0.1); // congestion avoidance
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 6);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.625, 0.1); // congestion avoidance
   BOOST_CHECK_EQUAL(aimdPipeline->m_retxQueue.size(), 0);
   BOOST_CHECK_EQUAL(aimdPipeline->m_retxCount[3], 1);
 }
@@ -185,6 +193,8 @@ BOOST_AUTO_TEST_CASE(Nack)
 
   face.receive(*makeDataWithSegment(1));
   advanceClocks(io, time::nanoseconds(1));
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 2);
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 4);
 
   // receive a nack with NackReason::DUPLICATE for segment 2
@@ -194,6 +204,7 @@ BOOST_AUTO_TEST_CASE(Nack)
 
   // nack1 is ignored
   BOOST_CHECK_EQUAL(hasFailed, false);
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 2);
   BOOST_CHECK_EQUAL(aimdPipeline->m_retxQueue.size(), 0);
 
   // receive a nack with NackReason::CONGESTION for segment 3
@@ -211,6 +222,7 @@ BOOST_AUTO_TEST_CASE(Nack)
 
   // Other types of Nack will trigger a failure
   BOOST_CHECK_EQUAL(hasFailed, true);
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 2);
 }
 
 BOOST_AUTO_TEST_CASE(FinalBlockIdNotSetAtBeginning)
@@ -226,6 +238,7 @@ BOOST_AUTO_TEST_CASE(FinalBlockIdNotSetAtBeginning)
 
   // interests for segment 1 - 6 have been sent
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 6);
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 2);
   BOOST_CHECK_EQUAL(aimdPipeline->m_hasFinalBlockId, false);
   // pending interests: segment 2, 3, 4, 5, 6
   BOOST_CHECK_EQUAL(face.getNPendingInterests(), 5);
@@ -233,6 +246,7 @@ BOOST_AUTO_TEST_CASE(FinalBlockIdNotSetAtBeginning)
   // receive segment 2 with FinalBlockId
   face.receive(*makeDataWithSegment(2));
   advanceClocks(io, time::nanoseconds(1));
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 3);
   BOOST_CHECK_EQUAL(aimdPipeline->m_hasFinalBlockId, true);
 
   // pending interests for segment 2, 4, 5, 6 haven been removed
