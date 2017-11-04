@@ -122,9 +122,8 @@ private:
   /**
    * @brief fetch all the segments between 0 and lastSegment of the specified prefix
    *
-   * Starts the pipeline with an AIMD algorithm to control the window size. The pipeline will fetch
-   * every segment until the last segment is successfully received or an error occurs.
-   * The segment with segment number equal to m_excludedSegmentNo will not be fetched.
+   * Starts the pipeline with an AIMD algorithm to control the window size. The pipeline will
+   * fetch every segment until the last segment is successfully received or an error occurs.
    */
   void
   doRun() final;
@@ -181,12 +180,6 @@ private:
   void
   decreaseWindow();
 
-  /** \return next segment number to retrieve
-   *  \post m_nextSegmentNo == return-value + 1
-   */
-  uint64_t
-  getNextSegmentNo();
-
   void
   cancelInFlightSegmentsGreaterThan(uint64_t segNo);
 
@@ -198,8 +191,6 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   RttEstimator& m_rttEstimator;
   Scheduler m_scheduler;
   scheduler::ScopedEventId m_checkRtoEvent;
-
-  uint64_t m_nextSegmentNo;
 
   uint64_t m_highData; ///< the highest segment number of the Data packet the consumer has received so far
   uint64_t m_highInterest; ///< the highest segment number of the Interests the consumer has sent so far

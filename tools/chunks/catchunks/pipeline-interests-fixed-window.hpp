@@ -85,7 +85,6 @@ private:
    *
    * Starts a fixed-window pipeline with size equal to m_options.maxPipelineSize. The pipeline
    * will fetch every segment until the last segment is successfully received or an error occurs.
-   * The segment with segment number equal to m_excludedSegmentNo will not be fetched.
    */
   void
   doRun() final;
@@ -110,7 +109,7 @@ private:
 private:
   const Options m_options;
   std::vector<std::pair<shared_ptr<DataFetcher>, uint64_t>> m_segmentFetchers;
-  uint64_t m_nextSegmentNo;
+
   /**
    * true if one or more segment fetchers encountered an error; if m_hasFinalBlockId
    * is false, this is usually not a fatal error for the pipeline

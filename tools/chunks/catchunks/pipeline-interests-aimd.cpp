@@ -40,7 +40,6 @@ PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstima
   , m_rttEstimator(rttEstimator)
   , m_scheduler(m_face.getIoService())
   , m_checkRtoEvent(m_scheduler)
-  , m_nextSegmentNo(0)
   , m_highData(0)
   , m_highInterest(0)
   , m_recPoint(0)
@@ -392,15 +391,6 @@ PipelineInterestsAimd::decreaseWindow()
   m_cwnd = m_options.resetCwndToInit ? m_options.initCwnd : m_ssthresh;
 
   afterCwndChange(time::steady_clock::now() - getStartTime(), m_cwnd);
-}
-
-uint64_t
-PipelineInterestsAimd::getNextSegmentNo()
-{
-  // get around the excluded segment
-  if (m_nextSegmentNo == m_excludedSegmentNo)
-    m_nextSegmentNo++;
-  return m_nextSegmentNo++;
 }
 
 void

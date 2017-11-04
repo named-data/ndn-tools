@@ -36,10 +36,11 @@ namespace chunks {
 PipelineInterests::PipelineInterests(Face& face)
   : m_face(face)
   , m_lastSegmentNo(0)
-  , m_excludedSegmentNo(0)
-  , m_receivedSize(0)
   , m_nReceived(0)
+  , m_receivedSize(0)
   , m_hasFinalBlockId(false)
+  , m_nextSegmentNo(0)
+  , m_excludedSegmentNo(0)
   , m_isStopping(false)
 {
 }
@@ -76,6 +77,16 @@ PipelineInterests::cancel()
 
   m_isStopping = true;
   doCancel();
+}
+
+uint64_t
+PipelineInterests::getNextSegmentNo()
+{
+  // skip the excluded segment
+  if (m_nextSegmentNo == m_excludedSegmentNo)
+    m_nextSegmentNo++;
+
+  return m_nextSegmentNo++;
 }
 
 void
@@ -116,8 +127,8 @@ PipelineInterests::formatThroughput(double throughput)
 void
 PipelineInterests::printSummary() const
 {
-  typedef time::duration<double, time::milliseconds::period> Milliseconds;
-  Milliseconds timeElapsed = time::steady_clock::now() - getStartTime();
+  using namespace ndn::time;
+  duration<double, milliseconds::period> timeElapsed = steady_clock::now() - getStartTime();
   double throughput = (8 * m_receivedSize * 1000) / timeElapsed.count();
 
   std::cerr << "\nAll segments have been received.\n"

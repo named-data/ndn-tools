@@ -93,6 +93,13 @@ protected:
     return m_isStopping;
   }
 
+  /**
+   * @return next segment number to retrieve
+   * @post m_nextSegmentNo == return-value + 1
+   */
+  uint64_t
+  getNextSegmentNo();
+
   void
   onData(const Interest& interest, const Data& data) const
   {
@@ -106,26 +113,26 @@ protected:
   onFailure(const std::string& reason);
 
   /**
+   * @brief print statistics about this fetching session
+   *
+   * Subclasses can override this method to print additional stats or change the summary format
+   */
+  virtual void
+  printSummary() const;
+
+  /**
    * @param throughput The throughput in bits/s
    */
   static std::string
   formatThroughput(double throughput);
-
-  /**
-   * @brief print statistics about quality of packet delivery
-   *
-   * This method should be overriden by each pipeline (e.g. AIMD)
-   */
-  virtual void
-  printSummary() const;
 
 private:
   /**
    * @brief perform subclass-specific operations to fetch all the segments
    *
    * When overriding this function, at a minimum, the subclass should implement the retrieving
-   * of all the segments. Segment m_excludedSegmentNo can be skipped. Subclass must guarantee
-   * that onData is called at least once for every segment that is fetched successfully.
+   * of all the segments. Subclass must guarantee that onData is called at least once for every
+   * segment that is fetched successfully.
    *
    * @note m_lastSegmentNo contains a valid value only if m_hasFinalBlockId is true.
    */
@@ -138,11 +145,9 @@ private:
 protected:
   Face& m_face;
   Name m_prefix;
-  uint64_t m_lastSegmentNo;
-  uint64_t m_excludedSegmentNo;
-
-  size_t m_receivedSize;  ///< size of received data in bytes
+  uint64_t m_lastSegmentNo; ///< valid only if m_hasFinalBlockId == true
   int64_t m_nReceived; ///< number of segments received
+  size_t m_receivedSize; ///< size of received data in bytes
 
 PUBLIC_WITH_TESTS_ELSE_PROTECTED:
   bool m_hasFinalBlockId; ///< true if the last segment number is known
@@ -150,6 +155,8 @@ PUBLIC_WITH_TESTS_ELSE_PROTECTED:
 private:
   DataCallback m_onData;
   FailureCallback m_onFailure;
+  uint64_t m_nextSegmentNo;
+  uint64_t m_excludedSegmentNo;
   time::steady_clock::TimePoint m_startTime;
   bool m_isStopping;
 };

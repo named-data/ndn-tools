@@ -36,7 +36,6 @@ namespace chunks {
 PipelineInterestsFixedWindow::PipelineInterestsFixedWindow(Face& face, const Options& options)
   : PipelineInterests(face)
   , m_options(options)
-  , m_nextSegmentNo(0)
   , m_hasFailure(false)
 {
   m_segmentFetchers.resize(m_options.maxPipelineSize);
@@ -71,17 +70,15 @@ PipelineInterestsFixedWindow::fetchNextSegment(std::size_t pipeNo)
     return false;
   }
 
-  if (m_nextSegmentNo == m_excludedSegmentNo)
-    m_nextSegmentNo++;
-
-  if (m_hasFinalBlockId && m_nextSegmentNo > m_lastSegmentNo)
-   return false;
+  uint64_t nextSegmentNo = getNextSegmentNo();
+  if (m_hasFinalBlockId && nextSegmentNo > m_lastSegmentNo)
+    return false;
 
   // send interest for next segment
   if (m_options.isVerbose)
-    std::cerr << "Requesting segment #" << m_nextSegmentNo << std::endl;
+    std::cerr << "Requesting segment #" << nextSegmentNo << std::endl;
 
-  Interest interest(Name(m_prefix).appendSegment(m_nextSegmentNo));
+  Interest interest(Name(m_prefix).appendSegment(nextSegmentNo));
   interest.setInterestLifetime(m_options.interestLifetime);
   interest.setMustBeFresh(m_options.mustBeFresh);
   interest.setMaxSuffixComponents(1);
@@ -95,8 +92,7 @@ PipelineInterestsFixedWindow::fetchNextSegment(std::size_t pipeNo)
                                     m_options.isVerbose);
 
   BOOST_ASSERT(!m_segmentFetchers[pipeNo].first || !m_segmentFetchers[pipeNo].first->isRunning());
-  m_segmentFetchers[pipeNo] = make_pair(fetcher, m_nextSegmentNo);
-  m_nextSegmentNo++;
+  m_segmentFetchers[pipeNo] = make_pair(fetcher, nextSegmentNo);
 
   return true;
 }
