@@ -56,6 +56,7 @@ public:
   time::milliseconds rtoCheckInterval{10}; ///< interval for checking retransmission timer
   bool disableCwa = false; ///< disable Conservative Window Adaptation
   bool resetCwndToInit = false; ///< reduce cwnd to initCwnd when loss event occurs
+  bool ignoreCongMarks = false; ///< disable window decrease after congestion marks
 };
 
 /**
@@ -187,6 +188,7 @@ private:
   printSummary() const final;
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
+  static constexpr double MIN_SSTHRESH = 2.0;
   const Options m_options;
   RttEstimator& m_rttEstimator;
   Scheduler m_scheduler;
@@ -200,6 +202,7 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   int64_t m_nInFlight; ///< # of segments in flight
   int64_t m_nLossEvents; ///< # of loss events occurred
   int64_t m_nRetransmitted; ///< # of segments retransmitted
+  int64_t m_nCongMarks; ///< # of data packets with congestion mark
 
   double m_cwnd; ///< current congestion window size (in segments)
   double m_ssthresh; ///< current slow start threshold

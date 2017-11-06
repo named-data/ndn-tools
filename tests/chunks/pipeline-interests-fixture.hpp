@@ -23,6 +23,7 @@
  * @author Andrea Tosatto
  * @author Davide Pesavento
  * @author Weiwei Liu
+ * @author Chavoosh Ghasemi
  */
 
 #ifndef NDN_TOOLS_TESTS_CHUNKS_PIPELINE_INTERESTS_FIXTURE_HPP
@@ -65,6 +66,15 @@ protected:
     if (setFinalBlockId)
       data->setFinalBlockId(name::Component::fromSegment(nDataSegments - 1));
     return signData(data);
+  }
+
+  shared_ptr<Data>
+  makeDataWithSegmentAndCongMark(uint64_t segmentNo, uint64_t congestionMark = 1,
+                                 bool setFinalBlockId = true) const
+  {
+    auto data = makeDataWithSegment(segmentNo, setFinalBlockId);
+    data->setCongestionMark(congestionMark);
+    return data;
   }
 
   void

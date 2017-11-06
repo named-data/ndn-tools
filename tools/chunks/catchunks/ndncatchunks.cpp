@@ -26,6 +26,7 @@
  * @author Davide Pesavento
  * @author Weiwei Liu
  * @author Klaus Schneider
+ * @author Chavoosh Ghasemi
  */
 
 #include "aimd-statistics-collector.hpp"
@@ -58,7 +59,7 @@ main(int argc, char** argv)
 
   // congestion control parameters, CWA refers to conservative window adaptation,
   // i.e. only reduce window size at most once per RTT
-  bool disableCwa(false), resetCwndToInit(false);
+  bool disableCwa(false), resetCwndToInit(false), ignoreCongMarks(false);
   double aiStep(1.0), mdCoef(0.5), alpha(0.125), beta(0.25),
          minRto(200.0), maxRto(4000.0);
   int initCwnd(1), initSsthresh(std::numeric_limits<int>::max()), k(4);
@@ -104,7 +105,11 @@ main(int argc, char** argv)
                        "log file for AIMD rtt statistics")
     ("aimd-disable-cwa", po::bool_switch(&disableCwa),
                          "disable Conservative Window Adaptation, "
-                         "i.e. reduce window on each timeout (instead of at most once per RTT)")
+                         "i.e. reduce window on each congestion event (timeout or congestion mark) "
+                         "instead of at most once per RTT")
+    ("aimd-ignore-cong-marks",  po::bool_switch(&ignoreCongMarks),
+                                "disable reaction to congestion marks, "
+                                "the default is to decrease the window after receiving a congestion mark")
     ("aimd-reset-cwnd-to-init", po::bool_switch(&resetCwndToInit),
                                 "reset cwnd to initial cwnd when loss event occurs, default is "
                                 "resetting to ssthresh")
@@ -253,6 +258,7 @@ main(int argc, char** argv)
       optionsPipeline.initSsthresh = static_cast<double>(initSsthresh);
       optionsPipeline.aiStep = aiStep;
       optionsPipeline.mdCoef = mdCoef;
+      optionsPipeline.ignoreCongMarks = ignoreCongMarks;
 
       auto aimdPipeline = make_unique<PipelineInterestsAimd>(face, *rttEstimator, optionsPipeline);
 

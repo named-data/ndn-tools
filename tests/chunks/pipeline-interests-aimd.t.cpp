@@ -21,6 +21,7 @@
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
  *
  * @author Weiwei Liu
+ * @author Chavoosh Ghasemi
  */
 
 #include "tools/chunks/catchunks/pipeline-interests-aimd.hpp"
@@ -43,6 +44,12 @@ public:
     , opt(makePipelineOptions())
     , rttEstimator(makeRttEstimatorOptions())
   {
+    createPipeline();
+  }
+
+  void
+  createPipeline()
+  {
     auto pline = make_unique<PipelineInterestsAimd>(face, rttEstimator, opt);
     aimdPipeline = pline.get();
     setPipeline(std::move(pline));
@@ -54,6 +61,7 @@ private:
   {
     PipelineInterestsAimdOptions pipelineOptions;
     pipelineOptions.disableCwa = false;
+    pipelineOptions.ignoreCongMarks = false;
     pipelineOptions.resetCwndToInit = false;
     pipelineOptions.initCwnd = 1.0;
     pipelineOptions.aiStep = 1.0;
@@ -78,7 +86,10 @@ protected:
   PipelineInterestsAimdOptions opt;
   RttEstimator rttEstimator;
   PipelineInterestsAimd* aimdPipeline;
+  static constexpr double MARGIN = 0.01;
 };
+
+constexpr double PipelineInterestAimdFixture::MARGIN;
 
 BOOST_AUTO_TEST_SUITE(Chunks)
 BOOST_FIXTURE_TEST_SUITE(TestPipelineInterestsAimd, PipelineInterestAimdFixture)
@@ -87,7 +98,7 @@ BOOST_AUTO_TEST_CASE(SlowStart)
 {
   nDataSegments = 4;
   aimdPipeline->m_ssthresh = 8.0;
-  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 1, 0.1);
+  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 1, MARGIN);
 
   double preCwnd = aimdPipeline->m_cwnd;
   runWithData(*makeDataWithSegment(0));
@@ -97,7 +108,7 @@ BOOST_AUTO_TEST_CASE(SlowStart)
   for (uint64_t i = 1; i < nDataSegments - 1; ++i) {
     face.receive(*makeDataWithSegment(i));
     advanceClocks(io, time::nanoseconds(1));
-    BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd - preCwnd, 1, 0.1);
+    BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd - preCwnd, 1, MARGIN);
     preCwnd = aimdPipeline->m_cwnd;
   }
 
@@ -108,7 +119,7 @@ BOOST_AUTO_TEST_CASE(CongestionAvoidance)
 {
   nDataSegments = 8;
   aimdPipeline->m_ssthresh = 4.0;
-  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 1, 0.1);
+  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 1, MARGIN);
 
   double preCwnd = aimdPipeline->m_cwnd;
   runWithData(*makeDataWithSegment(0));
@@ -121,12 +132,12 @@ BOOST_AUTO_TEST_CASE(CongestionAvoidance)
     preCwnd = aimdPipeline->m_cwnd;
   }
 
-  BOOST_CHECK_CLOSE(preCwnd, aimdPipeline->m_ssthresh, 0.1);
+  BOOST_CHECK_CLOSE(preCwnd, aimdPipeline->m_ssthresh, MARGIN);
 
   for (uint64_t i = aimdPipeline->m_ssthresh; i < nDataSegments - 1; ++i) { // congestion avoidance
     face.receive(*makeDataWithSegment(i));
     advanceClocks(io, time::nanoseconds(1));
-    BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd - preCwnd, opt.aiStep / floor(aimdPipeline->m_cwnd), 0.1);
+    BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd - preCwnd, opt.aiStep / floor(aimdPipeline->m_cwnd), MARGIN);
     preCwnd = aimdPipeline->m_cwnd;
   }
 
@@ -137,7 +148,7 @@ BOOST_AUTO_TEST_CASE(Timeout)
 {
   nDataSegments = 8;
   aimdPipeline->m_ssthresh = 4.0;
-  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 1, 0.1);
+  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 1, MARGIN);
 
   runWithData(*makeDataWithSegment(0));
   advanceClocks(io, time::nanoseconds(1));
@@ -150,7 +161,7 @@ BOOST_AUTO_TEST_CASE(Timeout)
   }
 
   BOOST_CHECK_EQUAL(pipeline->m_nReceived, 3);
-  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 3, 0.1);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 3, MARGIN);
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 5); // request for segment 5 has been sent
 
   advanceClocks(io, time::milliseconds(100));
@@ -164,14 +175,14 @@ BOOST_AUTO_TEST_CASE(Timeout)
   advanceClocks(io, time::nanoseconds(1));
 
   BOOST_CHECK_EQUAL(pipeline->m_nReceived, 5);
-  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 4.25, 0.1);
-  BOOST_CHECK_EQUAL(face.sentInterests.size(), 7); // all the segment requests have been sent
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 4.25, MARGIN);
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), nDataSegments - 1); // all the segment requests have been sent
 
   // timeout segment 3
   advanceClocks(io, time::milliseconds(150));
 
   BOOST_CHECK_EQUAL(pipeline->m_nReceived, 5);
-  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.125, 0.1); // window size drop to 1/2 of previous size
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.125, MARGIN); // window size drop to 1/2 of previous size
   BOOST_CHECK_EQUAL(aimdPipeline->m_retxQueue.size(), 1);
 
   // receive segment 6, retransmit 3
@@ -179,9 +190,137 @@ BOOST_AUTO_TEST_CASE(Timeout)
   advanceClocks(io, time::nanoseconds(1));
 
   BOOST_CHECK_EQUAL(pipeline->m_nReceived, 6);
-  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.625, 0.1); // congestion avoidance
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.625, MARGIN); // congestion avoidance
   BOOST_CHECK_EQUAL(aimdPipeline->m_retxQueue.size(), 0);
   BOOST_CHECK_EQUAL(aimdPipeline->m_retxCount[3], 1);
+}
+
+BOOST_AUTO_TEST_CASE(CongestionMarksWithCwa)
+{
+  nDataSegments = 7;
+  aimdPipeline->m_ssthresh = 4.0;
+  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 1, MARGIN);
+
+  runWithData(*makeDataWithSegment(0));
+  advanceClocks(io, time::nanoseconds(1));
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
+
+  // receive segments 1 to 4
+  for (uint64_t i = 1; i < 5; ++i) {
+    face.receive(*makeDataWithSegment(i));
+    advanceClocks(io, time::nanoseconds(1));
+  }
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 5);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 4.25, MARGIN);
+
+  // receive segment 5 with congestion mark
+  face.receive(*makeDataWithSegmentAndCongMark(5));
+  advanceClocks(io, time::nanoseconds(1));
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 6);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.125, MARGIN); // window size drops to 1/2 of previous size
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), nDataSegments - 1); // all interests have been sent
+
+  // receive the last segment with congestion mark
+  face.receive(*makeDataWithSegmentAndCongMark(nDataSegments - 1));
+  advanceClocks(io, time::nanoseconds(1));
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, nDataSegments);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.125, MARGIN); // conservative window adaption (window size should not decrease)
+  BOOST_CHECK_EQUAL(aimdPipeline->m_retxQueue.size(), 0);
+
+  // make sure no interest is retransmitted for marked data packets
+  BOOST_CHECK_EQUAL(aimdPipeline->m_retxCount[5], 0);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_retxCount[nDataSegments - 1], 0);
+
+  // check number of received marked data packets
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nCongMarks, 2);
+}
+
+BOOST_AUTO_TEST_CASE(CongestionMarksWithoutCwa)
+{
+  opt.disableCwa = true;
+  createPipeline();
+
+  nDataSegments = 7;
+  aimdPipeline->m_ssthresh = 4.0;
+  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 1, MARGIN);
+
+  runWithData(*makeDataWithSegment(0));
+  advanceClocks(io, time::nanoseconds(1));
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
+
+  // receive segments 1 to 4
+  for (uint64_t i = 1; i < 5; ++i) {
+    face.receive(*makeDataWithSegment(i));
+    advanceClocks(io, time::nanoseconds(1));
+  }
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 5);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 4.25, MARGIN);
+
+  // receive segment 5 with congestion mark
+  face.receive(*makeDataWithSegmentAndCongMark(5));
+  advanceClocks(io, time::nanoseconds(1));
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 6);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.125, MARGIN); // window size drops to 1/2 of previous size
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), nDataSegments - 1); // all interests have been sent
+
+  // receive the last segment with congestion mark
+  face.receive(*makeDataWithSegmentAndCongMark(nDataSegments - 1));
+  advanceClocks(io, time::nanoseconds(1));
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, nDataSegments);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, PipelineInterestsAimd::MIN_SSTHRESH,
+                    MARGIN); // window size should decrease, as cwa is disabled
+  BOOST_CHECK_EQUAL(aimdPipeline->m_retxQueue.size(), 0);
+
+  // make sure no interest is retransmitted for marked data packets
+  BOOST_CHECK_EQUAL(aimdPipeline->m_retxCount[5], 0);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_retxCount[nDataSegments - 1], 0);
+
+  // check number of received marked data packets
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nCongMarks, 2);
+}
+
+BOOST_AUTO_TEST_CASE(IgnoreCongestionMarks)
+{
+  opt.ignoreCongMarks = true;
+  createPipeline();
+
+  nDataSegments = 7;
+  aimdPipeline->m_ssthresh = 4.0;
+  BOOST_REQUIRE_CLOSE(aimdPipeline->m_cwnd, 1, MARGIN);
+
+  runWithData(*makeDataWithSegment(0));
+  advanceClocks(io, time::nanoseconds(1));
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
+
+  // receive segments 1 to 5
+  for (uint64_t i = 1; i < 6; ++i) {
+    face.receive(*makeDataWithSegment(i));
+    advanceClocks(io, time::nanoseconds(1));
+  }
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, 6);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 4.5, MARGIN);
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), nDataSegments - 1); // all interests have been sent
+
+  // receive the last segment with congestion mark
+  face.receive(*makeDataWithSegmentAndCongMark(nDataSegments - 1));
+  advanceClocks(io, time::nanoseconds(1));
+
+  BOOST_CHECK_EQUAL(pipeline->m_nReceived, nDataSegments);
+  BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 4.75, MARGIN); // window size increases
+  BOOST_CHECK_EQUAL(aimdPipeline->m_retxQueue.size(), 0);
+
+  // make sure no interest is retransmitted for marked data packet
+  BOOST_CHECK_EQUAL(aimdPipeline->m_retxCount[nDataSegments - 1], 0);
+
+  // check number of received marked data packets
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nCongMarks, 1);
 }
 
 BOOST_AUTO_TEST_CASE(Nack)

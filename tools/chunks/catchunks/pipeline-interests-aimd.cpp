@@ -33,6 +33,8 @@ namespace ndn {
 namespace chunks {
 namespace aimd {
 
+constexpr double PipelineInterestsAimd::MIN_SSTHRESH;
+
 PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstimator,
                                              const Options& options)
   : PipelineInterests(face)
@@ -46,6 +48,7 @@ PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstima
   , m_nInFlight(0)
   , m_nLossEvents(0)
   , m_nRetransmitted(0)
+  , m_nCongMarks(0)
   , m_cwnd(m_options.initCwnd)
   , m_ssthresh(m_options.initSsthresh)
   , m_hasFailure(false)
@@ -244,7 +247,30 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
     m_nInFlight--;
   }
 
-  increaseWindow();
+  // upon finding congestion mark, decrease the window size
+  // without retransmitting any packet
+  if (data.getCongestionMark() > 0) {
+    m_nCongMarks++;
+    if (!m_options.ignoreCongMarks) {
+      if (m_options.disableCwa || m_highData > m_recPoint) {
+        m_recPoint = m_highInterest;  // react to only one congestion event (timeout or congestion mark)
+                                      // per RTT (conservative window adaptation)
+        decreaseWindow();
+
+        if (m_options.isVerbose) {
+          std::cerr << "Received congestion mark, value = " << data.getCongestionMark()
+                    << ", new cwnd = " << m_cwnd << std::endl;
+        }
+      }
+    }
+    else {
+      increaseWindow();
+    }
+  }
+  else {
+    increaseWindow();
+  }
+
   onData(data);
 
   if (segInfo.state == SegmentState::FirstTimeSent ||
@@ -324,7 +350,7 @@ PipelineInterestsAimd::recordTimeout()
     m_nLossEvents++;
 
     if (m_options.isVerbose) {
-      std::cerr << "Packet loss event, cwnd = " << m_cwnd
+      std::cerr << "Packet loss event, new cwnd = " << m_cwnd
                 << ", ssthresh = " << m_ssthresh << std::endl;
     }
   }
@@ -382,7 +408,7 @@ void
 PipelineInterestsAimd::decreaseWindow()
 {
   // please refer to RFC 5681, Section 3.1 for the rationale behind it
-  m_ssthresh = std::max(2.0, m_cwnd * m_options.mdCoef); // multiplicative decrease
+  m_ssthresh = std::max(MIN_SSTHRESH, m_cwnd * m_options.mdCoef); // multiplicative decrease
   m_cwnd = m_options.resetCwndToInit ? m_options.initCwnd : m_ssthresh;
 
   afterCwndChange(time::steady_clock::now() - getStartTime(), m_cwnd);
@@ -411,7 +437,8 @@ PipelineInterestsAimd::printSummary() const
   std::cerr << "Total # of packet loss events: " << m_nLossEvents << "\n"
             << "Packet loss rate: "
             << static_cast<double>(m_nLossEvents) / static_cast<double>(m_nReceived) << "\n"
-            << "Total # of retransmitted segments: " << m_nRetransmitted << "\n";
+            << "Total # of retransmitted segments: " << m_nRetransmitted << "\n"
+            << "Total # of received congestion marks: " << m_nCongMarks << "\n";
 }
 
 std::ostream&
@@ -444,6 +471,7 @@ operator<<(std::ostream& os, const PipelineInterestsAimdOptions& options)
      << "\tMultiplicative decrease factor = " << options.mdCoef << "\n"
      << "\tRTO check interval = " << options.rtoCheckInterval << "\n"
      << "\tMax retries on timeout or Nack = " << options.maxRetriesOnTimeoutOrNack << "\n"
+     << "\tReaction to congestion marks " << (options.ignoreCongMarks ? "disabled" : "enabled") << "\n"
      << "\tConservative Window Adaptation " << (options.disableCwa ? "disabled" : "enabled") << "\n"
      << "\tResetting cwnd to " << (options.resetCwndToInit ? "initCwnd" : "ssthresh") << " upon loss event\n";
   return os;
