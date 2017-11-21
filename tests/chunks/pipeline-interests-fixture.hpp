@@ -43,15 +43,6 @@ using namespace ndn::tests;
 
 class PipelineInterestsFixture : public UnitTestTimeFixture
 {
-public:
-  PipelineInterestsFixture()
-    : face(io)
-    , name("/ndn/chunks/test")
-    , nDataSegments(0)
-    , hasFailed(false)
-  {
-  }
-
 protected:
   void
   setPipeline(unique_ptr<PipelineInterests> pline)
@@ -69,7 +60,8 @@ protected:
   }
 
   shared_ptr<Data>
-  makeDataWithSegmentAndCongMark(uint64_t segmentNo, uint64_t congestionMark = 1,
+  makeDataWithSegmentAndCongMark(uint64_t segmentNo,
+                                 uint64_t congestionMark = 1,
                                  bool setFinalBlockId = true) const
   {
     auto data = makeDataWithSegment(segmentNo, setFinalBlockId);
@@ -81,17 +73,17 @@ protected:
   runWithData(const Data& data)
   {
     pipeline->run(data,
-                  [this] (const Data&) {},
+                  [] (const Data&) {},
                   [this] (const std::string&) { hasFailed = true; });
   }
 
 protected:
   boost::asio::io_service io;
-  util::DummyClientFace face;
-  Name name;
+  util::DummyClientFace face{io};
   unique_ptr<PipelineInterests> pipeline;
-  uint64_t nDataSegments;
-  bool hasFailed;
+  Name name{"/ndn/chunks/test"};
+  uint64_t nDataSegments = 0;
+  bool hasFailed = false;
 };
 
 } // namespace tests
