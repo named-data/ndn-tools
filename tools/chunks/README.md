@@ -37,7 +37,7 @@ The default discovery method is `iterative`.
   [A Practical Congestion Control Scheme for Named Data
   Networking](https://www.researchgate.net/publication/306259672_A_Practical_Congestion_Control_Scheme_for_Named_Data_Networking)
 
-The default Interest pipeline type is `fixed`.
+The default Interest pipeline type is `aimd`.
 
 ## Usage examples
 
