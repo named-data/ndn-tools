@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2016,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2016-2018,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -19,6 +19,7 @@
  *
  * @author Shuo Yang
  * @author Weiwei Liu
+ * @author Chavoosh Ghasemi
  */
 
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_AIMD_RTT_ESTIMATOR_HPP
@@ -44,7 +45,7 @@ struct RttRtoSample
 /**
  * @brief RTT Estimator.
  *
- * This class implements the "Mean--Deviation" RTT estimator, as discussed in RFC6298,
+ * This class implements the "Mean-Deviation" RTT estimator, as discussed in RFC 6298,
  * with the modifications to RTO calculation described in RFC 7323 Appendix G.
  */
 class RttEstimator
@@ -77,7 +78,7 @@ public:
   };
 
   /**
-   * @brief create a RTT Estimator
+   * @brief Create a RTT Estimator
    *
    * Configures the RTT Estimator with the default parameters if an instance of Options
    * is not passed to the constructor.
@@ -88,24 +89,54 @@ public:
   /**
    * @brief Add a new RTT measurement to the estimator for the given received segment.
    *
-   * @note Don't take RTT measurement for retransmitted segments
    * @param segNo the segment number of the received segmented Data
    * @param rtt the sampled rtt
    * @param nExpectedSamples number of expected samples, must be greater than 0.
    *        It should be set to current number of in-flight Interests. Please
    *        refer to Appendix G of RFC 7323 for details.
+   * @note Don't take RTT measurement for retransmitted segments
    */
   void
   addMeasurement(uint64_t segNo, Milliseconds rtt, size_t nExpectedSamples);
 
   /**
-   * @return estimated RTO
+   * @brief Returns the estimated RTO value
    */
   Milliseconds
-  getEstimatedRto() const;
+  getEstimatedRto() const
+  {
+    return m_rto;
+  }
 
   /**
-   * @brief backoff RTO by the factor of RttEstimatorOptions::rtoBackoffMultiplier
+   * @brief Returns the minimum RTT observed
+   */
+  double
+  getMinRtt() const
+  {
+    return m_rttMin;
+  }
+
+  /**
+   * @brief Returns the maximum RTT observed
+   */
+  double
+  getMaxRtt() const
+  {
+    return m_rttMax;
+  }
+
+  /**
+   * @brief Returns the average RTT
+   */
+  double
+  getAvgRtt() const
+  {
+    return m_rttAvg;
+  }
+
+  /**
+   * @brief Backoff RTO by a factor of Options::rtoBackoffMultiplier
    */
   void
   backoffRto();
@@ -120,16 +151,12 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   Milliseconds m_sRtt; ///< smoothed round-trip time
   Milliseconds m_rttVar; ///< round-trip time variation
   Milliseconds m_rto; ///< retransmission timeout
-};
 
-/**
- * @brief returns the estimated RTO value
- */
-inline Milliseconds
-RttEstimator::getEstimatedRto() const
-{
-  return m_rto;
-}
+  double m_rttMin;
+  double m_rttMax;
+  double m_rttAvg;
+  int64_t m_nRttSamples; ///< number of RTT samples
+};
 
 std::ostream&
 operator<<(std::ostream& os, const RttEstimator::Options& options);
@@ -138,4 +165,4 @@ operator<<(std::ostream& os, const RttEstimator::Options& options);
 } // namespace chunks
 } // namespace ndn
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_RTT_ESTIMATOR_HPP
+#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_AIMD_RTT_ESTIMATOR_HPP

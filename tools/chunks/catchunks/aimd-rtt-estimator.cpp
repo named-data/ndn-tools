@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Arizona Board of Regents.
+ * Copyright (c) 2016-2018, Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -20,10 +20,13 @@
  *
  * @author Shuo Yang
  * @author Weiwei Liu
+ * @author Chavoosh Ghasemi
  */
 
 #include "aimd-rtt-estimator.hpp"
+
 #include <cmath>
+#include <limits>
 
 namespace ndn {
 namespace chunks {
@@ -34,6 +37,10 @@ RttEstimator::RttEstimator(const Options& options)
   , m_sRtt(std::numeric_limits<double>::quiet_NaN())
   , m_rttVar(std::numeric_limits<double>::quiet_NaN())
   , m_rto(m_options.initialRto.count())
+  , m_rttMin(std::numeric_limits<double>::max())
+  , m_rttMax(std::numeric_limits<double>::min())
+  , m_rttAvg(0.0)
+  , m_nRttSamples(0)
 {
   if (m_options.isVerbose) {
     std::cerr << m_options;
@@ -45,7 +52,7 @@ RttEstimator::addMeasurement(uint64_t segNo, Milliseconds rtt, size_t nExpectedS
 {
   BOOST_ASSERT(nExpectedSamples > 0);
 
-  if (std::isnan(m_sRtt.count())) { // first measurement
+  if (m_nRttSamples == 0) { // first measurement
     m_sRtt = rtt;
     m_rttVar = m_sRtt / 2;
     m_rto = m_sRtt + m_options.k * m_rttVar;
@@ -59,8 +66,12 @@ RttEstimator::addMeasurement(uint64_t segNo, Milliseconds rtt, size_t nExpectedS
   }
 
   m_rto = ndn::clamp(m_rto, m_options.minRto, m_options.maxRto);
-
   afterRttMeasurement({segNo, rtt, m_sRtt, m_rttVar, m_rto});
+
+  m_rttAvg = (m_nRttSamples * m_rttAvg + rtt.count()) / (m_nRttSamples + 1);
+  m_rttMax = std::max(rtt.count(), m_rttMax);
+  m_rttMin = std::min(rtt.count(), m_rttMin);
+  m_nRttSamples++;
 }
 
 void

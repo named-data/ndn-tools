@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2018, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -29,6 +29,7 @@
 #include "data-fetcher.hpp"
 
 #include <cmath>
+#include <iomanip>
 
 namespace ndn {
 namespace chunks {
@@ -440,7 +441,11 @@ PipelineInterestsAimd::printSummary() const
             << "Packet loss rate: "
             << static_cast<double>(m_nLossEvents) / static_cast<double>(m_nReceived) << "\n"
             << "Total # of retransmitted segments: " << m_nRetransmitted << "\n"
-            << "Total # of received congestion marks: " << m_nCongMarks << "\n";
+            << "Total # of received congestion marks: " << m_nCongMarks << "\n"
+            << "RTT min/avg/max = " << std::fixed << std::setprecision(3)
+                                    << m_rttEstimator.getMinRtt() << "/"
+                                    << m_rttEstimator.getAvgRtt() << "/"
+                                    << m_rttEstimator.getMaxRtt() << " ms\n";
 }
 
 std::ostream&
