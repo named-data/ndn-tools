@@ -1,5 +1,6 @@
-/**
- * Copyright (c) 2016,  Arizona Board of Regents.
+/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
+/*
+ * Copyright (c) 2016-2017, Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -72,7 +73,7 @@ RttEstimator::backoffRto()
 std::ostream&
 operator<<(std::ostream& os, const RttEstimator::Options& options)
 {
-  os << "RttEstimator initial parameters:\n"
+  os << "RTT estimator parameters:\n"
      << "\tAlpha = " << options.alpha << "\n"
      << "\tBeta = " << options.beta << "\n"
      << "\tK = " << options.k << "\n"

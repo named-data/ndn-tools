@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+/*
+ * Copyright (c) 2016-2017, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -27,21 +27,18 @@
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_OPTIONS_HPP
 #define NDN_TOOLS_CHUNKS_CATCHUNKS_OPTIONS_HPP
 
+#include <ndn-cxx/interest.hpp>
 #include <ndn-cxx/util/time.hpp>
 
 namespace ndn {
 namespace chunks {
 
-class Options
+struct Options
 {
-public:
-  Options();
-
-public:
-  time::milliseconds interestLifetime;
-  int maxRetriesOnTimeoutOrNack;
-  bool mustBeFresh;
-  bool isVerbose;
+  time::milliseconds interestLifetime = ndn::DEFAULT_INTEREST_LIFETIME;
+  int maxRetriesOnTimeoutOrNack = 3;
+  bool mustBeFresh = false;
+  bool isVerbose = false;
 };
 
 } // namespace chunks

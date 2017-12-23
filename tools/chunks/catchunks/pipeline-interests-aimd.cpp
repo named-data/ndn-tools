@@ -26,6 +26,7 @@
  */
 
 #include "pipeline-interests-aimd.hpp"
+#include "data-fetcher.hpp"
 
 #include <cmath>
 
@@ -134,7 +135,8 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
     auto ret = m_retxCount.emplace(segNo, 1);
     if (ret.second == false) { // not the first retransmission
       m_retxCount[segNo] += 1;
-      if (m_retxCount[segNo] > m_options.maxRetriesOnTimeoutOrNack) {
+      if (m_options.maxRetriesOnTimeoutOrNack != DataFetcher::MAX_RETRIES_INFINITE &&
+          m_retxCount[segNo] > m_options.maxRetriesOnTimeoutOrNack) {
         return handleFail(segNo, "Reached the maximum number of retries (" +
                           to_string(m_options.maxRetriesOnTimeoutOrNack) +
                           ") while retrieving segment #" + to_string(segNo));
@@ -464,15 +466,16 @@ operator<<(std::ostream& os, SegmentState state)
 std::ostream&
 operator<<(std::ostream& os, const PipelineInterestsAimdOptions& options)
 {
-  os << "PipelineInterestsAimd initial parameters:\n"
+  os << "AIMD pipeline parameters:\n"
      << "\tInitial congestion window size = " << options.initCwnd << "\n"
      << "\tInitial slow start threshold = " << options.initSsthresh << "\n"
      << "\tAdditive increase step = " << options.aiStep << "\n"
      << "\tMultiplicative decrease factor = " << options.mdCoef << "\n"
      << "\tRTO check interval = " << options.rtoCheckInterval << "\n"
-     << "\tMax retries on timeout or Nack = " << options.maxRetriesOnTimeoutOrNack << "\n"
+     << "\tMax retries on timeout or Nack = " << (options.maxRetriesOnTimeoutOrNack == DataFetcher::MAX_RETRIES_INFINITE ?
+                                                    "infinite" : to_string(options.maxRetriesOnTimeoutOrNack)) << "\n"
      << "\tReaction to congestion marks " << (options.ignoreCongMarks ? "disabled" : "enabled") << "\n"
-     << "\tConservative Window Adaptation " << (options.disableCwa ? "disabled" : "enabled") << "\n"
+     << "\tConservative window adaptation " << (options.disableCwa ? "disabled" : "enabled") << "\n"
      << "\tResetting cwnd to " << (options.resetCwndToInit ? "initCwnd" : "ssthresh") << " upon loss event\n";
   return os;
 }
