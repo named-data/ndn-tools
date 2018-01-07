@@ -18,7 +18,9 @@ Tools in this collection include:
 
 See [INSTALL.md](INSTALL.md) for build instructions.
 
+If you are new to the NDN software community, please read the
+[Contributor's Guide](https://github.com/named-data/NFD/blob/master/CONTRIBUTING.md).  
 Please file bug reports and feature requests on
-[ndn-tools Redmine site](http://redmine.named-data.net/projects/ndn-tools).  
-You may contribute code on [NDN Gerrit](http://gerrit.named-data.net).
+[ndn-tools Redmine site](https://redmine.named-data.net/projects/ndn-tools).  
+You may contribute code on [NDN Gerrit](https://gerrit.named-data.net).
 GitHub pull requests are not accepted.
