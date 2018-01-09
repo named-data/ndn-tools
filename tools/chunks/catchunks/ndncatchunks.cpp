@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2018, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -78,7 +78,8 @@ main(int argc, char** argv)
                     "lifetime of expressed Interests, in milliseconds")
     ("retries,r",   po::value<int>(&options.maxRetriesOnTimeoutOrNack)->default_value(options.maxRetriesOnTimeoutOrNack),
                     "maximum number of retries in case of Nack or timeout (-1 = no limit)")
-    ("verbose,v",   po::bool_switch(&options.isVerbose), "turn on verbose output")
+    ("quiet,q",     po::bool_switch(&options.isQuiet), "suppress all diagnostic output, except fatal errors")
+    ("verbose,v",   po::bool_switch(&options.isVerbose), "turn on verbose output (per segment information")
     ("version,V",   "print program version and exit")
     ;
 
@@ -208,8 +209,12 @@ main(int argc, char** argv)
     std::cerr << "ERROR: lifetime cannot be negative" << std::endl;
     return 2;
   }
-
   options.interestLifetime = time::milliseconds(vm["lifetime"].as<int64_t>());
+
+  if (options.isQuiet && options.isVerbose) {
+    std::cerr << "ERROR: cannot be quiet and verbose at the same time" << std::endl;
+    return 2;
+  }
 
   try {
     Face face;
@@ -288,8 +293,7 @@ main(int argc, char** argv)
       return 2;
     }
 
-    Consumer consumer(security::v2::getAcceptAllValidator(), options.isVerbose);
-
+    Consumer consumer(security::v2::getAcceptAllValidator());
     BOOST_ASSERT(discover != nullptr);
     BOOST_ASSERT(pipeline != nullptr);
     consumer.run(std::move(discover), std::move(pipeline));
@@ -298,6 +302,10 @@ main(int argc, char** argv)
   catch (const Consumer::ApplicationNackError& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 3;
+  }
+  catch (const Consumer::DataValidationError& e) {
+    std::cerr << "ERROR: " << e.what() << std::endl;
+    return 5;
   }
   catch (const std::exception& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;

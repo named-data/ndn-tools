@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2018, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -35,30 +35,27 @@ namespace tests {
 class PipelineInterestFixedWindowFixture : public PipelineInterestsFixture
 {
 public:
-  typedef PipelineInterestsFixedWindowOptions Options;
-
-public:
   PipelineInterestFixedWindowFixture()
-    : PipelineInterestsFixture()
-    , opt(makeOptions())
+    : opt(makeOptions())
   {
     setPipeline(make_unique<PipelineInterestsFixedWindow>(face, PipelineInterestsFixedWindow::Options(opt)));
   }
 
-protected:
-  Options opt;
-
 private:
-  static Options
+  static PipelineInterestsFixedWindow::Options
   makeOptions()
   {
-    Options options;
+    PipelineInterestsFixedWindow::Options options;
+    options.isQuiet = true;
     options.isVerbose = false;
     options.interestLifetime = time::seconds(1);
     options.maxRetriesOnTimeoutOrNack = 3;
     options.maxPipelineSize = 5;
     return options;
   }
+
+protected:
+  PipelineInterestsFixedWindow::Options opt;
 };
 
 BOOST_AUTO_TEST_SUITE(Chunks)

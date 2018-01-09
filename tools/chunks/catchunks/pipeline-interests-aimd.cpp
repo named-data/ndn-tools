@@ -292,7 +292,7 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
   if (m_hasFinalBlockId &&
       static_cast<uint64_t>(m_nReceived - 1) >= m_lastSegmentNo) { // all segments have been received
     cancel();
-    if (m_options.isVerbose) {
+    if (!m_options.isQuiet) {
       printSummary();
     }
   }

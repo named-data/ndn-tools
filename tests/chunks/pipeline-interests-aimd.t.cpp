@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2018, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -36,12 +36,11 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class PipelineInterestAimdFixture : public ndn::chunks::tests::PipelineInterestsFixture
+class PipelineInterestAimdFixture : public chunks::tests::PipelineInterestsFixture
 {
 public:
   PipelineInterestAimdFixture()
-    : PipelineInterestsFixture()
-    , opt(makePipelineOptions())
+    : opt(makePipelineOptions())
     , rttEstimator(makeRttEstimatorOptions())
   {
     createPipeline();
@@ -56,10 +55,12 @@ public:
   }
 
 private:
-  static PipelineInterestsAimdOptions
+  static PipelineInterestsAimd::Options
   makePipelineOptions()
   {
-    PipelineInterestsAimdOptions pipelineOptions;
+    PipelineInterestsAimd::Options pipelineOptions;
+    pipelineOptions.isQuiet = true;
+    pipelineOptions.isVerbose = false;
     pipelineOptions.disableCwa = false;
     pipelineOptions.ignoreCongMarks = false;
     pipelineOptions.resetCwndToInit = false;
@@ -83,7 +84,7 @@ private:
   }
 
 protected:
-  PipelineInterestsAimdOptions opt;
+  PipelineInterestsAimd::Options opt;
   RttEstimator rttEstimator;
   PipelineInterestsAimd* aimdPipeline;
   static constexpr double MARGIN = 0.01;

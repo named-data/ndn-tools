@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2018, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -30,11 +30,10 @@
 namespace ndn {
 namespace chunks {
 
-Consumer::Consumer(security::v2::Validator& validator, bool isVerbose, std::ostream& os)
+Consumer::Consumer(security::v2::Validator& validator, std::ostream& os)
   : m_validator(validator)
   , m_outputStream(os)
   , m_nextToPrint(0)
-  , m_isVerbose(isVerbose)
 {
 }
 
@@ -65,10 +64,6 @@ Consumer::handleData(const Data& data)
   m_validator.validate(data,
     [this, dataPtr] (const Data& data) {
       if (data.getContentType() == ndn::tlv::ContentType_Nack) {
-        if (m_isVerbose) {
-          std::cerr << "Application level NACK: " << data << std::endl;
-        }
-        m_pipeline->cancel();
         BOOST_THROW_EXCEPTION(ApplicationNackError(data));
       }
 

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2018, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -70,7 +70,8 @@ public:
   /**
    * @brief Create the consumer
    */
-  Consumer(security::v2::Validator& validator, bool isVerbose, std::ostream& os = std::cout);
+  explicit
+  Consumer(security::v2::Validator& validator, std::ostream& os = std::cout);
 
   /**
    * @brief Run the consumer
@@ -92,7 +93,6 @@ private:
   unique_ptr<DiscoverVersion> m_discover;
   unique_ptr<PipelineInterests> m_pipeline;
   uint64_t m_nextToPrint;
-  bool m_isVerbose;
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   std::map<uint64_t, shared_ptr<const Data>> m_bufferedData;
