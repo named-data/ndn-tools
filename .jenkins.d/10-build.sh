@@ -6,6 +6,12 @@ source "$JDIR"/util.sh
 
 set -x
 
+if [[ $JOB_NAME == *"code-coverage" ]]; then
+    COVERAGE="--with-coverage"
+elif [[ -z $DISABLE_ASAN ]]; then
+    ASAN="--with-sanitizer=address"
+fi
+
 # Cleanup
 sudo env "PATH=$PATH" ./waf --color=yes distclean
 
@@ -26,12 +32,7 @@ if [[ $JOB_NAME != *"code-coverage" && $JOB_NAME != *"limited-build" ]]; then
 fi
 
 # Configure/build in debug mode with tests
-if [[ $JOB_NAME == *"code-coverage" ]]; then
-    COVERAGE="--with-coverage"
-elif [[ -n $BUILD_WITH_ASAN || -z $TRAVIS ]]; then
-    ASAN="--with-sanitizer=address"
-fi
-./waf --color=yes configure --debug --with-tests $COVERAGE $ASAN
+./waf --color=yes configure --debug --with-tests $ASAN $COVERAGE
 ./waf --color=yes build -j${WAF_JOBS:-1}
 
 # (tests will be run against debug version)
