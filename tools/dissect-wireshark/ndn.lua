@@ -1,4 +1,4 @@
--- Copyright (c) 2015-2016,  Regents of the University of California.
+-- Copyright (c) 2015-2018,  Regents of the University of California.
 --
 -- This file is part of ndn-tools (Named Data Networking Essential Tools).
 -- See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -410,6 +410,9 @@ function ndn.dissector(tvb, pInfo, root) -- Tvb, Pinfo, TreeItem
    local nBytesLeft = tvb:len() - block.offset
    -- print (pInfo.number .. ":: Found block: " .. block.type .. " of length " .. block.size .. " bytesLeft: " .. nBytesLeft)
 
+   local pktType = ""
+   local pktName = ""
+
    while (block.size <= nBytesLeft) do
       -- Create TreeItems
       block.tree = root:add(ndn, tvb(block.offset, block.size))
@@ -445,6 +448,19 @@ function ndn.dissector(tvb, pInfo, root) -- Tvb, Pinfo, TreeItem
             end
             block.visited = true
          end
+
+         -- prepare information to fill info column
+         if block.type == 5 and pktType ~= "Nack" then
+            pktType = "Interest"
+         elseif block.type == 6 then
+            pktType = "Data"
+         elseif block.type == 800 then
+            pktType = "Nack"
+         end
+
+         if pktName == "" and block.type == 7 then
+            pktName = getUriFromName(block)
+         end
       end
 
       local info = NDN_DICT[block.type]
@@ -467,6 +483,7 @@ function ndn.dissector(tvb, pInfo, root) -- Tvb, Pinfo, TreeItem
    end -- while(block.size <= nBytesLeft)
 
    pInfo.cols.protocol = tostring(pInfo.cols.protocol) .. " (" .. ndn.name .. ")"
+   pInfo.cols.info = pktType .. " " .. pktName
 
    if (nBytesLeft > 0 and block ~= nil and block.size ~= nil and block.size > nBytesLeft) then
       pInfo.desegment_offset = tvb:len() - nBytesLeft
@@ -492,3 +509,4 @@ local ethernetDissectorTable = DissectorTable.get("ethertype")
 ethernetDissectorTable:add(0x8624, ndn)
 
 io.stderr:write("ndn.lua is successfully loaded\n")
+
