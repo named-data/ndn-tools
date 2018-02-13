@@ -1,6 +1,17 @@
 Release Notes
 =============
 
+## Version 0.6
+
+chunks:
+- include RTT stats in final summary
+- respect `--retries=-1` in AIMD pipeline
+- change the default pipeline to AIMD
+- react to congestion marks by default as a timeout event (can be disabled using
+  `--aimd-ignore-cong-marks`)
+- print a final summary of the transfer regardless of the pipeline type, and even if
+  `--verbose` was not specified
+
 ## Version 0.5
 
 all:
