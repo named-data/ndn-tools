@@ -27,11 +27,11 @@ def configure(conf):
     conf.check_cfg(package='libndn-cxx', args=['--cflags', '--libs'],
                    uselib_store='NDN_CXX', mandatory=True)
 
-    boost_libs = 'system iostreams regex'
+    boost_libs = 'program_options regex system'
     if conf.options.with_tests:
-        conf.env['WITH_TESTS'] = 1
-        conf.define('WITH_TESTS', 1);
-        boost_libs += ' unit_test_framework'
+        conf.env['WITH_TESTS'] = True
+        conf.define('WITH_TESTS', 1)
+        boost_libs += ' filesystem unit_test_framework'
     conf.check_boost(lib=boost_libs)
 
     conf.recurse('tools')
@@ -40,8 +40,9 @@ def configure(conf):
 
     # Loading "late" to prevent tests from being compiled with profiling flags
     conf.load('coverage')
-
     conf.load('sanitizers')
+
+    conf.msg('Tools to build', ', '.join(conf.env['BUILD_TOOLS']))
 
 def build(bld):
     version(bld)
@@ -51,13 +52,11 @@ def build(bld):
         target='core/version.cpp',
         VERSION_BUILD=VERSION)
 
-    bld(target='core-objects',
-        name='core-objects',
-        features='cxx',
-        source=bld.path.ant_glob(['core/*.cpp']) + ['core/version.cpp'],
-        use='NDN_CXX BOOST',
-        includes='.',
-        export_includes='.')
+    bld.objects(target='core-objects',
+                source=bld.path.ant_glob(['core/*.cpp']) + ['core/version.cpp'],
+                use='NDN_CXX BOOST',
+                includes='.',
+                export_includes='.')
 
     bld.recurse('tools')
     bld.recurse('tests')

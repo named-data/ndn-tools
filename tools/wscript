@@ -5,18 +5,14 @@ from waflib import Options, Errors
 
 def options(opt):
     for subdir in opt.path.ant_glob(['*'], dir=True, src=False):
-        opt.add_option('--enable-%s' % subdir,
-                   help='Build tool %s, enabled by default' % subdir,
-                   action='store_true',
-                   dest='enable_%s' % subdir)
-
-        opt.add_option('--disable-%s' % subdir,
-                   help='Do not build tool %s' % subdir,
-                   action='store_true',
-                   dest='disable_%s' % subdir)
-
-        opt.recurse(str(subdir), mandatory=False)
-
+        tool = subdir.path_from(opt.path)
+        opt.add_option('--enable-%s' % tool,
+                       help='Build tool %s, enabled by default' % tool,
+                       action='store_true', dest='enable_%s' % tool)
+        opt.add_option('--disable-%s' % tool,
+                       help='Do not build tool %s' % tool,
+                       action='store_true', dest='disable_%s' % tool)
+        opt.recurse(str(tool), mandatory=False)
 
 def configure(conf):
     all_tools = set() # all available tools
@@ -26,7 +22,7 @@ def configure(conf):
     Options.options.disable_pib = True
 
     for subdir in conf.path.ant_glob(['*'], dir=True, src=False):
-        tool = str(subdir)
+        tool = str(subdir.path_from(conf.path))
         all_tools.add(tool)
 
         is_enabled = getattr(Options.options, 'enable_%s' % tool)
@@ -48,8 +44,6 @@ def configure(conf):
 
     for tool in conf.env['BUILD_TOOLS']:
         conf.recurse(tool, mandatory=False)
-
-    conf.msg("Tools to build", ", ".join(conf.env['BUILD_TOOLS']))
 
 def build(bld):
     for tool in bld.env['BUILD_TOOLS']:
