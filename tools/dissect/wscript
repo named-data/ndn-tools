@@ -2,14 +2,13 @@
 top = '../..'
 
 def build(bld):
-    bld(features='cxx',
-        name='dissect-objects',
+    bld.objects(
+        target='dissect-objects',
         source=bld.path.ant_glob('*.cpp', excl='main.cpp'),
-        includes='.',
-        export_includes='.',
         use='core-objects')
 
-    bld(features='cxx cxxprogram',
+    bld.program(
         target='../../bin/ndn-dissect',
+        name='ndn-dissect',
         source='main.cpp',
         use='dissect-objects')

@@ -3,28 +3,30 @@ top = '../..'
 
 def build(bld):
 
-    bld(features='cxx',
-        name='ndncatchunks-objects',
+    bld.objects(
+        target='ndncatchunks-objects',
         source=bld.path.ant_glob('catchunks/*.cpp', excl='catchunks/ndncatchunks.cpp'),
         use='core-objects')
 
-    bld(features='cxx cxxprogram',
+    bld.program(
         target='../../bin/ndncatchunks',
+        name='ndncatchunks',
         source='catchunks/ndncatchunks.cpp',
         use='ndncatchunks-objects')
 
-    bld(features='cxx',
-        name='ndnputchunks-objects',
+    bld.objects(
+        target='ndnputchunks-objects',
         source=bld.path.ant_glob('putchunks/*.cpp', excl='putchunks/ndnputchunks.cpp'),
         use='core-objects')
 
-    bld(features='cxx cxxprogram',
+    bld.program(
         target='../../bin/ndnputchunks',
+        name='ndnputchunks',
         source='putchunks/ndnputchunks.cpp',
         use='ndnputchunks-objects')
 
     ## (for unit tests)
 
-    bld(name='chunks-objects',
+    bld(target='chunks-objects',
         use='ndncatchunks-objects ndnputchunks-objects')
 

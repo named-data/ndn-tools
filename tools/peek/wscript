@@ -20,5 +20,5 @@ def build(bld):
 
     ## (for unit tests)
 
-    bld(name='peek-objects',
+    bld(target='peek-objects',
         use='ndnpeek-objects')

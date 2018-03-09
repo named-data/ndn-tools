@@ -3,27 +3,29 @@ top = '../..'
 
 def build(bld):
 
-    bld(features='cxx',
-        name='ping-client-objects',
+    bld.objects(
+        target='ping-client-objects',
         source=bld.path.ant_glob('client/*.cpp', excl='client/ndn-ping.cpp'),
         use='core-objects')
 
-    bld(features='cxx cxxprogram',
+    bld.program(
         target='../../bin/ndnping',
+        name='ndnping',
         source='client/ndn-ping.cpp',
         use='ping-client-objects')
 
-    bld(features='cxx',
-        name='ping-server-objects',
+    bld.objects(
+        target='ping-server-objects',
         source=bld.path.ant_glob('server/*.cpp', excl='server/ndn-ping-server.cpp'),
         use='core-objects')
 
-    bld(features='cxx cxxprogram',
+    bld.program(
         target='../../bin/ndnpingserver',
+        name='ndnpingserver',
         source='server/ndn-ping-server.cpp',
         use='ping-server-objects')
 
     ## (for unit tests)
 
-    bld(name='ping-objects',
+    bld(target='ping-objects',
         use='ping-client-objects ping-server-objects')

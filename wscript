@@ -5,7 +5,7 @@ APPNAME = 'ndn-tools'
 GIT_TAG_PREFIX = 'ndn-tools-'
 
 from waflib import Utils, Context
-import os
+import os, subprocess
 
 def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
@@ -27,12 +27,12 @@ def configure(conf):
     conf.check_cfg(package='libndn-cxx', args=['--cflags', '--libs'],
                    uselib_store='NDN_CXX', mandatory=True)
 
-    boost_libs = 'program_options regex system'
+    boost_libs = 'system filesystem program_options regex thread log log_setup'
     if conf.options.with_tests:
         conf.env['WITH_TESTS'] = True
         conf.define('WITH_TESTS', 1)
-        boost_libs += ' filesystem unit_test_framework'
-    conf.check_boost(lib=boost_libs)
+        boost_libs += ' unit_test_framework'
+    conf.check_boost(lib=boost_libs, mt=True)
 
     conf.recurse('tools')
 
@@ -50,6 +50,7 @@ def build(bld):
     bld(features='subst',
         source='core/version.cpp.in',
         target='core/version.cpp',
+        name='version.cpp',
         VERSION_BUILD=VERSION)
 
     bld.objects(target='core-objects',
@@ -62,47 +63,55 @@ def build(bld):
     bld.recurse('tests')
     bld.recurse('manpages')
 
-def version(bld):
-    # Modified from ndn-cxx wscript
+def version(ctx):
+    # don't execute more than once
+    if getattr(Context.g_module, 'VERSION_BASE', None):
+        return
+
+    Context.g_module.VERSION_BASE = Context.g_module.VERSION
+    Context.g_module.VERSION_SPLIT = VERSION_BASE.split('.')
+
+    # first, try to get a version string from git
+    gotVersionFromGit = False
     try:
         cmd = ['git', 'describe', '--always', '--match', '%s*' % GIT_TAG_PREFIX]
-        p = Utils.subprocess.Popen(cmd, stdout=Utils.subprocess.PIPE,
-                                   stderr=None, stdin=None)
-        out = str(p.communicate()[0].strip())
-        didGetVersion = (p.returncode == 0 and out != "")
-        if didGetVersion:
+        out = subprocess.check_output(cmd, universal_newlines=True).strip()
+        if out:
+            gotVersionFromGit = True
             if out.startswith(GIT_TAG_PREFIX):
-                Context.g_module.VERSION = out[len(GIT_TAG_PREFIX):]
+                Context.g_module.VERSION = out.lstrip(GIT_TAG_PREFIX)
             else:
-                Context.g_module.VERSION = "%s-commit-%s" % (Context.g_module.VERSION, out)
-    except OSError:
+                # no tags matched
+                Context.g_module.VERSION = '%s-commit-%s' % (VERSION_BASE, out)
+    except subprocess.CalledProcessError:
         pass
 
-    versionFile = bld.path.find_node('VERSION')
-
-    if not didGetVersion and versionFile is not None:
+    versionFile = ctx.path.find_node('VERSION')
+    if not gotVersionFromGit and versionFile is not None:
         try:
             Context.g_module.VERSION = versionFile.read()
             return
-        except (OSError, IOError):
+        except EnvironmentError:
             pass
 
     # version was obtained from git, update VERSION file if necessary
     if versionFile is not None:
         try:
-            version = versionFile.read()
-            if version == Context.g_module.VERSION:
-                return # no need to update
-        except (OSError, IOError):
-            Logs.warn("VERSION file exists, but not readable")
+            if versionFile.read() == Context.g_module.VERSION:
+                # already up-to-date
+                return
+        except EnvironmentError as e:
+            Logs.warn('%s exists but is not readable (%s)' % (versionFile, e.strerror))
     else:
-        versionFile = bld.path.make_node('VERSION')
-
-    # neither git describe nor VERSION file contain the version, so fall back to constant in wscript
-    if versionFile is None:
-        Context.g_module.VERSION = VERSION
+        versionFile = ctx.path.make_node('VERSION')
 
     try:
         versionFile.write(Context.g_module.VERSION)
-    except (OSError, IOError):
-        Logs.warn("VERSION file is not writeable")
+    except EnvironmentError as e:
+        Logs.warn('%s is not writable (%s)' % (versionFile, e.strerror))
+
+def dist(ctx):
+    version(ctx)
+
+def distcheck(ctx):
+    version(ctx)

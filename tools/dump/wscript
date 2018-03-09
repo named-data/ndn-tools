@@ -20,27 +20,26 @@ main(int argc, char** argv)
 '''
 
 def configure(conf):
-    conf.check(header_name="inttypes.h", mandatory=False)
-    conf.check(header_name="stdint.h", mandatory=False)
-    conf.check(header_name="sys/bitypes.h", mandatory=False)
-    conf.check(fragment=ATTRIBUTE_CHECK, msg="Checking for __attribute__", mandatory=False)
+    conf.check(header_name='inttypes.h', mandatory=False)
+    conf.check(header_name='stdint.h', mandatory=False)
+    conf.check(header_name='sys/bitypes.h', mandatory=False)
+    conf.check(fragment=ATTRIBUTE_CHECK, msg='Checking for __attribute__', mandatory=False)
 
-    conf.check(header_name=["sys/types.h", "sys/time.h", "time.h"],
-               define="TIME_WITH_SYS_TIME", mandatory=False)
+    conf.check(header_name=['sys/types.h', 'sys/time.h', 'time.h'],
+               define='TIME_WITH_SYS_TIME', mandatory=False)
 
     conf.check_cfg(path='pcap-config',
-                   package="libpcap", args=['--libs', '--cflags'],
+                   package='libpcap', args=['--libs', '--cflags'],
                    uselib_store='PCAP', mandatory=True)
 
 def build(bld):
-    bld(features='cxx',
-        name='dump-objects',
+    bld.objects(
+        target='dump-objects',
         source=bld.path.ant_glob('*.cpp', excl='main.cpp'),
-        includes='.',
-        export_includes='.',
-        use='core-objects BOOST PCAP')
+        use='core-objects PCAP')
 
-    bld(features='cxx cxxprogram',
+    bld.program(
         target='../../bin/ndndump',
+        name='ndndump',
         source='main.cpp',
         use='dump-objects')

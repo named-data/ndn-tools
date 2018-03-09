@@ -6,7 +6,7 @@ Usage
 
 ::
 
-    ndndump [-hV] [-i interface] [-r file] [-f filter] [expression]
+    ndndump [-hV] [-i INTERFACE] [-r FILE] [-f FILTER] [EXPRESSION]
 
 Description
 -----------
@@ -25,29 +25,36 @@ Currently, :program:`ndndump` is capable of extracting Interest, Data, and Nack 
 Options
 -------
 
-``-h``
-  Print help and exit.
+.. option:: -h
 
-``-V``
-  Print version and exit.
+    Print help and exit.
 
-``-i``
-  Listen on :option:`interface`.
-  If unspecified, ndndump searches the system interface list for the lowest numbered,
-  configured up interface (excluding loopback).
+.. option:: -V
 
-``-r``
-  Read packets from :option:`file` (which was created with :manpage:`tcpdump(8)` using its -w option).
+    Print version and exit.
 
-``-v``
-  Produce verbose output.
+.. option:: -i INTERFACE
 
-``-f``
-  Print a packet only if its Name matches the regular expression :option:`filter`.
+    Listen on the specified interface.
+    If unspecified, ndndump searches the system interface list for the lowest numbered,
+    configured up interface (excluding loopback).
 
-``expression``
-  Selects which packets will be analyzed, in :manpage:`pcap-filter(7)` format.
-  If no :option:`expression` is given, a default expression is implied which can be seen with ``-h`` option.
+.. option:: -r FILE
+
+    Read packets from the specified file (which was created with :manpage:`tcpdump(8)` using its ``-w`` option).
+
+.. option:: -v
+
+    Produce verbose output.
+
+.. option:: -f FILTER
+
+    Print a packet only if its Name matches the regular expression ``FILTER``.
+
+.. option:: EXPRESSION
+
+    Selects which packets will be analyzed, in :manpage:`pcap-filter(7)` format.
+    If no :option:`EXPRESSION` is given, a default expression is implied which can be seen with ``-h`` option.
 
 Examples
 --------

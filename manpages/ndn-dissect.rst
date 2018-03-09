@@ -6,7 +6,7 @@ Usage
 
 ::
 
-    ndn-dissect [-hV] [input-file]
+    ndn-dissect [-hV] [INPUT-FILE]
 
 Description
 -----------
@@ -18,15 +18,18 @@ and displays the Type-Length-Value (TLV) structure of those packets on the stand
 Options
 -------
 
-``-h``
+.. option:: -h
+
   Print help and exit.
 
-``-V``
+.. option:: -V
+
   Print version and exit.
 
-``input-file``
+.. option:: INPUT-FILE
+
   The file to read packets from.
-  If no :option:`input-file` is given, the standard input is used.
+  If no :option:`INPUT-FILE` is given, the standard input is used.
 
 Examples
 --------

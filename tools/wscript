@@ -1,7 +1,7 @@
 # -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 top = '..'
 
-from waflib import Options, Errors
+from waflib import Options
 
 def options(opt):
     for subdir in opt.path.ant_glob(['*'], dir=True, src=False):
@@ -21,15 +21,15 @@ def configure(conf):
 
     Options.options.disable_pib = True
 
-    for subdir in conf.path.ant_glob(['*'], dir=True, src=False):
-        tool = str(subdir.path_from(conf.path))
+    for subdir in conf.path.ant_glob('*', dir=True, src=False):
+        tool = subdir.path_from(conf.path)
         all_tools.add(tool)
 
         is_enabled = getattr(Options.options, 'enable_%s' % tool)
         is_disabled = getattr(Options.options, 'disable_%s' % tool)
 
         if is_enabled and is_disabled:
-            raise Errors.WafError("--enable-%s and --disable-%s cannot be both specified" % (tool, tool))
+            conf.fatal("--enable-%s and --disable-%s cannot be both specified" % (tool, tool))
 
         if is_enabled:
             enabled_tools.add(tool)
