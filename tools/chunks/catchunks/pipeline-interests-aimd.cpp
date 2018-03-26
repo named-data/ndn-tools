@@ -51,6 +51,7 @@ PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstima
   , m_nLossEvents(0)
   , m_nRetransmitted(0)
   , m_nCongMarks(0)
+  , m_nSent(0)
   , m_cwnd(m_options.initCwnd)
   , m_ssthresh(m_options.initSsthresh)
   , m_hasFailure(false)
@@ -162,6 +163,7 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
                                            bind(&PipelineInterestsAimd::handleNack, this, _1, _2),
                                            bind(&PipelineInterestsAimd::handleLifetimeExpiration, this, _1));
   m_nInFlight++;
+  m_nSent++;
 
   if (isRetransmission) {
     SegmentInfo& segInfo = m_segmentInfo[segNo];
@@ -437,15 +439,23 @@ void
 PipelineInterestsAimd::printSummary() const
 {
   PipelineInterests::printSummary();
-  std::cerr << "Total # of packet loss events: " << m_nLossEvents << "\n"
+  std::cerr << "Total # of lost/retransmitted segments: " << m_nRetransmitted
+            << " (caused " << m_nLossEvents << " window decreases)\n"
             << "Packet loss rate: "
-            << static_cast<double>(m_nLossEvents) / static_cast<double>(m_nReceived) << "\n"
-            << "Total # of retransmitted segments: " << m_nRetransmitted << "\n"
+            << (static_cast<double>(m_nRetransmitted) / static_cast<double>(m_nSent)) * 100 << "%\n"
             << "Total # of received congestion marks: " << m_nCongMarks << "\n"
-            << "RTT min/avg/max = " << std::fixed << std::setprecision(3)
-                                    << m_rttEstimator.getMinRtt() << "/"
-                                    << m_rttEstimator.getAvgRtt() << "/"
-                                    << m_rttEstimator.getMaxRtt() << " ms\n";
+            << "RTT ";
+
+  if (m_rttEstimator.getMinRtt() == std::numeric_limits<double>::max() ||
+      m_rttEstimator.getMaxRtt() == std::numeric_limits<double>::min()) {
+     std::cerr << "stats unavailable\n";
+   }
+   else {
+     std::cerr << "min/avg/max = " << std::fixed << std::setprecision(3)
+                                   << m_rttEstimator.getMinRtt() << "/"
+                                   << m_rttEstimator.getAvgRtt() << "/"
+                                   << m_rttEstimator.getMaxRtt() << " ms\n";
+  }
 }
 
 std::ostream&

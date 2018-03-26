@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2018, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -184,6 +184,7 @@ private:
   void
   cancelInFlightSegmentsGreaterThan(uint64_t segNo);
 
+PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   void
   printSummary() const final;
 
@@ -203,6 +204,7 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   int64_t m_nLossEvents; ///< # of loss events occurred
   int64_t m_nRetransmitted; ///< # of segments retransmitted
   int64_t m_nCongMarks; ///< # of data packets with congestion mark
+  int64_t m_nSent; ///< # of interest packets sent out (including retransmissions)
 
   double m_cwnd; ///< current congestion window size (in segments)
   double m_ssthresh; ///< current slow start threshold

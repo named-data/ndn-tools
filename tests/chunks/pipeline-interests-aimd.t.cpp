@@ -472,6 +472,30 @@ BOOST_AUTO_TEST_CASE(SpuriousFailureBeforeFinalBlockIdReceived)
   BOOST_CHECK_EQUAL(hasFailed, false);
 }
 
+BOOST_AUTO_TEST_CASE(PrintSummaryWithNoRttMeasurements)
+{
+  // test the console ouptut when no RTT measurement is available,
+  // to make sure a proper message will be printed out
+
+  std::stringstream ss;
+
+  // change the underlying buffer and save the old buffer
+  auto oldBuf = std::cerr.rdbuf(ss.rdbuf());
+
+  aimdPipeline->printSummary();
+  std::string line;
+
+  bool found = false;
+  while (std::getline(ss, line)) {
+    if (line == "RTT stats unavailable") {
+      found = true;
+      break;
+    }
+  }
+  BOOST_CHECK(found);
+  std::cerr.rdbuf(oldBuf); // reset
+}
+
 BOOST_AUTO_TEST_SUITE_END() // TestPipelineInterestsAimd
 BOOST_AUTO_TEST_SUITE_END() // Chunks
 
