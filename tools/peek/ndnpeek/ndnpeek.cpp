@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California,
+/*
+ * Copyright (c) 2014-2018,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -37,8 +37,8 @@ NdnPeek::NdnPeek(Face& face, const PeekOptions& options)
   , m_timeout(options.timeout)
   , m_resultCode(ResultCode::TIMEOUT)
 {
-  if (m_timeout < time::milliseconds::zero()) {
-    m_timeout = m_options.interestLifetime < time::milliseconds::zero() ?
+  if (m_timeout < 0_ms) {
+    m_timeout = m_options.interestLifetime < 0_ms ?
                 DEFAULT_INTEREST_LIFETIME : m_options.interestLifetime;
   }
 }
@@ -68,25 +68,15 @@ NdnPeek::start()
 Interest
 NdnPeek::createInterest() const
 {
-  Interest interest(m_options.prefix);
-
-  if (m_options.minSuffixComponents >= 0)
-    interest.setMinSuffixComponents(m_options.minSuffixComponents);
-
-  if (m_options.maxSuffixComponents >= 0)
-    interest.setMaxSuffixComponents(m_options.maxSuffixComponents);
-
-  if (m_options.interestLifetime >= time::milliseconds::zero())
-    interest.setInterestLifetime(m_options.interestLifetime);
-
-  if (m_options.link != nullptr)
+  Interest interest(m_options.name);
+  interest.setCanBePrefix(m_options.canBePrefix);
+  interest.setMustBeFresh(m_options.mustBeFresh);
+  if (m_options.link != nullptr) {
     interest.setForwardingHint(m_options.link->getDelegationList());
-
-  if (m_options.mustBeFresh)
-    interest.setMustBeFresh(true);
-
-  if (m_options.wantRightmostChild)
-    interest.setChildSelector(1);
+  }
+  if (m_options.interestLifetime >= 0_ms) {
+    interest.setInterestLifetime(m_options.interestLifetime);
+  }
 
   if (m_options.isVerbose) {
     std::cerr << "INTEREST: " << interest << std::endl;

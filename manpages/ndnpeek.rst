@@ -24,17 +24,14 @@ Options
 ``-h, --help``
   Print help and exit.
 
+``-P, --prefix``
+  If specified, include ``CanBePrefix`` element in the Interest packet.
+
 ``-f, --fresh``
-  If specified, set ``MustBeFresh`` selector in the Interest packet.
+  If specified, include ``MustBeFresh`` element in the Interest packet.
 
-``-r, --rightmost``
-  Set ``ChildSelector=1`` (the rightmost child) selector.
-
-``-m, --minsuffix min``
-  Set ``min`` as the ``MinSuffixComponents`` selector.
-
-``-M, --maxsuffix max``
-  Set ``max`` as the ``MaxSuffixComponents`` selector.
+``--link-file [file]``
+  Read Link object from ``file`` and add it as ``ForwardingHint`` to the Interest packet.
 
 ``-l, --lifetime lifetime``
   Set ``lifetime`` (in milliseconds) as the ``InterestLifetime``.
@@ -50,9 +47,6 @@ Options
 
 ``-V, --version``
   Print version and exit.
-
-``--link-file [file]``
-  Read Link object from ``file`` and add it to the expressed Interest.
 
 Exit Codes
 ----------

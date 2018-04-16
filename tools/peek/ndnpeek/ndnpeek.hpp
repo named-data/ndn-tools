@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California,
+/*
+ * Copyright (c) 2014-2018,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -40,16 +40,17 @@ namespace peek {
  */
 struct PeekOptions
 {
-  std::string prefix;
-  int minSuffixComponents;
-  int maxSuffixComponents;
-  time::milliseconds interestLifetime;
-  time::milliseconds timeout;
+  // Interest construction options
+  std::string name;
+  bool canBePrefix = false;
+  bool mustBeFresh = false;
   shared_ptr<Link> link;
-  bool isVerbose;
-  bool mustBeFresh;
-  bool wantRightmostChild;
-  bool wantPayloadOnly;
+  time::milliseconds interestLifetime = -1_ms;
+
+  // output behavior options
+  bool isVerbose = false;
+  time::milliseconds timeout = -1_ms;
+  bool wantPayloadOnly = false;
 };
 
 enum class ResultCode {

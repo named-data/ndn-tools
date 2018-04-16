@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2016,  Regents of the University of California,
+/*
+ * Copyright (c) 2014-2018,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -50,14 +50,6 @@ static int
 main(int argc, char* argv[])
 {
   PeekOptions options;
-  options.isVerbose = false;
-  options.mustBeFresh = false;
-  options.wantRightmostChild = false;
-  options.wantPayloadOnly = false;
-  options.minSuffixComponents = -1;
-  options.maxSuffixComponents = -1;
-  options.interestLifetime = time::milliseconds(-1);
-  options.timeout = time::milliseconds(-1);
 
   po::options_description genericOptDesc("Generic options");
   genericOptDesc.add_options()
@@ -73,18 +65,14 @@ main(int argc, char* argv[])
 
   po::options_description interestOptDesc("Interest construction");
   interestOptDesc.add_options()
+    ("prefix,P", po::bool_switch(&options.canBePrefix),
+        "set CanBePrefix")
     ("fresh,f", po::bool_switch(&options.mustBeFresh),
         "set MustBeFresh")
-    ("rightmost,r", po::bool_switch(&options.wantRightmostChild),
-        "set ChildSelector to rightmost")
-    ("minsuffix,m", po::value<int>(&options.minSuffixComponents),
-        "set MinSuffixComponents")
-    ("maxsuffix,M", po::value<int>(&options.maxSuffixComponents),
-        "set MaxSuffixComponents")
+    ("link-file", po::value<std::string>(),
+        "set ForwardingHint from a file")
     ("lifetime,l", po::value<int>(),
         "set InterestLifetime (in milliseconds)")
-    ("link-file", po::value<std::string>(),
-        "set Link from a file")
   ;
 
   po::options_description visibleOptDesc;
@@ -92,13 +80,13 @@ main(int argc, char* argv[])
 
   po::options_description hiddenOptDesc;
   hiddenOptDesc.add_options()
-    ("prefix", po::value<std::string>(), "Interest name");
+    ("name", po::value<std::string>(), "Interest name");
 
   po::options_description optDesc;
   optDesc.add(visibleOptDesc).add(hiddenOptDesc);
 
   po::positional_options_description optPos;
-  optPos.add("prefix", -1);
+  optPos.add("name", -1);
 
   po::variables_map vm;
   try {
@@ -120,23 +108,11 @@ main(int argc, char* argv[])
     return 0;
   }
 
-  if (vm.count("prefix") > 0) {
-    options.prefix = vm["prefix"].as<std::string>();
+  if (vm.count("name") > 0) {
+    options.name = vm["name"].as<std::string>();
   }
   else {
     std::cerr << "ERROR: Interest name is missing" << std::endl;
-    usage(std::cerr, visibleOptDesc);
-    return 2;
-  }
-
-  if (vm.count("minsuffix") > 0 && options.minSuffixComponents < 0) {
-    std::cerr << "ERROR: MinSuffixComponents must be a non-negative integer" << std::endl;
-    usage(std::cerr, visibleOptDesc);
-    return 2;
-  }
-
-  if (vm.count("maxsuffix") > 0 && options.maxSuffixComponents < 0) {
-    std::cerr << "ERROR: MaxSuffixComponents must be a non-negative integer" << std::endl;
     usage(std::cerr, visibleOptDesc);
     return 2;
   }

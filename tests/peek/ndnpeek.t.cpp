@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2014-2018,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -75,16 +75,9 @@ static PeekOptions
 makeDefaultOptions()
 {
   PeekOptions opt;
-  opt.prefix = "ndn:/peek/test";
-  opt.minSuffixComponents = -1;
-  opt.maxSuffixComponents = -1;
+  opt.name = "ndn:/peek/test";
   opt.interestLifetime = DEFAULT_INTEREST_LIFETIME;
-  opt.timeout = time::milliseconds(200);
-  opt.link = nullptr;
-  opt.isVerbose = false;
-  opt.mustBeFresh = false;
-  opt.wantRightmostChild = false;
-  opt.wantPayloadOnly = false;
+  opt.timeout = 200_ms;
   return opt;
 }
 
@@ -151,57 +144,51 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Default, OutputCheck, OutputChecks)
   auto options = OutputCheck::makeOptions();
   initialize(options);
 
-  auto data = makeData(options.prefix);
+  auto data = makeData(options.name);
   std::string payload = "NdnPeekTest";
   data->setContent(reinterpret_cast<const uint8_t*>(payload.data()), payload.size());
 
   {
     CoutRedirector redir(output);
     peek->start();
-    this->advanceClocks(io, time::milliseconds(25), 4);
+    this->advanceClocks(io, 25_ms, 4);
     face.receive(*data);
   }
 
   OutputCheck::checkOutput(output, *data);
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getMaxSuffixComponents(), -1);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getMinSuffixComponents(), -1);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), DEFAULT_INTEREST_LIFETIME);
-  BOOST_CHECK(face.sentInterests.back().getForwardingHint().empty());
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getCanBePrefix(), false);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), false);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getChildSelector(), DEFAULT_CHILD_SELECTOR);
+  BOOST_CHECK(face.sentInterests.back().getForwardingHint().empty());
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), DEFAULT_INTEREST_LIFETIME);
   BOOST_CHECK(peek->getResultCode() == ResultCode::DATA);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(Selectors, OutputCheck, OutputChecks)
+BOOST_AUTO_TEST_CASE_TEMPLATE(NonDefault, OutputCheck, OutputChecks)
 {
   auto options = OutputCheck::makeOptions();
-  options.minSuffixComponents = 1;
-  options.maxSuffixComponents = 1;
-  options.interestLifetime = time::milliseconds(200);
+  options.canBePrefix = true;
   options.mustBeFresh = true;
-  options.wantRightmostChild = true;
+  options.interestLifetime = 200_ms;
   initialize(options);
 
-  auto data = makeData(options.prefix);
+  auto data = makeData(Name(options.name).append("suffix"));
   std::string payload = "NdnPeekTest";
   data->setContent(reinterpret_cast<const uint8_t*>(payload.data()), payload.size());
 
   {
     CoutRedirector redir(output);
     peek->start();
-    this->advanceClocks(io, time::milliseconds(25), 4);
+    this->advanceClocks(io, 25_ms, 4);
     face.receive(*data);
   }
 
   OutputCheck::checkOutput(output, *data);
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getMaxSuffixComponents(), 1);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getMinSuffixComponents(), 1);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), time::milliseconds(200));
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint().size(), 0);
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getCanBePrefix(), true);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), true);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getChildSelector(), 1);
+  BOOST_CHECK(face.sentInterests.back().getForwardingHint().empty());
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), 200_ms);
   BOOST_CHECK(peek->getResultCode() == ResultCode::DATA);
 }
 
@@ -214,7 +201,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ReceiveNackWithReason, OutputCheck, OutputChecks)
   {
     CoutRedirector redir(output);
     peek->start();
-    this->advanceClocks(io, time::milliseconds(25), 4);
+    this->advanceClocks(io, 25_ms, 4);
     nack = makeNack(face.sentInterests.at(0), lp::NackReason::NO_ROUTE);
     face.receive(nack);
   }
@@ -233,7 +220,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ReceiveNackWithoutReason, OutputCheck, OutputCheck
   {
     CoutRedirector redir(output);
     peek->start();
-    this->advanceClocks(io, time::milliseconds(25), 4);
+    this->advanceClocks(io, 25_ms, 4);
     nack = makeNack(face.sentInterests.at(0), lp::NackReason::NONE);
     face.receive(nack);
   }
@@ -253,7 +240,7 @@ BOOST_AUTO_TEST_CASE(TimeoutDefault)
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 0);
 
   peek->start();
-  this->advanceClocks(io, time::milliseconds(25), 4);
+  this->advanceClocks(io, 25_ms, 4);
 
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
   BOOST_CHECK(peek->getResultCode() == ResultCode::TIMEOUT);
@@ -262,14 +249,14 @@ BOOST_AUTO_TEST_CASE(TimeoutDefault)
 BOOST_AUTO_TEST_CASE(TimeoutLessThanLifetime)
 {
   auto options = makeDefaultOptions();
-  options.interestLifetime = time::milliseconds(200);
-  options.timeout = time::milliseconds(100);
+  options.interestLifetime = 200_ms;
+  options.timeout = 100_ms;
   initialize(options);
 
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 0);
 
   peek->start();
-  this->advanceClocks(io, time::milliseconds(25), 8);
+  this->advanceClocks(io, 25_ms, 8);
 
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
   BOOST_CHECK(peek->getResultCode() == ResultCode::TIMEOUT);
@@ -278,14 +265,14 @@ BOOST_AUTO_TEST_CASE(TimeoutLessThanLifetime)
 BOOST_AUTO_TEST_CASE(TimeoutGreaterThanLifetime)
 {
   auto options = makeDefaultOptions();
-  options.interestLifetime = time::milliseconds(50);
-  options.timeout = time::milliseconds(200);
+  options.interestLifetime = 50_ms;
+  options.timeout = 200_ms;
   initialize(options);
 
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 0);
 
   peek->start();
-  this->advanceClocks(io, time::milliseconds(25), 4);
+  this->advanceClocks(io, 25_ms, 4);
 
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
   BOOST_CHECK(peek->getResultCode() == ResultCode::TIMEOUT);
