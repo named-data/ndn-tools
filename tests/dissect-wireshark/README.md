@@ -140,3 +140,16 @@ Expected results of the dissection:
 - the dissection results include Fragment (Interest/Data), Sequence (number), FragIndex (number),
   FragCount (number), Nack (various reasons), NextHopFaceId, IncomingFaceId, CachingPolicy, and
   unknown fields
+
+### 11. NDN Packet Format v0.3
+
+Trace file: `packet03.pcap`
+
+Trace summary: Hand-crafted packets in NDN Packet Format v0.3
+(`xxd -p -r < packet03.hex > packet03.pcap`).
+All packets are valid and do not contain unrecognized TLV elements.
+
+Expected results of the dissection:
+- Packet 1 is recognized as "Interest" type, and has "CanBePrefix: Yes", "MustBeFresh: Yes",
+  "HopLimit: 214", and "Parameters" field.
+- Packet 3 is recognized as "Data" type.

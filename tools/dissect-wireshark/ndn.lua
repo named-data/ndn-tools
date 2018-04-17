@@ -159,51 +159,38 @@ end
 -----------------------------------------------------
 
 local NDN_DICT = {
-   -- Interest or Data packets
-   [5]  = {name = "Interest"                     , summary = true},
-   [6]  = {name = "Data"                         , summary = true},
-
-   -- Name field
+   -- Name and NameComponent
    [7]  = {name = "Name"                         , field = ProtoField.string("ndn.name", "Name")                                   , value = getUriFromName},
    [1]  = {name = "ImplicitSha256DigestComponent", field = ProtoField.string("ndn.implicitsha256", "ImplicitSha256DigestComponent"), value = getUriFromNameComponent},
-   [8]  = {name = "NameComponent"                , field = ProtoField.string("ndn.namecomponent", "NameComponent")                 , value = getUriFromNameComponent},
+   [8]  = {name = "GenericNameComponent"         , field = ProtoField.string("ndn.namecomponent", "NameComponent")                 , value = getUriFromNameComponent},
 
-   -- Sub-fields of Interest packet
-   [9]  = {name = "Selectors"                    , summary = true},
+   -- Interest and its sub-elements in Packet Format v0.3
+   [5]  = {name = "Interest"                     , summary = true},
+   [33] = {name = "CanBePrefix"                  , field = ProtoField.string("ndn.canbeprefix", "CanBePrefix")                     , value = getTrue},
+   [18] = {name = "MustBeFresh"                  , field = ProtoField.string("ndn.mustbefresh", "MustBeFresh")                     , value = getTrue},
+   -- [30] = {name = "ForwardingHint"               , summary = true},
+   -- ForwardingHint and LinkPreference have the same TLV-TYPE number, so we can't recognize both for now (see #4185).
+   [31] = {name = "LinkDelegation"               , summary = true},
+   [30] = {name = "LinkPreference"               , field = ProtoField.uint32("ndn.link_preference", "LinkPreference", base.DEC)    , value = getNonNegativeInteger},
    [10] = {name = "Nonce"                        , field = ProtoField.uint32("ndn.nonce", "Nonce", base.HEX)                       , value = getNonce},
    [12] = {name = "InterestLifetime"             , field = ProtoField.uint32("ndn.interestlifetime", "InterestLifetime", base.DEC) , value = getNonNegativeInteger},
+   [34] = {name = "HopLimit"                     , field = ProtoField.uint32("ndn.hoplimit", "HopLimit", base.DEC)                 , value = getNonNegativeInteger},
+   [35] = {name = "Parameters"                   , field = ProtoField.string("ndn.parameters", "Parameters")},
 
-   -- Sub-fields of Interest/Selector field
-   [13] = {name = "MinSuffixComponents"          , field = ProtoField.uint32("ndn.minsuffix", "MinSuffixComponents")               , value = getNonNegativeInteger},
-   [14] = {name = "MaxSuffixComponents"          , field = ProtoField.uint32("ndn.maxsuffix", "MaxSuffixComponents")               , value = getNonNegativeInteger},
-   [15] = {name = "PublisherPublicKeyLocator"    , summary = true},
-   [16] = {name = "Exclude"                      , field = ProtoField.string("ndn.exclude", "Exclude")                             , value = getUriFromExclude},
-   [17] = {name = "ChildSelector"                , field = ProtoField.uint32("ndn.childselector", "ChildSelector", base.DEC)       , value = getNonNegativeInteger},
-   [18] = {name = "MustBeFresh"                  , field = ProtoField.string("ndn.mustbefresh", "MustBeFresh")                     , value = getTrue},
-   [19] = {name = "Any"                          , field = ProtoField.string("ndn.any", "Any")                                     , value = getTrue},
-
-   -- Sub-fields of Data packet
+   -- Data and its sub-elements in Packet Format v0.3
+   [6]  = {name = "Data"                         , summary = true},
    [20] = {name = "MetaInfo"                     , summary = true},
-   [21] = {name = "Content"                      , field = ProtoField.string("ndn.content", "Content")},
-   [22] = {name = "SignatureInfo"                , summary = true},
-   [23] = {name = "SignatureValue"               , field = ProtoField.bytes("ndn.signaturevalue", "SignatureValue")},
-
-   -- Sub-fields of Data/MetaInfo field
    [24] = {name = "ContentType"                  , field = ProtoField.uint32("ndn.contenttype", "Content Type", base.DEC)          , value = getNonNegativeInteger},
    [25] = {name = "FreshnessPeriod"              , field = ProtoField.uint32("ndn.freshnessperiod", "FreshnessPeriod", base.DEC)   , value = getNonNegativeInteger},
    [26] = {name = "FinalBlockId"                 , field = ProtoField.string("ndn.finalblockid", "FinalBlockId")                   , value = getUriFromNameComponent},
-
-   -- Sub-fields of Data/Signature field
+   [21] = {name = "Content"                      , field = ProtoField.string("ndn.content", "Content")},
+   [22] = {name = "SignatureInfo"                , summary = true},
    [27] = {name = "SignatureType"                , field = ProtoField.uint32("ndn.signaturetype", "SignatureType", base.DEC)       , value = getNonNegativeInteger},
    [28] = {name = "KeyLocator"                   , summary = true},
    [29] = {name = "KeyDigest"                    , field = ProtoField.bytes("ndn.keydigest", "KeyDigest")},
+   [23] = {name = "SignatureValue"               , field = ProtoField.bytes("ndn.signaturevalue", "SignatureValue")},
 
-   -- Other fields
-   [30] = {name = "LinkPreference"               , field = ProtoField.uint32("ndn.link_preference", "LinkPreference", base.DEC)    , value = getNonNegativeInteger},
-   [31] = {name = "LinkDelegation"               , summary = true},
-   [32] = {name = "SelectedDelegation"           , field = ProtoField.uint32("ndn.selected_delegation", "SelectedDelegation", base.DEC), value = getNonNegativeInteger},
-
-   -- NDNLPv2 Packet field
+   -- NDNLPv2 headers
    [80] = {name = "Fragment"                     },
    [81] = {name = "Sequence"                     , field = ProtoField.uint32("ndn.sequence", "Sequence", base.DEC), value = getNonNegativeInteger},
    [82] = {name = "FragIndex"                    , field = ProtoField.uint32("ndn.fragindex", "FragIndex", base.DEC), value = getNonNegativeInteger},
@@ -215,6 +202,16 @@ local NDN_DICT = {
    [817] = {name = "IncomingFaceId"              , field = ProtoField.uint32("ndn.incoming_faceid", "IncomingFaceId", base.DEC), value = getNonNegativeInteger},
    [820] = {name = "CachePolicy"                 , summary = true},
    [821] = {name = "CachePolicyType"             , field = ProtoField.string("ndn.cachepolicy_type", "CachePolicyType"), value = getCachePolicyDetail},
+
+   -- Deprecated elements
+   [9]  = {name = "Selectors"                    , summary = true},
+   [13] = {name = "MinSuffixComponents"          , field = ProtoField.uint32("ndn.minsuffix", "MinSuffixComponents")               , value = getNonNegativeInteger},
+   [14] = {name = "MaxSuffixComponents"          , field = ProtoField.uint32("ndn.maxsuffix", "MaxSuffixComponents")               , value = getNonNegativeInteger},
+   [15] = {name = "PublisherPublicKeyLocator"    , summary = true},
+   [16] = {name = "Exclude"                      , field = ProtoField.string("ndn.exclude", "Exclude")                             , value = getUriFromExclude},
+   [17] = {name = "ChildSelector"                , field = ProtoField.uint32("ndn.childselector", "ChildSelector", base.DEC)       , value = getNonNegativeInteger},
+   [19] = {name = "Any"                          , field = ProtoField.string("ndn.any", "Any")                                     , value = getTrue},
+   [32] = {name = "SelectedDelegation"           , field = ProtoField.uint32("ndn.selected_delegation", "SelectedDelegation", base.DEC), value = getNonNegativeInteger},
 }
 
 -- -- Add protofields in NDN protocol
@@ -508,5 +505,4 @@ websocketDissectorTable:add("1-65535", ndn)
 local ethernetDissectorTable = DissectorTable.get("ethertype")
 ethernetDissectorTable:add(0x8624, ndn)
 
-io.stderr:write("ndn.lua is successfully loaded\n")
-
+io.stderr:write("NDN dissector successfully loaded\n")
