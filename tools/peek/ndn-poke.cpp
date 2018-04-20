@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California,
+/*
+ * Copyright (c) 2014-2018,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -21,29 +21,6 @@
  *
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
- */
-/**
- * Copyright (c) 2014,  Regents of the University of California,
- *                      Arizona Board of Regents,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University,
- *                      Washington University in St. Louis,
- *                      Beijing Institute of Technology,
- *                      The University of Memphis
- *
- * This file is part of NFD (Named Data Networking Forwarding Daemon).
- * See AUTHORS.md for complete list of NFD authors and contributors.
- *
- * NFD is free software: you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- *
- * NFD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * NFD, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
  */
@@ -59,11 +36,11 @@ class NdnPoke : boost::noncopyable
 {
 public:
   explicit
-  NdnPoke(char* programName)
+  NdnPoke(const char* programName)
     : m_programName(programName)
-    , m_isForceDataSet(false)
-    , m_isUseDigestSha256Set(false)
-    , m_isLastAsFinalBlockIdSet(false)
+    , m_wantForceData(false)
+    , m_wantDigestSha256(false)
+    , m_wantFinalBlockId(false)
     , m_freshnessPeriod(-1)
     , m_timeout(-1)
     , m_isDataSent(false)
@@ -93,17 +70,17 @@ public:
   void
   setForceData()
   {
-    m_isForceDataSet = true;
+    m_wantForceData = true;
   }
 
   void
   setUseDigestSha256()
   {
-    m_isUseDigestSha256Set = true;
+    m_wantDigestSha256 = true;
   }
 
   void
-  setIdentityName(char* identityName)
+  setIdentityName(const char* identityName)
   {
     m_identityName = make_shared<Name>(identityName);
   }
@@ -111,7 +88,7 @@ public:
   void
   setLastAsFinalBlockId()
   {
-    m_isLastAsFinalBlockIdSet = true;
+    m_wantFinalBlockId = true;
   }
 
   void
@@ -133,7 +110,7 @@ public:
   }
 
   void
-  setPrefixName(char* prefixName)
+  setPrefixName(const char* prefixName)
   {
     m_prefixName = Name(prefixName);
   }
@@ -157,16 +134,16 @@ public:
     if (m_freshnessPeriod >= time::milliseconds::zero())
       dataPacket->setFreshnessPeriod(m_freshnessPeriod);
 
-    if (m_isLastAsFinalBlockIdSet) {
+    if (m_wantFinalBlockId) {
       if (!m_prefixName.empty())
-        dataPacket->setFinalBlockId(m_prefixName.get(-1));
+        dataPacket->setFinalBlock(m_prefixName.get(-1));
       else {
         std::cerr << "Name Provided Has 0 Components" << std::endl;
         exit(1);
       }
     }
 
-    if (m_isUseDigestSha256Set) {
+    if (m_wantDigestSha256) {
       m_keyChain.sign(*dataPacket, signingWithSha256());
     }
     else {
@@ -182,11 +159,9 @@ public:
   }
 
   void
-  onInterest(const Name& name,
-             const Interest& interest,
-             shared_ptr<Data> dataPacket)
+  onInterest(const Name& name, const Interest& interest, const shared_ptr<Data>& data)
   {
-    m_face.put(*dataPacket);
+    m_face.put(*data);
     m_isDataSent = true;
     m_face.shutdown();
   }
@@ -203,7 +178,7 @@ public:
   {
     try {
       shared_ptr<Data> dataPacket = createDataPacket();
-      if (m_isForceDataSet) {
+      if (m_wantForceData) {
         m_face.put(*dataPacket);
         m_isDataSent = true;
       }
@@ -234,10 +209,10 @@ public:
 private:
   KeyChain m_keyChain;
   std::string m_programName;
-  bool m_isForceDataSet;
-  bool m_isUseDigestSha256Set;
+  bool m_wantForceData;
+  bool m_wantDigestSha256;
   shared_ptr<Name> m_identityName;
-  bool m_isLastAsFinalBlockIdSet;
+  bool m_wantFinalBlockId;
   time::milliseconds m_freshnessPeriod;
   time::milliseconds m_timeout;
   Name m_prefixName;
@@ -248,8 +223,9 @@ private:
 int
 main(int argc, char* argv[])
 {
-  int option;
   NdnPoke program(argv[0]);
+
+  int option;
   while ((option = getopt(argc, argv, "hfDi:Fx:w:V")) != -1) {
     switch (option) {
     case 'h':
@@ -285,7 +261,7 @@ main(int argc, char* argv[])
   argc -= optind;
   argv += optind;
 
-  if (argv[0] == 0)
+  if (!argv[0])
     program.usage();
 
   program.setPrefixName(argv[0]);
@@ -301,7 +277,7 @@ main(int argc, char* argv[])
 } // namespace ndn
 
 int
-main(int argc, char** argv)
+main(int argc, char* argv[])
 {
   return ndn::peek::main(argc, argv);
 }

@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+/*
+ * Copyright (c) 2016-2018, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -50,9 +50,7 @@ public:
   }
 
   virtual
-  ~DiscoverVersionFixture()
-  {
-  }
+  ~DiscoverVersionFixture() = default;
 
 protected:
   void
@@ -67,7 +65,7 @@ protected:
   makeDataWithVersion(uint64_t version) const
   {
     auto data = make_shared<Data>(Name(name).appendVersion(version).appendSegment(0));
-    data->setFinalBlockId(name::Component::fromSegment(0));
+    data->setFinalBlock(name::Component::fromSegment(0));
     return signData(data);
   }
 

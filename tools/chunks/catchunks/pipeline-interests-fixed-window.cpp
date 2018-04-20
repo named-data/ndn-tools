@@ -121,8 +121,8 @@ PipelineInterestsFixedWindow::handleData(const Interest& interest, const Data& d
 
   onData(data);
 
-  if (!m_hasFinalBlockId && !data.getFinalBlockId().empty()) {
-    m_lastSegmentNo = data.getFinalBlockId().toSegment();
+  if (!m_hasFinalBlockId && data.getFinalBlock()) {
+    m_lastSegmentNo = data.getFinalBlock()->toSegment();
     m_hasFinalBlockId = true;
 
     for (auto& fetcher : m_segmentFetchers) {

@@ -215,8 +215,8 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
   // Data name will not have extra components because MaxSuffixComponents is set to 1
   BOOST_ASSERT(data.getName().equals(interest.getName()));
 
-  if (!m_hasFinalBlockId && !data.getFinalBlockId().empty()) {
-    m_lastSegmentNo = data.getFinalBlockId().toSegment();
+  if (!m_hasFinalBlockId && data.getFinalBlock()) {
+    m_lastSegmentNo = data.getFinalBlock()->toSegment();
     m_hasFinalBlockId = true;
     cancelInFlightSegmentsGreaterThan(m_lastSegmentNo);
     if (m_hasFailure && m_lastSegmentNo >= m_failedSegNo) {

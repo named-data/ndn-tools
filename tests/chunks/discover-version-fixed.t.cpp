@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+/*
+ * Copyright (c) 2016-2018, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -43,7 +43,7 @@ public:
   }
 
 protected:
-  uint64_t version; //Version to find
+  uint64_t version; // version to find
 };
 
 BOOST_AUTO_TEST_SUITE(Chunks)
@@ -113,7 +113,7 @@ BOOST_FIXTURE_TEST_CASE(DataNotSegment, DiscoverVersionFixedFixture)
   Exclude expectedExclude;
   for (size_t retries = 0; retries < randomStrings.size(); ++retries) {
     auto data = make_shared<Data>(Name(name).appendVersion(version).append(randomStrings[retries]));
-    data->setFinalBlockId(name::Component::fromSegment(0));
+    data->setFinalBlock(name::Component::fromSegment(0));
     data = signData(data);
 
     face.receive(*data);

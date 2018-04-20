@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2018, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -56,8 +56,8 @@ PipelineInterests::run(const Data& data, DataCallback dataCb, FailureCallback fa
   m_prefix = data.getName().getPrefix(-1);
   m_excludedSegmentNo = getSegmentFromPacket(data);
 
-  if (!data.getFinalBlockId().empty()) {
-    m_lastSegmentNo = data.getFinalBlockId().toSegment();
+  if (data.getFinalBlock()) {
+    m_lastSegmentNo = data.getFinalBlock()->toSegment();
     m_hasFinalBlockId = true;
   }
 
