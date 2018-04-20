@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California.
+/*
+ * Copyright (c) 2013-2018, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -15,23 +15,6 @@
  *
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
- */
-/**
- * Copyright (c) 2013-2014 Regents of the University of California.
- *
- * This file is part of ndn-cxx library (NDN C++ library with eXperimental eXtensions).
- *
- * ndn-cxx library is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later version.
- *
- * ndn-cxx library is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- * PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
- *
- * You should have received copies of the GNU General Public License and GNU Lesser
- * General Public License along with ndn-cxx, e.g., in COPYING.md file.  If not, see
- * <http://www.gnu.org/licenses/>.
  *
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
  *
@@ -43,27 +26,25 @@
 #include <algorithm>
 
 #include <ndn-cxx/name-component.hpp>
+#include <ndn-cxx/encoding/tlv.hpp>
 #include <ndn-cxx/util/indented-stream.hpp>
 
 namespace ndn {
 namespace dissect {
 
-static const std::map<uint32_t, std::string> TLV_DICT = {
+static const std::map<uint32_t, const char*> TLV_DICT = {
   {tlv::Interest                     , "Interest"},
   {tlv::Data                         , "Data"},
   {tlv::Name                         , "Name"},
-  {tlv::NameComponent                , "NameComponent"},
+  {tlv::GenericNameComponent         , "GenericNameComponent"},
   {tlv::ImplicitSha256DigestComponent, "ImplicitSha256DigestComponent"},
-  {tlv::Selectors                    , "Selectors"},
+  {tlv::CanBePrefix                  , "CanBePrefix"},
+  {tlv::MustBeFresh                  , "MustBeFresh"},
+  //{tlv::ForwardingHint               , "ForwardingHint"},
   {tlv::Nonce                        , "Nonce"},
   {tlv::InterestLifetime             , "InterestLifetime"},
-  {tlv::MinSuffixComponents          , "MinSuffixComponents"},
-  {tlv::MaxSuffixComponents          , "MaxSuffixComponents"},
-  {tlv::PublisherPublicKeyLocator    , "PublisherPublicKeyLocator"},
-  {tlv::Exclude                      , "Exclude"},
-  {tlv::ChildSelector                , "ChildSelector"},
-  {tlv::MustBeFresh                  , "MustBeFresh"},
-  {tlv::Any                          , "Any"},
+  {tlv::HopLimit                     , "HopLimit"},
+  {tlv::Parameters                   , "Parameters"},
   {tlv::MetaInfo                     , "MetaInfo"},
   {tlv::Content                      , "Content"},
   {tlv::SignatureInfo                , "SignatureInfo"},
@@ -74,6 +55,14 @@ static const std::map<uint32_t, std::string> TLV_DICT = {
   {tlv::SignatureType                , "SignatureType"},
   {tlv::KeyLocator                   , "KeyLocator"},
   {tlv::KeyDigest                    , "KeyDigest"},
+  // Deprecated elements
+  {tlv::Selectors                    , "Selectors"},
+  {tlv::MinSuffixComponents          , "MinSuffixComponents"},
+  {tlv::MaxSuffixComponents          , "MaxSuffixComponents"},
+  {tlv::PublisherPublicKeyLocator    , "PublisherPublicKeyLocator"},
+  {tlv::Exclude                      , "Exclude"},
+  {tlv::ChildSelector                , "ChildSelector"},
+  {tlv::Any                          , "Any"},
 };
 
 void
@@ -104,7 +93,7 @@ NdnDissect::printType(std::ostream& os, uint32_t type)
 void
 NdnDissect::printBlock(std::ostream& os, const Block& block)
 {
-  this->printType(os, block.type());
+  printType(os, block.type());
   os << " (size: " << block.value_size() << ")";
 
   try {
@@ -126,9 +115,7 @@ NdnDissect::printBlock(std::ostream& os, const Block& block)
 
   util::IndentedStream os2(os, "  ");
   std::for_each(block.elements_begin(), block.elements_end(),
-    [this, &os2] (const Block& element) {
-      this->printBlock(os2, element);
-    });
+                [this, &os2] (const Block& element) { printBlock(os2, element); });
 }
 
 void
@@ -136,8 +123,7 @@ NdnDissect::dissect(std::ostream& os, std::istream& is)
 {
   while (is.peek() != std::char_traits<char>::eof()) {
     try {
-      Block block = Block::fromStream(is);
-      this->printBlock(os, block);
+      printBlock(os, Block::fromStream(is));
     }
     catch (const std::exception& e) {
       std::cerr << "ERROR: " << e.what() << std::endl;
