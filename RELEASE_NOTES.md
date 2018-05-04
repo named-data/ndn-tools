@@ -1,16 +1,35 @@
 Release Notes
 =============
 
+## Version 0.6.1
+
+chunks:
+- Show correct packet loss stats in final summary (Issue #4437)
+- Avoid printing meaningless values when no RTT measurements are available (Issue #4551)
+
+dissect:
+- Recognize `CanBePrefix`, `HopLimit`, and `Parameters` TLV elements (Issue #4590)
+
+dissect-wireshark:
+- Recognize `CanBePrefix`, `HopLimit`, and `Parameters` TLV elements (Issue #4517)
+
+peek:
+- Drop Selectors support (Issue #4571)
+- Add `-P/--prefix` option to set `CanBePrefix` in the Interest packet
+
+build scripts:
+- Upgrade `waf` to the latest version and other improvements
+
 ## Version 0.6
 
 chunks:
-- include RTT stats in final summary
-- respect `--retries=-1` in AIMD pipeline
-- change the default pipeline to AIMD
-- react to congestion marks by default as a timeout event (can be disabled using
-  `--aimd-ignore-cong-marks`)
-- print a final summary of the transfer regardless of the pipeline type, and even if
-  `--verbose` was not specified
+- Change the default Interest pipeline to AIMD (Issue #4402)
+- Include RTT stats in final summary (Issue #4406)
+- Respect `--retries=-1` in the AIMD pipeline (Issue #4409)
+- React to congestion marks by default as a timeout event (can be disabled using
+  `--aimd-ignore-cong-marks`) (Issue #4289)
+- Print a final summary of the transfer regardless of the pipeline type, and even if
+  `--verbose` was not specified (Issue #4421)
 
 ## Version 0.5
 
@@ -62,7 +81,7 @@ pib:
 
 ping:
 - Recognize and trace NACK
-- Fix potential divide-by-zero bug in StatisticsCollector (Issue #3504)
+- Fix potential divide-by-zero bug in `StatisticsCollector` (Issue #3504)
 
 peek:
 - Recognize and properly handle NACK
@@ -85,7 +104,7 @@ dump:
 - Update docs to include NACK capture feature
 
 build scripts:
-- Enable -Wextra by default
+- Enable `-Wextra` by default
 - Fix missing tool name in `configure --help` output
 - Fix compatibility with Python 3
 
