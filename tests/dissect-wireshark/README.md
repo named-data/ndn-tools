@@ -150,6 +150,29 @@ Trace summary: Hand-crafted packets in NDN Packet Format v0.3
 All packets are valid and do not contain unrecognized TLV elements.
 
 Expected results of the dissection:
-- Packet 1 is recognized as "Interest" type, and has "CanBePrefix: Yes", "MustBeFresh: Yes",
-  "HopLimit: 214", and "Parameters" field.
-- Packet 3 is recognized as "Data" type.
+- Packet 1 is recognized as "Interest" type, and has `CanBePrefix: Yes`, `MustBeFresh: Yes`,
+  `HopLimit: 214`, as well as a "Parameters" field.
+- Packet 2 is recognized as "Interest" type, and has `Name: /2=A/7=B/C/252=D/256=E/65535=E/sha256digest=ee357c5791dcaa4494d9b301047b875d8833caa76dada3e95837bbc3eaf7b300`.
+- Packet 3 is recognized as "Data" type, and has `Name: /`.
+
+### 12. URI Scheme
+
+Trace file: `nameuri.pcap`
+
+Trace summary: Hand-crafted packet for testing URI encoding in Name and FinalBlockId
+(`xxd -p -r < nameuri.hex > nameuri.pcap`).
+
+Expected results of the dissection:
+- Packet 1 is recognized as "Data" type.
+- Its name has eight components.
+- First name component is `NameComponent: ...`.
+- Second name component is `NameComponent: ....`.
+- Third name component is `NameComponent: .....`.
+- Fourth name component is `NameComponent: .A`.
+- Fifth name component is `NameComponent: %00%01%02%03%04%05%06%07%08%09%0A%0B%0C%0D%0E%0F%10%11%12%13%14%15%16%17%18%19%1A%1B%1C%1D%1E%1F%20%21%22%23%24%25%26%27%28%29%2A%2B%2C-.%2F0123456789%3A%3B%3C%3D%3E%3F`.
+  Notice that digits, HYPHEN (`-`), and PERIOD (`.`) are not percent-encoded.
+- Sixth name component is `NameComponent: %40ABCDEFGHIJKLMNOPQRSTUVWXYZ%5B%5C%5D%5E_%60abcdefghijklmnopqrstuvwxyz%7B%7C%7D~%7F`.
+  Notice that upper case letters, lower case letters, UNDERSCORE (`_`), and TILDE (`~`) are not percent-encoded.
+- Seventh name component is `NameComponent: %80%81%82%83%84%85%86%87%88%89%8A%8B%8C%8D%8E%8F%90%91%92%93%94%95%96%97%98%99%9A%9B%9C%9D%9E%9F%A0%A1%A2%A3%A4%A5%A6%A7%A8%A9%AA%AB%AC%AD%AE%AF%B0%B1%B2%B3%B4%B5%B6%B7%B8%B9%BA%BB%BC%BD%BE%BF`.
+- Eighth name component is `NameComponent: %C0%C1%C2%C3%C4%C5%C6%C7%C8%C9%CA%CB%CC%CD%CE%CF%D0%D1%D2%D3%D4%D5%D6%D7%D8%D9%DA%DB%DC%DD%DE%DF%E0%E1%E2%E3%E4%E5%E6%E7%E8%E9%EA%EB%EC%ED%EE%EF%F0%F1%F2%F3%F4%F5%F6%F7%F8%F9%FA%FB%FC%FD%FE%FF`.
+- FinalBlockId and its nested NameComponent are both `%02`.

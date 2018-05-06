@@ -37,38 +37,61 @@ ndn = Proto("ndn", "Named Data Networking (NDN)")
 -----------------------------------------------------
 -- Field formatting helpers
 
--- Borrowed from http://lua-users.org/wiki/StringRecipes
-function escapeString(str)
-   if (str) then
-      str = string.gsub(str, "\n", "\r\n")
-      str = string.gsub(str, "([^%w %-%_%.%~])",
-                        function (c) return string.format ("%%%02X", string.byte(c)) end)
-      str = string.gsub(str, " ", "+")
-   end
-   return str
-end
-
 -- @return TLV-VALUE portion of a TLV block
 function getValue(b)
    return b.tvb(b.offset + b.typeLen + b.lengthLen, b.length)
 end
 
-function getUriFromNameComponent(b)
-   -- @todo Implement proper proper URL escaping
-   return getValue(b):string()
+function getUriFromImplicitSha256DigestComponent(b)
+   s = "sha256digest="
+   for i = 0, (b.length - 1) do
+      byte = b.tvb(b.offset + b.typeLen + b.lengthLen + i, 1)
+      s = s .. string.format("%02x", byte:uint())
+   end
+   return s
 end
 
-function getUriFromName(nameBlock)
-   if (nameBlock.elements == nil) then
-      return ""
-   else
-      components = {}
-      for i, block in pairs(nameBlock.elements) do
-         table.insert(components, getUriFromNameComponent(block))
-      end
-
-      return "/" .. table.concat(components, "/")
+function getUriFromNameComponent(b)
+   if b.type == 1 then
+      return getUriFromImplicitSha256DigestComponent(b)
    end
+   s = ""
+   if b.type ~= 8 then
+      s = string.format("%d=", b.type)
+   end
+   hasNonPeriod = false
+   for i = 0, (b.length - 1) do
+      byte = b.tvb(b.offset + b.typeLen + b.lengthLen + i, 1)
+      ch = byte:uint()
+      hasNonPeriod = hasNonPeriod or ch ~= 0x2E
+      if (ch >= 0x41 and ch <= 0x5A) or (ch >= 0x61 and ch <= 0x7A) or (ch >= 0x30 and ch <= 0x39) or ch == 0x2D or ch == 0x2E or ch == 0x5F or ch == 0x7E then
+         s = s .. byte:string()
+      else
+         s = s .. string.format("%%%02X", ch)
+      end
+   end
+   if not hasNonPeriod then
+      s = s .. "..."
+   end
+   return s
+end
+
+function getUriFromName(b)
+   if b.elements == nil then
+      return "/"
+   end
+   components = {}
+   for i, comp in pairs(b.elements) do
+      table.insert(components, getUriFromNameComponent(comp))
+   end
+   return "/" .. table.concat(components, "/")
+end
+
+function getUriFromFinalBlockId(b)
+   if b.elements == nil then
+      return "/"
+   end
+   return getUriFromNameComponent(b.elements[1])
 end
 
 function getUriFromExclude(block)
@@ -182,7 +205,7 @@ local NDN_DICT = {
    [20] = {name = "MetaInfo"                     , summary = true},
    [24] = {name = "ContentType"                  , field = ProtoField.uint32("ndn.contenttype", "Content Type", base.DEC)          , value = getNonNegativeInteger},
    [25] = {name = "FreshnessPeriod"              , field = ProtoField.uint32("ndn.freshnessperiod", "FreshnessPeriod", base.DEC)   , value = getNonNegativeInteger},
-   [26] = {name = "FinalBlockId"                 , field = ProtoField.string("ndn.finalblockid", "FinalBlockId")                   , value = getUriFromNameComponent},
+   [26] = {name = "FinalBlockId"                 , field = ProtoField.string("ndn.finalblockid", "FinalBlockId")                   , value = getUriFromFinalBlockId},
    [21] = {name = "Content"                      , field = ProtoField.string("ndn.content", "Content")},
    [22] = {name = "SignatureInfo"                , summary = true},
    [27] = {name = "SignatureType"                , field = ProtoField.uint32("ndn.signaturetype", "SignatureType", base.DEC)       , value = getNonNegativeInteger},
