@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California,
+/*
+ * Copyright (c) 2014-2018,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -27,13 +27,9 @@
 #define NDN_TOOLS_TESTS_TEST_COMMON_HPP
 
 #include "boost-test.hpp"
+#include "core/common.hpp"
 
-#include <ndn-cxx/data.hpp>
-#include <ndn-cxx/interest.hpp>
-#include <ndn-cxx/lp/nack.hpp>
 #include <ndn-cxx/util/time-unit-test-clock.hpp>
-
-#include <boost/asio/io_service.hpp>
 
 namespace ndn {
 namespace tests {

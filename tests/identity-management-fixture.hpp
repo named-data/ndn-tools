@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California.
+/*
+ * Copyright (c) 2014-2018,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -21,8 +21,6 @@
 #define NDN_TOOLS_TESTS_IDENTITY_MANAGEMENT_FIXTURE_HPP
 
 #include "tests/test-common.hpp"
-#include <ndn-cxx/security/key-chain.hpp>
-#include <vector>
 
 namespace ndn {
 namespace tests {

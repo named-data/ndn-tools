@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  University of Memphis.
+/*
+ * Copyright (c) 2014-2018,  University of Memphis.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -19,13 +19,11 @@
 
 #include "tools/dump/ndndump.hpp"
 
+#include "tests/identity-management-fixture.hpp"
+#include "tests/test-common.hpp"
+
 #include <ndn-cxx/lp/packet.hpp>
 #include <ndn-cxx/net/ethernet.hpp>
-#include <ndn-cxx/security/key-chain.hpp>
-
-#include "tests/test-common.hpp"
-#include "tests/identity-management-fixture.hpp"
-#include <boost/test/output_test_stream.hpp>
 
 namespace ndn {
 namespace dump {

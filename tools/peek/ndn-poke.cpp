@@ -27,6 +27,8 @@
 
 #include "core/version.hpp"
 
+#include <ndn-cxx/security/signing-helpers.hpp>
+
 #include <sstream>
 
 namespace ndn {

@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+/*
+ * Copyright (c) 2016-2018, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -60,7 +60,7 @@ public:
    */
   static const time::milliseconds MAX_CONGESTION_BACKOFF_TIME;
 
-  typedef function<void(const Interest& interest, const std::string& reason)> FailureCallback;
+  using FailureCallback = std::function<void(const Interest& interest, const std::string& reason)>;
 
   /**
    * @brief instantiate a DataFetcher object and start fetching data

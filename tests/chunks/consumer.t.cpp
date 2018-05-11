@@ -29,7 +29,6 @@
 
 #include "tests/test-common.hpp"
 
-#include <boost/test/output_test_stream.hpp>
 #include <ndn-cxx/security/validator-null.hpp>
 #include <ndn-cxx/util/dummy-client-face.hpp>
 

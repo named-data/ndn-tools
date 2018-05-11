@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2018, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -49,8 +49,8 @@ namespace chunks {
 class PipelineInterests
 {
 public:
-  using DataCallback = function<void(const Data&)>;
-  using FailureCallback = function<void(const std::string& reason)>;
+  using DataCallback = std::function<void(const Data&)>;
+  using FailureCallback = std::function<void(const std::string& reason)>;
 
   /**
    * @brief create a PipelineInterests service

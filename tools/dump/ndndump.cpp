@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California.
+/*
+ * Copyright (c) 2014-2018,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
+/*
  * Copyright (c) 2011-2014, Regents of the University of California,
  *
  * This file is part of ndndump, the packet capture and analysis tool for Named Data
@@ -52,13 +52,9 @@ namespace dump {
 
 #include <pcap/sll.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include <iomanip>
 #include <sstream>
 
-#include <ndn-cxx/interest.hpp>
-#include <ndn-cxx/data.hpp>
 #include <ndn-cxx/lp/nack.hpp>
 #include <ndn-cxx/lp/packet.hpp>
 

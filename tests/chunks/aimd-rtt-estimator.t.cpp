@@ -28,8 +28,6 @@
 
 #include "tests/test-common.hpp"
 
-#include <limits>
-
 namespace ndn {
 namespace chunks {
 namespace aimd {

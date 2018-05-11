@@ -26,7 +26,6 @@
 #include "aimd-rtt-estimator.hpp"
 
 #include <cmath>
-#include <limits>
 
 namespace ndn {
 namespace chunks {
