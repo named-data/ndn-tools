@@ -116,18 +116,28 @@ if parser does not check packet length.
 Expected result of the dissection:
 - data packet is dissected at packet 12 without Lua error.
 
-### 9. NDNLPv2 Basic
+### 9. NDNLPv2
 
 Trace file: `ndnlpv2.pcap`
 
-Trace summary: Short capture, containing NDN interest that was NACKed with the reason "NoRoute"
+Trace summary: Handcrafted NDNLPv2 packets.
+(`xxd -p -r < ndnlpv2.hex > ndnlpv2.pcap`).
 
-Expected result of the dissection:
-- interest packet is dissected from packet 1
-- from packet 2, an NDNLPv2 packet is dissected which includes a NACK with the code "NoRoute" and
-  a fragment that includes an interest packet
+Expected result of the dissection: 12 "Ethernet (NDN)" frames.
+1.  LpPacket contains 12 unrecognized fields. The 10th and 12th fields are labelled "ignored".
+2.  No special requirements.
+3.  "Sequence: 12732154106453800448". "FragIndex: 0". "FragCount: 2". Fragment exists.
+4.  "Sequence: 12732154106453800449". "FragIndex: 1". "FragCount: 2". Fragment exists.
+5.  "NackReason: Congestion".
+6.  "NackReason: Duplicate".
+7.  "NackReason: NoRoute".
+8.  "NackReason: 1".
+9.  Nack exists, but NackReason does not exist.
+10. "PitToken: 15047039637272254167".
+11. "CongestionMark: 1". "TxSequence: 16204482402681480935".
+12. There are eight Ack fields. First is "Ack: 16204482402681480704". Eighth is "Ack: 16204482402681480711".
 
-### 10. NDNLPv2 Extended
+### 10. NDNLPv2 (random)
 
 Trace file: `ndnlpv2-more.pcap`
 
@@ -145,7 +155,7 @@ Expected results of the dissection:
 
 Trace file: `packet03.pcap`
 
-Trace summary: Hand-crafted packets in NDN Packet Format v0.3
+Trace summary: Handcrafted packets in NDN Packet Format v0.3
 (`xxd -p -r < packet03.hex > packet03.pcap`).
 All packets are valid and do not contain unrecognized TLV elements.
 
@@ -159,7 +169,7 @@ Expected results of the dissection:
 
 Trace file: `nameuri.pcap`
 
-Trace summary: Hand-crafted packet for testing URI encoding in Name and FinalBlockId
+Trace summary: Handcrafted packet for testing URI encoding in Name and FinalBlockId
 (`xxd -p -r < nameuri.hex > nameuri.pcap`).
 
 Expected results of the dissection:

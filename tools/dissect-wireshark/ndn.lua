@@ -42,6 +42,13 @@ function getValue(b)
    return b.tvb(b.offset + b.typeLen + b.lengthLen, b.length)
 end
 
+function getNonNegativeInteger(b)
+   if b.length == 1 or b.length == 2 or b.length == 4 or b.length == 8 then
+      return getValue(b):uint64()
+   end
+   return UInt64.max()
+end
+
 function getUriFromImplicitSha256DigestComponent(b)
    s = "sha256digest="
    for i = 0, (b.length - 1) do
@@ -101,11 +108,10 @@ end
 
 function getNackReasonDetail(b)
    local code = getNonNegativeInteger(b)
-   if (code == 0) then return "None"
-   elseif (code == 50) then return "Congestion"
-   elseif (code == 100) then return "Duplicate"
-   elseif (code == 150) then return "NoRoute"
-   else return "Unknown"
+   if code == UInt64(50) then return "Congestion"
+   elseif code == UInt64(100) then return "Duplicate"
+   elseif code == UInt64(150) then return "NoRoute"
+   else return tostring(code)
    end
 end
 
@@ -113,17 +119,6 @@ function getCachePolicyDetail(b)
    local code = getNonNegativeInteger(b)
    if (code == 1) then return "NoCache"
    else return "Unknown"
-   end
-end
-
-function getNonNegativeInteger(b)
-   if (b.length == 1 or b.length == 2 or b.length == 4) then
-      return getValue(b):uint()
-   -- Something strange with uint64, not supporting it for now
-   -- elseif (b.length == 8) then
-   --    return b.tvb(b.offset + b.typeLen + b.lengthLen, 8):uint64()
-   else
-      return 0xFFFFFFFF;
    end
 end
 
@@ -194,47 +189,51 @@ local NDN_DICT = {
    -- [30] = {name = "ForwardingHint"               , summary = true},
    -- ForwardingHint and LinkPreference have the same TLV-TYPE number, so we can't recognize both for now (see #4185).
    [31] = {name = "LinkDelegation"               , summary = true},
-   [30] = {name = "LinkPreference"               , field = ProtoField.uint32("ndn.link_preference", "LinkPreference", base.DEC)    , value = getNonNegativeInteger},
+   [30] = {name = "LinkPreference"               , field = ProtoField.uint64("ndn.link_preference", "LinkPreference", base.DEC)    , value = getNonNegativeInteger},
    [10] = {name = "Nonce"                        , field = ProtoField.uint32("ndn.nonce", "Nonce", base.HEX)                       , value = getNonce},
-   [12] = {name = "InterestLifetime"             , field = ProtoField.uint32("ndn.interestlifetime", "InterestLifetime", base.DEC) , value = getNonNegativeInteger},
-   [34] = {name = "HopLimit"                     , field = ProtoField.uint32("ndn.hoplimit", "HopLimit", base.DEC)                 , value = getNonNegativeInteger},
+   [12] = {name = "InterestLifetime"             , field = ProtoField.uint64("ndn.interestlifetime", "InterestLifetime", base.DEC) , value = getNonNegativeInteger},
+   [34] = {name = "HopLimit"                     , field = ProtoField.uint64("ndn.hoplimit", "HopLimit", base.DEC)                 , value = getNonNegativeInteger},
    [35] = {name = "Parameters"                   , field = ProtoField.string("ndn.parameters", "Parameters")},
 
    -- Data and its sub-elements in Packet Format v0.3
    [6]  = {name = "Data"                         , summary = true},
    [20] = {name = "MetaInfo"                     , summary = true},
-   [24] = {name = "ContentType"                  , field = ProtoField.uint32("ndn.contenttype", "Content Type", base.DEC)          , value = getNonNegativeInteger},
-   [25] = {name = "FreshnessPeriod"              , field = ProtoField.uint32("ndn.freshnessperiod", "FreshnessPeriod", base.DEC)   , value = getNonNegativeInteger},
+   [24] = {name = "ContentType"                  , field = ProtoField.uint64("ndn.contenttype", "Content Type", base.DEC)          , value = getNonNegativeInteger},
+   [25] = {name = "FreshnessPeriod"              , field = ProtoField.uint64("ndn.freshnessperiod", "FreshnessPeriod", base.DEC)   , value = getNonNegativeInteger},
    [26] = {name = "FinalBlockId"                 , field = ProtoField.string("ndn.finalblockid", "FinalBlockId")                   , value = getUriFromFinalBlockId},
    [21] = {name = "Content"                      , field = ProtoField.string("ndn.content", "Content")},
    [22] = {name = "SignatureInfo"                , summary = true},
-   [27] = {name = "SignatureType"                , field = ProtoField.uint32("ndn.signaturetype", "SignatureType", base.DEC)       , value = getNonNegativeInteger},
+   [27] = {name = "SignatureType"                , field = ProtoField.uint64("ndn.signaturetype", "SignatureType", base.DEC)       , value = getNonNegativeInteger},
    [28] = {name = "KeyLocator"                   , summary = true},
    [29] = {name = "KeyDigest"                    , field = ProtoField.bytes("ndn.keydigest", "KeyDigest")},
    [23] = {name = "SignatureValue"               , field = ProtoField.bytes("ndn.signaturevalue", "SignatureValue")},
 
    -- NDNLPv2 headers
    [80] = {name = "Fragment"                     },
-   [81] = {name = "Sequence"                     , field = ProtoField.uint32("ndn.sequence", "Sequence", base.DEC), value = getNonNegativeInteger},
-   [82] = {name = "FragIndex"                    , field = ProtoField.uint32("ndn.fragindex", "FragIndex", base.DEC), value = getNonNegativeInteger},
-   [83] = {name = "FragCount"                    , field = ProtoField.uint32("ndn.fragcount", "FragCount", base.DEC), value = getNonNegativeInteger},
+   [81] = {name = "Sequence"                     , field = ProtoField.uint64("ndn.sequence", "Sequence", base.DEC)                 , value = getNonNegativeInteger},
+   [82] = {name = "FragIndex"                    , field = ProtoField.uint64("ndn.fragindex", "FragIndex", base.DEC)               , value = getNonNegativeInteger},
+   [83] = {name = "FragCount"                    , field = ProtoField.uint64("ndn.fragcount", "FragCount", base.DEC)               , value = getNonNegativeInteger},
+   [98] = {name = "PitToken"                     , field = ProtoField.uint64("ndn.pit_token", "PitToken", base.DEC)                , value = getNonNegativeInteger},
    [100] = {name = "LpPacket"                    , summary = true},
    [800] = {name = "Nack"                        , summary = true},
-   [801] = {name = "NackReason"                  , field = ProtoField.string("ndn.nack_reason", "NackReason"), value = getNackReasonDetail},
-   [816] = {name = "NextHopFaceId"               , field = ProtoField.uint32("ndn.nexthop_faceid", "NextHopFaceId", base.DEC), value = getNonNegativeInteger},
-   [817] = {name = "IncomingFaceId"              , field = ProtoField.uint32("ndn.incoming_faceid", "IncomingFaceId", base.DEC), value = getNonNegativeInteger},
+   [801] = {name = "NackReason"                  , field = ProtoField.string("ndn.nack_reason", "NackReason")                      , value = getNackReasonDetail},
+   [816] = {name = "NextHopFaceId"               , field = ProtoField.uint64("ndn.nexthop_faceid", "NextHopFaceId", base.DEC)      , value = getNonNegativeInteger},
+   [817] = {name = "IncomingFaceId"              , field = ProtoField.uint64("ndn.incoming_faceid", "IncomingFaceId", base.DEC)    , value = getNonNegativeInteger},
    [820] = {name = "CachePolicy"                 , summary = true},
-   [821] = {name = "CachePolicyType"             , field = ProtoField.string("ndn.cachepolicy_type", "CachePolicyType"), value = getCachePolicyDetail},
+   [821] = {name = "CachePolicyType"             , field = ProtoField.string("ndn.cachepolicy_type", "CachePolicyType")            , value = getCachePolicyDetail},
+   [832] = {name = "CongestionMark"              , field = ProtoField.uint64("ndn.congestion_mark", "CongestionMark", base.DEC)    , value = getNonNegativeInteger},
+   [836] = {name = "Ack"                         , field = ProtoField.uint64("ndn.ack", "Ack", base.DEC)                           , value = getNonNegativeInteger},
+   [840] = {name = "TxSequence"                  , field = ProtoField.uint64("ndn.tx_sequence", "TxSequence", base.DEC)            , value = getNonNegativeInteger},
 
    -- Deprecated elements
    [9]  = {name = "Selectors"                    , summary = true},
-   [13] = {name = "MinSuffixComponents"          , field = ProtoField.uint32("ndn.minsuffix", "MinSuffixComponents")               , value = getNonNegativeInteger},
-   [14] = {name = "MaxSuffixComponents"          , field = ProtoField.uint32("ndn.maxsuffix", "MaxSuffixComponents")               , value = getNonNegativeInteger},
+   [13] = {name = "MinSuffixComponents"          , field = ProtoField.uint64("ndn.minsuffix", "MinSuffixComponents")               , value = getNonNegativeInteger},
+   [14] = {name = "MaxSuffixComponents"          , field = ProtoField.uint64("ndn.maxsuffix", "MaxSuffixComponents")               , value = getNonNegativeInteger},
    [15] = {name = "PublisherPublicKeyLocator"    , summary = true},
    [16] = {name = "Exclude"                      , field = ProtoField.string("ndn.exclude", "Exclude")                             , value = getUriFromExclude},
-   [17] = {name = "ChildSelector"                , field = ProtoField.uint32("ndn.childselector", "ChildSelector", base.DEC)       , value = getNonNegativeInteger},
+   [17] = {name = "ChildSelector"                , field = ProtoField.uint64("ndn.childselector", "ChildSelector", base.DEC)       , value = getNonNegativeInteger},
    [19] = {name = "Any"                          , field = ProtoField.string("ndn.any", "Any")                                     , value = getTrue},
-   [32] = {name = "SelectedDelegation"           , field = ProtoField.uint32("ndn.selected_delegation", "SelectedDelegation", base.DEC), value = getNonNegativeInteger},
+   [32] = {name = "SelectedDelegation"           , field = ProtoField.uint64("ndn.selected_delegation", "SelectedDelegation", base.DEC), value = getNonNegativeInteger},
 }
 
 -- -- Add protofields in NDN protocol
