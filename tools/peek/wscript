@@ -13,12 +13,17 @@ def build(bld):
         source='ndnpeek/main.cpp',
         use='ndnpeek-objects')
 
+    bld.objects(
+        target='ndnpoke-objects',
+        source=bld.path.ant_glob('ndnpoke/*.cpp', excl='ndnpoke/main.cpp'),
+        use='core-objects')
+
     bld.program(
         target='../../bin/ndnpoke',
-        source='ndn-poke.cpp',
-        use='core-objects')
+        source='ndnpoke/main.cpp',
+        use='ndnpoke-objects')
 
     ## (for unit tests)
 
     bld(target='peek-objects',
-        use='ndnpeek-objects')
+        use=['ndnpeek-objects', 'ndnpoke-objects'])
