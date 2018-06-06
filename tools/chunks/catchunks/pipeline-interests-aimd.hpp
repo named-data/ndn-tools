@@ -184,6 +184,9 @@ private:
   void
   cancelInFlightSegmentsGreaterThan(uint64_t segNo);
 
+  bool
+  allSegmentsReceived() const;
+
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   void
   printSummary() const final;

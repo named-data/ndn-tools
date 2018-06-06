@@ -496,6 +496,27 @@ BOOST_AUTO_TEST_CASE(PrintSummaryWithNoRttMeasurements)
   std::cerr.rdbuf(oldBuf); // reset
 }
 
+BOOST_AUTO_TEST_CASE(StopsWhenFileSizeLessThanChunkSize)
+{
+  // test to see if the program doesn't hang,
+  // when transfer is complete, for files less than the chunk size
+  // (i.e. when only one segment is sent/received)
+
+  createPipeline();
+  nDataSegments = 1;
+
+  runWithData(*makeDataWithSegment(0));
+  advanceClocks(io, time::nanoseconds(1));
+
+  face.receive(*makeDataWithSegment(1));
+  advanceClocks(io, time::nanoseconds(1));
+
+  BOOST_CHECK_EQUAL(aimdPipeline->m_hasFinalBlockId, true);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_segmentInfo.size(), 0);
+  BOOST_CHECK_EQUAL(face.getNPendingInterests(), 0);
+}
+
+
 BOOST_AUTO_TEST_SUITE_END() // TestPipelineInterestsAimd
 BOOST_AUTO_TEST_SUITE_END() // Chunks
 

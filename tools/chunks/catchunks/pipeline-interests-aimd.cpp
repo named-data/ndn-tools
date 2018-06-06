@@ -70,6 +70,14 @@ PipelineInterestsAimd::~PipelineInterestsAimd()
 void
 PipelineInterestsAimd::doRun()
 {
+  if (allSegmentsReceived()) {
+    cancel();
+    if (!m_options.isQuiet) {
+      printSummary();
+    }
+    return;
+  }
+
   // schedule the event to check retransmission timer
   m_checkRtoEvent = m_scheduler.scheduleEvent(m_options.rtoCheckInterval, [this] { checkRto(); });
 
@@ -121,7 +129,7 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
   if (isStopping())
     return;
 
-  if (m_hasFinalBlockId && segNo > m_lastSegmentNo && !isRetransmission)
+  if (m_hasFinalBlockId && segNo > m_lastSegmentNo)
     return;
 
   if (!isRetransmission && m_hasFailure)
@@ -291,8 +299,7 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
   }
 
   BOOST_ASSERT(m_nReceived > 0);
-  if (m_hasFinalBlockId &&
-      static_cast<uint64_t>(m_nReceived - 1) >= m_lastSegmentNo) { // all segments have been received
+  if (allSegmentsReceived()) {
     cancel();
     if (!m_options.isQuiet) {
       printSummary();
@@ -435,6 +442,12 @@ PipelineInterestsAimd::cancelInFlightSegmentsGreaterThan(uint64_t segNo)
   }
 }
 
+bool
+PipelineInterestsAimd::allSegmentsReceived() const
+{
+  return m_hasFinalBlockId && static_cast<uint64_t>(m_nReceived - 1) >= m_lastSegmentNo;
+}
+
 void
 PipelineInterestsAimd::printSummary() const
 {
@@ -442,7 +455,7 @@ PipelineInterestsAimd::printSummary() const
   std::cerr << "Total # of lost/retransmitted segments: " << m_nRetransmitted
             << " (caused " << m_nLossEvents << " window decreases)\n"
             << "Packet loss rate: "
-            << (static_cast<double>(m_nRetransmitted) / static_cast<double>(m_nSent)) * 100 << "%\n"
+            << (m_nSent == 0 ? 0 : (static_cast<double>(m_nRetransmitted) / static_cast<double>(m_nSent) * 100))  << "%\n"
             << "Total # of received congestion marks: " << m_nCongMarks << "\n"
             << "RTT ";
 
