@@ -140,9 +140,7 @@ PipelineInterestsFixedWindow::handleData(const Interest& interest, const Data& d
     }
   }
 
-  BOOST_ASSERT(m_nReceived > 0);
-  if (m_hasFinalBlockId &&
-      static_cast<uint64_t>(m_nReceived - 1) >= m_lastSegmentNo) { // all segments have been received
+  if (allSegmentsReceived()) {
     if (!m_options.isQuiet) {
       printSummary();
     }

@@ -79,6 +79,13 @@ PipelineInterests::cancel()
   doCancel();
 }
 
+bool
+PipelineInterests::allSegmentsReceived() const
+{
+  BOOST_ASSERT(m_nReceived > 0);
+  return m_hasFinalBlockId && static_cast<uint64_t>(m_nReceived - 1) >= m_lastSegmentNo;
+}
+
 uint64_t
 PipelineInterests::getNextSegmentNo()
 {

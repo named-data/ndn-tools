@@ -66,7 +66,6 @@ enum class SegmentState {
   FirstTimeSent, ///< segment has been sent for the first time
   InRetxQueue,   ///< segment is in retransmission queue
   Retransmitted, ///< segment has been retransmitted
-  RetxReceived,  ///< segment has been received after retransmission
 };
 
 std::ostream&
@@ -183,9 +182,6 @@ private:
 
   void
   cancelInFlightSegmentsGreaterThan(uint64_t segNo);
-
-  bool
-  allSegmentsReceived() const;
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   void

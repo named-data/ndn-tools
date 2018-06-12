@@ -94,6 +94,13 @@ protected:
   }
 
   /**
+   * @brief check if the transfer is complete
+   * @return true if all segments have been received, false otherwise
+   */
+  bool
+  allSegmentsReceived() const;
+
+  /**
    * @return next segment number to retrieve
    * @post m_nextSegmentNo == return-value + 1
    */

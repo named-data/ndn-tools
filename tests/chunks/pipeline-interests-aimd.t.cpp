@@ -472,6 +472,63 @@ BOOST_AUTO_TEST_CASE(SpuriousFailureBeforeFinalBlockIdReceived)
   BOOST_CHECK_EQUAL(hasFailed, false);
 }
 
+BOOST_AUTO_TEST_CASE(SegmentInfoMaintenance)
+{
+  // test that m_segmentInfo is properly maintained when
+  // a segment is received after two consecutive timeouts
+
+  nDataSegments = 3;
+
+  runWithData(*makeDataWithSegment(0));
+  advanceClocks(io, time::nanoseconds(1));
+
+  // receive segment 1
+  face.receive(*makeDataWithSegment(1));
+  advanceClocks(io, time::nanoseconds(1));
+
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 2);
+
+  // check if segment 2's state is FirstTimeSent
+  auto it = aimdPipeline->m_segmentInfo.find(2);
+  BOOST_REQUIRE(it != aimdPipeline->m_segmentInfo.end());
+  BOOST_CHECK(it->second.state == SegmentState::FirstTimeSent);
+
+  // timeout segment 2 twice
+  advanceClocks(io, time::milliseconds(400), 3);
+
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 4);
+
+  // check if segment 2's state is Retransmitted
+  it = aimdPipeline->m_segmentInfo.find(2);
+  BOOST_REQUIRE(it != aimdPipeline->m_segmentInfo.end());
+  BOOST_CHECK(it->second.state == SegmentState::Retransmitted);
+
+  // check if segment 2 was retransmitted twice
+  BOOST_CHECK_EQUAL(aimdPipeline->m_retxCount.at(2), 2);
+
+  // receive segment 2 the first time
+  face.receive(*makeDataWithSegment(2));
+  advanceClocks(io, time::nanoseconds(1));
+
+  // check if segment 2 was erased from m_segmentInfo
+  it = aimdPipeline->m_segmentInfo.find(2);
+  BOOST_CHECK(it == aimdPipeline->m_segmentInfo.end());
+
+  auto prevRtt = rttEstimator.getAvgRtt();
+  auto prevRto = rttEstimator.getEstimatedRto();
+
+  // receive segment 2 the second time
+  face.receive(*makeDataWithSegment(2));
+  advanceClocks(io, time::nanoseconds(1));
+
+  // nothing changed
+  it = aimdPipeline->m_segmentInfo.find(2);
+  BOOST_CHECK(it == aimdPipeline->m_segmentInfo.end());
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 4);
+  BOOST_CHECK_EQUAL(rttEstimator.getAvgRtt(), prevRtt);
+  BOOST_CHECK_EQUAL(rttEstimator.getEstimatedRto(), prevRto);
+}
+
 BOOST_AUTO_TEST_CASE(PrintSummaryWithNoRttMeasurements)
 {
   // test the console ouptut when no RTT measurement is available,

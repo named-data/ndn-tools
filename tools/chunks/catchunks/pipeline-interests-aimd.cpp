@@ -104,8 +104,7 @@ PipelineInterestsAimd::checkRto()
 
   for (auto& entry : m_segmentInfo) {
     SegmentInfo& segInfo = entry.second;
-    if (segInfo.state != SegmentState::InRetxQueue && // do not check segments currently in the retx queue
-        segInfo.state != SegmentState::RetxReceived) { // or already-received retransmitted segments
+    if (segInfo.state != SegmentState::InRetxQueue) { // skip segments already in the retx queue
       Milliseconds timeElapsed = time::steady_clock::now() - segInfo.timeSent;
       if (timeElapsed.count() > segInfo.rto.count()) { // timer expired?
         hasTimeout = true;
@@ -199,12 +198,10 @@ PipelineInterestsAimd::schedulePackets()
     if (!m_retxQueue.empty()) { // do retransmission first
       uint64_t retxSegNo = m_retxQueue.front();
       m_retxQueue.pop();
-
-      auto it = m_segmentInfo.find(retxSegNo);
-      if (it == m_segmentInfo.end()) {
+      if (m_segmentInfo.count(retxSegNo) == 0) {
         continue;
       }
-      // the segment is still in the map, it means that it needs to be retransmitted
+      // the segment is still in the map, that means it needs to be retransmitted
       sendInterest(retxSegNo, true);
     }
     else { // send next segment
@@ -237,12 +234,12 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
   }
 
   uint64_t recvSegNo = getSegmentFromPacket(data);
-  SegmentInfo& segInfo = m_segmentInfo[recvSegNo];
-  if (segInfo.state == SegmentState::RetxReceived) {
-    m_segmentInfo.erase(recvSegNo);
+  auto segIt = m_segmentInfo.find(recvSegNo);
+  if (segIt == m_segmentInfo.end()) {
     return; // ignore already-received segment
   }
 
+  SegmentInfo& segInfo = segIt->second;
   Milliseconds rtt = time::steady_clock::now() - segInfo.timeSent;
   if (m_options.isVerbose) {
     std::cerr << "Received segment #" << recvSegNo
@@ -286,19 +283,18 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
 
   onData(data);
 
-  if (segInfo.state == SegmentState::FirstTimeSent ||
-      segInfo.state == SegmentState::InRetxQueue) { // do not sample RTT for retransmitted segments
+  // do not sample RTT for retransmitted segments
+  if ((segInfo.state == SegmentState::FirstTimeSent ||
+       segInfo.state == SegmentState::InRetxQueue) &&
+      m_retxCount.count(recvSegNo) == 0) {
     auto nExpectedSamples = std::max<int64_t>((m_nInFlight + 1) >> 1, 1);
     BOOST_ASSERT(nExpectedSamples > 0);
     m_rttEstimator.addMeasurement(recvSegNo, rtt, static_cast<size_t>(nExpectedSamples));
-    m_segmentInfo.erase(recvSegNo); // remove the entry associated with the received segment
-  }
-  else { // retransmission
-    BOOST_ASSERT(segInfo.state == SegmentState::Retransmitted);
-    segInfo.state = SegmentState::RetxReceived;
   }
 
-  BOOST_ASSERT(m_nReceived > 0);
+  // remove the entry associated with the received segment
+  m_segmentInfo.erase(segIt);
+
   if (allSegmentsReceived()) {
     cancel();
     if (!m_options.isQuiet) {
@@ -442,12 +438,6 @@ PipelineInterestsAimd::cancelInFlightSegmentsGreaterThan(uint64_t segNo)
   }
 }
 
-bool
-PipelineInterestsAimd::allSegmentsReceived() const
-{
-  return m_hasFinalBlockId && static_cast<uint64_t>(m_nReceived - 1) >= m_lastSegmentNo;
-}
-
 void
 PipelineInterestsAimd::printSummary() const
 {
@@ -484,9 +474,6 @@ operator<<(std::ostream& os, SegmentState state)
   case SegmentState::Retransmitted:
     os << "Retransmitted";
     break;
-  case SegmentState::RetxReceived:
-    os << "RetxReceived";
-    break;
   }
   return os;
 }
@@ -501,7 +488,7 @@ operator<<(std::ostream& os, const PipelineInterestsAimdOptions& options)
      << "\tMultiplicative decrease factor = " << options.mdCoef << "\n"
      << "\tRTO check interval = " << options.rtoCheckInterval << "\n"
      << "\tMax retries on timeout or Nack = " << (options.maxRetriesOnTimeoutOrNack == DataFetcher::MAX_RETRIES_INFINITE ?
-                                                    "infinite" : to_string(options.maxRetriesOnTimeoutOrNack)) << "\n"
+                                                  "infinite" : to_string(options.maxRetriesOnTimeoutOrNack)) << "\n"
      << "\tReaction to congestion marks " << (options.ignoreCongMarks ? "disabled" : "enabled") << "\n"
      << "\tConservative window adaptation " << (options.disableCwa ? "disabled" : "enabled") << "\n"
      << "\tResetting cwnd to " << (options.resetCwndToInit ? "initCwnd" : "ssthresh") << " upon loss event\n";
