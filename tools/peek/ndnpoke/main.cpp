@@ -165,9 +165,6 @@ main(int argc, char* argv[])
   scheduler::Scheduler scheduler(io);
   NdnPoke program(face, keyChain, std::cin, options);
   try {
-    program.afterFinish.connect([&scheduler, &face] {
-        scheduler.scheduleEvent(2_s, [&face] { face.shutdown(); });
-      });
     program.start();
     face.processEvents(timeout);
   }

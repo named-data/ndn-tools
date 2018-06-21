@@ -52,10 +52,10 @@ NdnPoke::start()
     m_wasDataSent = true;
   }
   else {
-    m_face.setInterestFilter(m_options.prefixName,
-                             bind(&NdnPoke::onInterest, this, _1, _2, dataPacket),
-                             nullptr,
-                             bind(&NdnPoke::onRegisterFailed, this, _1, _2));
+    m_registeredPrefix = m_face.setInterestFilter(m_options.prefixName,
+                                                  bind(&NdnPoke::onInterest, this, _1, _2, dataPacket),
+                                                  nullptr,
+                                                  bind(&NdnPoke::onRegisterFailed, this, _1, _2));
   }
 }
 
@@ -92,7 +92,8 @@ NdnPoke::onInterest(const Name& name, const Interest& interest, const shared_ptr
   catch (const Face::OversizedPacketError& e) {
     std::cerr << "Data exceeded maximum packet size" << std::endl;
   }
-  afterFinish();
+
+  m_face.unsetInterestFilter(m_registeredPrefix);
 }
 
 void

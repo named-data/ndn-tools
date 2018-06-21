@@ -80,6 +80,10 @@ BOOST_AUTO_TEST_CASE(Basic)
 
   this->advanceClocks(io, 1_ms, 10);
 
+  // Check for prefix registration
+  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+  BOOST_CHECK_EQUAL(face.sentInterests.front().getName().getPrefix(4), "/localhost/nfd/rib/register");
+
   Interest interest("/poke/test");
   face.receive(interest);
   this->advanceClocks(io, 1_ms, 10);
@@ -91,6 +95,10 @@ BOOST_AUTO_TEST_CASE(Basic)
   BOOST_CHECK(!face.sentData.back().getFinalBlock());
   BOOST_CHECK_EQUAL(face.sentData.back().getFreshnessPeriod(), 0_ms);
   BOOST_CHECK_EQUAL(face.sentData.back().getSignature().getType(), tlv::SignatureSha256WithEcdsa);
+
+  // Check for prefix unregistration
+  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 2); // One for registration, one for unregistration
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getName().getPrefix(4), "/localhost/nfd/rib/unregister");
 }
 
 BOOST_AUTO_TEST_CASE(FinalBlockId)

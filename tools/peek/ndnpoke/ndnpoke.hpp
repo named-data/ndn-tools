@@ -59,9 +59,6 @@ public:
     return m_wasDataSent;
   }
 
-public:
-  signal::Signal<NdnPoke> afterFinish;
-
 private:
   shared_ptr<Data>
   createDataPacket();
@@ -78,6 +75,7 @@ private:
   std::istream& m_inStream;
   const PokeOptions& m_options;
 
+  const RegisteredPrefixId* m_registeredPrefix;
   bool m_wasDataSent;
 };
 
