@@ -36,19 +36,10 @@
 
 #include "ndndump.hpp"
 
-#include "tcpdump/tcpdump-stdinc.h"
-
-namespace ndn {
-namespace dump {
-// namespace is necessary to prevent clashing with system includes
-
-#include "tcpdump/ether.h"
-#include "tcpdump/ip.h"
-#include "tcpdump/udp.h"
-#include "tcpdump/tcp.h"
-
-} // namespace dump
-} // namespace ndn
+#include <net/ethernet.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
 
 #include <pcap/sll.h>
 
@@ -269,8 +260,8 @@ Ndndump::skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& pay
       }
 
       frameType = ntohs(etherHeader->ether_type);
-      payloadSize -= ETHER_HDRLEN;
-      payload += ETHER_HDRLEN;
+      payloadSize -= ETHER_HDR_LEN;
+      payload += ETHER_HDR_LEN;
 
       break;
     }
@@ -320,7 +311,7 @@ Ndndump::skipAndProcessFrameHeader(int frameType,
     case 0x0800: // ETHERTYPE_IP
     case DLT_EN10MB: { // pcap encapsulation
       const ip* ipHeader = reinterpret_cast<const ip*>(payload);
-      size_t ipHeaderSize = IP_HL(ipHeader) * 4;
+      size_t ipHeaderSize = ipHeader->ip_hl * 4;
       if (ipHeaderSize < 20) {
         std::cerr << "invalid IP header len " << ipHeaderSize << " bytes" << std::endl;
         return -1;
@@ -358,7 +349,7 @@ Ndndump::skipAndProcessFrameHeader(int frameType,
           //   return -1;
 
           const tcphdr* tcpHeader = reinterpret_cast<const tcphdr*>(payload);
-          size_t tcpHeaderSize = TH_OFF(tcpHeader) * 4;
+          size_t tcpHeaderSize = tcpHeader->th_off * 4;
 
           if (tcpHeaderSize < 20) {
             std::cerr << "Invalid TCP Header len: " << tcpHeaderSize <<" bytes" << std::endl;
