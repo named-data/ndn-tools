@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California.
+/*
+ * Copyright (c) 2014-2018,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
+/*
  * Copyright (c) 2011-2014, Regents of the University of California,
  *
  * This file is part of ndndump, the packet capture and analysis tool for Named Data
@@ -43,26 +43,12 @@
 
 #include <sstream>
 
-namespace po = boost::program_options;
-
-namespace boost {
-
-void
-validate(boost::any& v,
-         const std::vector<std::string>& values,
-         boost::regex*, int)
-{
-  po::validators::check_first_occurrence(v);
-  const std::string& str = po::validators::get_single_string(values);
-  v = boost::any(boost::regex(str));
-}
-
-} // namespace boost
-
 namespace ndn {
 namespace dump {
 
-void
+namespace po = boost::program_options;
+
+static void
 usage(std::ostream& os, const std::string& appName, const po::options_description& options)
 {
   os << "Usage:\n"
@@ -74,25 +60,25 @@ usage(std::ostream& os, const std::string& appName, const po::options_descriptio
   os << options;
 }
 
-int
+static int
 main(int argc, char* argv[])
 {
   Ndndump instance;
+  std::string filter;
 
   po::options_description visibleOptions;
   visibleOptions.add_options()
     ("help,h", "Produce this help message")
-    ("version,V", "display version and exit")
+    ("version,V", "Display version and exit")
     ("interface,i", po::value<std::string>(&instance.interface),
-     "Interface from which to dump packets")
+                    "Interface from which to dump packets")
     ("read,r", po::value<std::string>(&instance.inputFile),
-     "Read  packets  from file")
-    ("verbose,v",
-     "When  parsing  and  printing, produce verbose output")
+               "Read packets from file")
+    ("verbose,v", "When parsing and printing, produce verbose output")
     // ("write,w", po::value<std::string>(&instance.outputFile),
     //  "Write the raw packets to file rather than parsing and printing them out")
-    ("filter,f", po::value<boost::regex>(&instance.nameFilter),
-     "Regular expression to filter out Interest and Data packets")
+    ("filter,f", po::value<std::string>(&filter),
+                 "Regular expression to filter out Interest and Data packets")
     ;
 
   po::options_description hiddenOptions;
@@ -136,6 +122,16 @@ main(int argc, char* argv[])
     instance.isVerbose = true;
   }
 
+  if (vm.count("filter") > 0) {
+    try {
+      instance.nameFilter = std::regex(filter);
+    }
+    catch (const std::regex_error& e) {
+      std::cerr << "ERROR: Invalid filter expression: " << e.what() << std::endl;
+      return 2;
+    }
+  }
+
   if (vm.count("pcap-program") > 0) {
     const auto& items = vm["pcap-program"].as<std::vector<std::string>>();
 
@@ -145,7 +141,7 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("read") > 0 && vm.count("interface") > 0) {
-    std::cerr << "ERROR: Conflicting -r and -i options\n";
+    std::cerr << "ERROR: Conflicting -r and -i options\n\n";
     usage(std::cerr, argv[0], visibleOptions);
     return 2;
   }
@@ -154,7 +150,7 @@ main(int argc, char* argv[])
     instance.run();
   }
   catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << "\n\n";
+    std::cerr << "ERROR: " << e.what() << "\n";
   }
 
   return 0;

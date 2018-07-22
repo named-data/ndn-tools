@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2016,  Regents of the University of California.
+/*
+ * Copyright (c) 2014-2018,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
+/*
  * Copyright (c) 2011-2014, Regents of the University of California,
  *
  * This file is part of ndndump, the packet capture and analysis tool for Named Data
@@ -40,9 +40,8 @@
 #include "core/common.hpp"
 
 #include <pcap.h>
-
+#include <regex>
 #include <ndn-cxx/name.hpp>
-#include <boost/regex.hpp>
 
 namespace ndn {
 namespace dump {
@@ -100,7 +99,7 @@ public:
 
   std::string pcapProgram;
   std::string interface;
-  boost::regex nameFilter;
+  optional<std::regex> nameFilter;
   std::string inputFile;
   // std::string outputFile;
 
@@ -110,7 +109,6 @@ private:
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   int m_dataLinkType;
 };
-
 
 } // namespace dump
 } // namespace ndn

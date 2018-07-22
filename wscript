@@ -27,7 +27,7 @@ def configure(conf):
     conf.check_cfg(package='libndn-cxx', args=['--cflags', '--libs'],
                    uselib_store='NDN_CXX', mandatory=True)
 
-    boost_libs = 'system filesystem program_options regex thread log log_setup'
+    boost_libs = 'system filesystem program_options thread log log_setup'
     if conf.options.with_tests:
         conf.env['WITH_TESTS'] = True
         conf.define('WITH_TESTS', 1)

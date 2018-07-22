@@ -95,22 +95,18 @@ Ndndump::run()
     else {
       std::cerr << "ndndump: reading from " << inputFile << std::endl;
     }
-
-    if (!nameFilter.empty()) {
-      std::cerr << "ndndump: using name filter " << nameFilter << std::endl;
-    }
   }
 
   if (!interface.empty()) {
     char errbuf[PCAP_ERRBUF_SIZE];
-    m_pcap = pcap_open_live(interface.c_str(), MAX_SNAPLEN, 0, 1000, errbuf);
+    m_pcap = pcap_open_live(interface.data(), MAX_SNAPLEN, 0, 1000, errbuf);
     if (m_pcap == nullptr) {
       BOOST_THROW_EXCEPTION(Error("Cannot open interface " + interface + " (" + errbuf + ")"));
     }
   }
   else {
     char errbuf[PCAP_ERRBUF_SIZE];
-    m_pcap = pcap_open_offline(inputFile.c_str(), errbuf);
+    m_pcap = pcap_open_offline(inputFile.data(), errbuf);
     if (m_pcap == nullptr) {
       BOOST_THROW_EXCEPTION(Error("Cannot open file " + inputFile + " for reading (" + errbuf + ")"));
     }
@@ -122,7 +118,7 @@ Ndndump::run()
     }
 
     bpf_program program;
-    int res = pcap_compile(m_pcap, &program, pcapProgram.c_str(), 0, PCAP_NETMASK_UNKNOWN);
+    int res = pcap_compile(m_pcap, &program, pcapProgram.data(), 0, PCAP_NETMASK_UNKNOWN);
 
     if (res < 0) {
       BOOST_THROW_EXCEPTION(Error("Cannot parse tcpdump expression '" + pcapProgram +
@@ -144,7 +140,6 @@ Ndndump::run()
 
   pcap_loop(m_pcap, -1, &Ndndump::onCapturedPacket, reinterpret_cast<uint8_t*>(this));
 }
-
 
 void
 Ndndump::onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet) const
@@ -408,12 +403,11 @@ Ndndump::skipAndProcessFrameHeader(int frameType,
 bool
 Ndndump::matchesFilter(const Name& name) const
 {
-  if (nameFilter.empty())
+  if (!nameFilter)
     return true;
 
   /// \todo Switch to NDN regular expressions
-
-  return boost::regex_match(name.toUri(), nameFilter);
+  return std::regex_match(name.toUri(), *nameFilter);
 }
 
 } // namespace dump
