@@ -72,26 +72,27 @@ protected:
     ethernet::Address host;
 
     // Ethernet header
-    uint16_t frameType = htons(ethernet::ETHERTYPE_NDN);
-    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(&frameType), ethernet::TYPE_LEN);
+    uint16_t type = htons(ethernet::ETHERTYPE_NDN);
+    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(&type), ethernet::TYPE_LEN);
     buffer.prependByteArray(host.data(), host.size());
     buffer.prependByteArray(host.data(), host.size());
 
-    pcap_pkthdr header{};
-    header.len = buffer.size();
+    pcap_pkthdr pkthdr{};
+    pkthdr.caplen = pkthdr.len = buffer.size();
 
     {
       StdCoutRedirector redirect(output);
-      dump.onCapturedPacket(&header, buffer.buf());
+      dump.printPacket(&pkthdr, buffer.buf());
     }
   }
 
 protected:
-  Ndndump dump;
+  NdnDump dump;
   boost::test_tools::output_test_stream output;
 };
 
-BOOST_FIXTURE_TEST_SUITE(NdnDump, NdnDumpFixture)
+BOOST_AUTO_TEST_SUITE(Dump)
+BOOST_FIXTURE_TEST_SUITE(TestNdnDump, NdnDumpFixture)
 
 BOOST_AUTO_TEST_CASE(CaptureInterest)
 {
@@ -100,10 +101,8 @@ BOOST_AUTO_TEST_CASE(CaptureInterest)
 
   this->receive(interest);
 
-  const std::string expectedOutput =
-    "0.000000 Tunnel Type: EthernetFrame, INTEREST: /test?ndn.Nonce=0\n";
-
-  BOOST_CHECK(output.is_equal(expectedOutput));
+  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, INTEREST: /test?ndn.Nonce=0\n";
+  BOOST_CHECK(output.is_equal(expected));
 }
 
 BOOST_AUTO_TEST_CASE(CaptureData)
@@ -113,28 +112,23 @@ BOOST_AUTO_TEST_CASE(CaptureData)
 
   this->receive(data);
 
-  const std::string expectedOutput = "0.000000 Tunnel Type: EthernetFrame, DATA: /test\n";
-
-  BOOST_CHECK(output.is_equal(expectedOutput));
+  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, DATA: /test\n";
+  BOOST_CHECK(output.is_equal(expected));
 }
 
 BOOST_AUTO_TEST_CASE(CaptureNack)
 {
   Interest interest("/test");
   interest.setNonce(0);
-
   lp::Nack nack(interest);
   nack.setReason(lp::NackReason::DUPLICATE);
-
   lp::Packet lpPacket(interest.wireEncode());
   lpPacket.add<lp::NackField>(nack.getHeader());
 
   this->receive(lpPacket);
 
-  const std::string expectedOutput =
-    "0.000000 Tunnel Type: EthernetFrame, NACK: Duplicate, /test?ndn.Nonce=0\n";
-
-  BOOST_CHECK(output.is_equal(expectedOutput));
+  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, NACK: Duplicate, /test?ndn.Nonce=0\n";
+  BOOST_CHECK(output.is_equal(expected));
 }
 
 BOOST_AUTO_TEST_CASE(CaptureLpFragment)
@@ -145,7 +139,6 @@ BOOST_AUTO_TEST_CASE(CaptureLpFragment)
   };
 
   Buffer buffer(data, 4);
-
   lp::Packet lpPacket;
   lpPacket.add<lp::FragmentField>(std::make_pair(buffer.begin(), buffer.end()));
   lpPacket.add<lp::FragIndexField>(0);
@@ -154,22 +147,18 @@ BOOST_AUTO_TEST_CASE(CaptureLpFragment)
 
   this->receive(lpPacket);
 
-  const std::string expectedOutput =
-    "0.000000 Tunnel Type: EthernetFrame, NDNLPv2-FRAGMENT\n";
-
-  BOOST_CHECK(output.is_equal(expectedOutput));
+  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, NDNLPv2-FRAGMENT\n";
+  BOOST_CHECK(output.is_equal(expected));
 }
 
-BOOST_AUTO_TEST_CASE(CaptureIdlePacket)
+BOOST_AUTO_TEST_CASE(CaptureIdleLpPacket)
 {
   lp::Packet lpPacket;
 
   this->receive(lpPacket);
 
-  const std::string expectedOutput =
-    "0.000000 Tunnel Type: EthernetFrame, NDNLPv2-IDLE\n";
-
-  BOOST_CHECK(output.is_equal(expectedOutput));
+  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, NDNLPv2-IDLE\n";
+  BOOST_CHECK(output.is_equal(expected));
 }
 
 BOOST_AUTO_TEST_CASE(CaptureIncompletePacket)
@@ -188,10 +177,8 @@ BOOST_AUTO_TEST_CASE(CaptureIncompletePacket)
 
   this->receive(buffer);
 
-  const std::string expectedOutput =
-    "0.000000 Tunnel Type: EthernetFrame, INCOMPLETE-PACKET, size: 4\n";
-
-  BOOST_CHECK(output.is_equal(expectedOutput));
+  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, INCOMPLETE-PACKET, size: 4\n";
+  BOOST_CHECK(output.is_equal(expected));
 }
 
 BOOST_AUTO_TEST_CASE(CaptureUnknownNetworkPacket)
@@ -200,23 +187,21 @@ BOOST_AUTO_TEST_CASE(CaptureUnknownNetworkPacket)
 
   this->receive(buffer);
 
-  const std::string expectedOutput =
-    "0.000000 Tunnel Type: EthernetFrame, UNKNOWN-NETWORK-PACKET\n";
-
-  BOOST_CHECK(output.is_equal(expectedOutput));
+  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, UNKNOWN-NETWORK-PACKET\n";
+  BOOST_CHECK(output.is_equal(expected));
 }
 
-BOOST_AUTO_TEST_CASE(DumpPcapTrace)
+BOOST_AUTO_TEST_CASE(PcapTraceFile)
 {
   dump.inputFile = "tests/dump/nack.pcap";
-  dump.pcapProgram = "";
+  dump.pcapFilter = "";
 
   {
     StdCoutRedirector redirect(output);
     dump.run();
   }
 
-  const std::string expectedOutput =
+  const std::string expected =
     "1456768916.467099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, INTEREST: /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=2581361680\n"
     "1456768916.567099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, INTEREST: /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=4138343109\n"
     "1456768916.667099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, INTEREST: /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=4034910304\n"
@@ -230,12 +215,11 @@ BOOST_AUTO_TEST_CASE(DumpPcapTrace)
     "1456768917.767099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=2002441365\n"
     "1456768917.967099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: TCP, INTEREST: /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n"
     "1456768918.067099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n";
-
-  BOOST_CHECK(output.is_equal(expectedOutput));
+  BOOST_CHECK(output.is_equal(expected));
 }
 
-
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestNdnDump
+BOOST_AUTO_TEST_SUITE_END() // Dump
 
 } // namespace tests
 } // namespace dump

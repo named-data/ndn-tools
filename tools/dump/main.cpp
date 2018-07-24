@@ -35,11 +35,8 @@
  **/
 
 #include "ndndump.hpp"
+#include "core/common.hpp"
 #include "core/version.hpp"
-
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/variables_map.hpp>
-#include <boost/program_options/parsers.hpp>
 
 #include <sstream>
 
@@ -51,61 +48,62 @@ namespace po = boost::program_options;
 static void
 usage(std::ostream& os, const std::string& appName, const po::options_description& options)
 {
-  os << "Usage:\n"
-     << "  " << appName << " [-i interface] [-f name-filter] [tcpdump-expression] \n"
+  os << "Usage: " << appName << " [options] [pcap-filter]\n"
      << "\n"
-     << "Default tcpdump-expression:\n"
-     << "  '(ether proto 0x8624) || (tcp port 6363) || (udp port 6363)'\n"
-     << "\n";
-  os << options;
+     << "Default pcap-filter:\n"
+     << "    '" << NdnDump::getDefaultPcapFilter() << "'\n"
+     << "\n"
+     << options;
 }
 
 static int
 main(int argc, char* argv[])
 {
-  Ndndump instance;
-  std::string filter;
+  NdnDump instance;
+  std::string nameFilter;
+  std::vector<std::string> pcapFilter;
 
-  po::options_description visibleOptions;
+  po::options_description visibleOptions("Options");
   visibleOptions.add_options()
-    ("help,h", "Produce this help message")
-    ("version,V", "Display version and exit")
+    ("help,h",      "print this help message and exit")
     ("interface,i", po::value<std::string>(&instance.interface),
-                    "Interface from which to dump packets")
-    ("read,r", po::value<std::string>(&instance.inputFile),
-               "Read packets from file")
-    ("verbose,v", "When parsing and printing, produce verbose output")
-    // ("write,w", po::value<std::string>(&instance.outputFile),
-    //  "Write the raw packets to file rather than parsing and printing them out")
-    ("filter,f", po::value<std::string>(&filter),
-                 "Regular expression to filter out Interest and Data packets")
+                    "capture packets from the specified interface; if unspecified, the first "
+                    "non-loopback interface will be used; on Linux, the special value \"any\" "
+                    "can be used to capture from all interfaces")
+    ("read,r",      po::value<std::string>(&instance.inputFile),
+                    "read packets from the specified file; use \"-\" to read from standard input")
+    ("filter,f",    po::value<std::string>(&nameFilter),
+                    "print packet only if name matches this regular expression")
+    ("verbose,v",   po::bool_switch(&instance.isVerbose),
+                    "print more detailed information about each packet")
+    ("version,V",   "print program version and exit")
     ;
 
   po::options_description hiddenOptions;
   hiddenOptions.add_options()
-    ("pcap-program", po::value<std::vector<std::string>>());
+    ("pcap-filter", po::value<std::vector<std::string>>(&pcapFilter))
+    ;
 
-  po::positional_options_description positionalArguments;
-  positionalArguments.add("pcap-program", -1);
+  po::positional_options_description posOptions;
+  posOptions.add("pcap-filter", -1);
 
   po::options_description allOptions;
-  allOptions.add(visibleOptions)
-            .add(hiddenOptions);
+  allOptions.add(visibleOptions).add(hiddenOptions);
 
   po::variables_map vm;
-
   try {
-    po::store(po::command_line_parser(argc, argv)
-                .options(allOptions)
-                .positional(positionalArguments)
-                .run(),
-              vm);
+    po::store(po::command_line_parser(argc, argv).options(allOptions).positional(posOptions).run(), vm);
     po::notify(vm);
   }
   catch (const po::error& e) {
     std::cerr << "ERROR: " << e.what() << "\n\n";
     usage(std::cerr, argv[0], visibleOptions);
-    return 1;
+    return 2;
+  }
+  catch (const boost::bad_any_cast& e) {
+    std::cerr << "ERROR: " << e.what() << "\n\n";
+    usage(std::cerr, argv[0], visibleOptions);
+    return 2;
   }
 
   if (vm.count("help") > 0) {
@@ -114,45 +112,39 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("version") > 0) {
-    std::cout << "ndndump " << tools::VERSION << '\n';
+    std::cout << "ndndump " << tools::VERSION << std::endl;
     return 0;
   }
 
-  if (vm.count("verbose") > 0) {
-    instance.isVerbose = true;
+  if (vm.count("interface") > 0 && vm.count("read") > 0) {
+    std::cerr << "ERROR: conflicting '--interface' and '--read' options specified\n\n";
+    usage(std::cerr, argv[0], visibleOptions);
+    return 2;
   }
 
   if (vm.count("filter") > 0) {
     try {
-      instance.nameFilter = std::regex(filter);
+      instance.nameFilter = std::regex(nameFilter);
     }
     catch (const std::regex_error& e) {
-      std::cerr << "ERROR: Invalid filter expression: " << e.what() << std::endl;
+      std::cerr << "ERROR: invalid filter regex: " << e.what() << std::endl;
       return 2;
     }
   }
 
-  if (vm.count("pcap-program") > 0) {
-    const auto& items = vm["pcap-program"].as<std::vector<std::string>>();
-
+  if (vm.count("pcap-filter") > 0) {
     std::ostringstream os;
-    std::copy(items.begin(), items.end(), std::ostream_iterator<std::string>(os, " "));
-    instance.pcapProgram = os.str();
-  }
-
-  if (vm.count("read") > 0 && vm.count("interface") > 0) {
-    std::cerr << "ERROR: Conflicting -r and -i options\n\n";
-    usage(std::cerr, argv[0], visibleOptions);
-    return 2;
+    std::copy(pcapFilter.begin(), pcapFilter.end(), make_ostream_joiner(os, " "));
+    instance.pcapFilter = os.str();
   }
 
   try {
     instance.run();
   }
   catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << "\n";
+    std::cerr << "ERROR: " << e.what() << std::endl;
+    return 1;
   }
-
   return 0;
 }
 

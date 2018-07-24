@@ -41,73 +41,59 @@
 
 #include <pcap.h>
 #include <regex>
-#include <ndn-cxx/name.hpp>
 
 namespace ndn {
 namespace dump {
 
-class Ndndump : noncopyable
+class NdnDump : noncopyable
 {
 public:
   class Error : public std::runtime_error
   {
   public:
-    explicit
-    Error(const std::string& what)
-      : std::runtime_error(what)
-    {
-    }
+    using std::runtime_error::runtime_error;
   };
 
-  Ndndump();
+  ~NdnDump();
 
   void
   run();
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   void
-  onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet) const;
+  printPacket(const pcap_pkthdr* pkthdr, const uint8_t* payload) const;
 
-private:
-  static void
-  onCapturedPacket(uint8_t* userData, const pcap_pkthdr* header, const uint8_t* packet)
+  static constexpr const char*
+  getDefaultPcapFilter() noexcept
   {
-    reinterpret_cast<const Ndndump*>(userData)->onCapturedPacket(header, packet);
+    return "(ether proto 0x8624) or (tcp port 6363) or (udp port 6363)";
   }
 
+private:
   void
-  printInterceptTime(std::ostream& os, const pcap_pkthdr* header) const;
+  printTimestamp(std::ostream& os, const timeval& tv) const;
 
   int
   skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& payloadSize) const;
 
   int
-  skipAndProcessFrameHeader(int frameType,
-                            const uint8_t*& payload, ssize_t& payloadSize,
+  skipAndProcessFrameHeader(int frameType, const uint8_t*& payload, ssize_t& payloadSize,
                             std::ostream& os) const;
 
   bool
   matchesFilter(const Name& name) const;
 
-public:
-  bool isVerbose;
-  // bool isSuccinct;
-  // bool isMatchInverted;
-  // bool shouldPrintStructure;
-  // bool isTcpOnly;
-  // bool isUdpOnly;
-
-  std::string pcapProgram;
+public: // options
   std::string interface;
-  optional<std::regex> nameFilter;
   std::string inputFile;
-  // std::string outputFile;
+  std::string pcapFilter = getDefaultPcapFilter();
+  optional<std::regex> nameFilter;
+  bool isVerbose = false;
 
 private:
-  pcap_t* m_pcap;
+  pcap_t* m_pcap = nullptr;
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  int m_dataLinkType;
+  int m_dataLinkType = -1;
 };
 
 } // namespace dump
