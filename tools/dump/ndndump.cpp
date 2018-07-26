@@ -122,10 +122,9 @@ NdnDump::run()
     }
 
     bpf_program program;
-    int res = pcap_compile(m_pcap, &program, pcapFilter.data(), 0, PCAP_NETMASK_UNKNOWN);
+    int res = pcap_compile(m_pcap, &program, pcapFilter.data(), 1, PCAP_NETMASK_UNKNOWN);
     if (res < 0) {
-      BOOST_THROW_EXCEPTION(Error("Cannot parse pcap filter expression '" + pcapFilter + "': " +
-                                  pcap_geterr(m_pcap)));
+      BOOST_THROW_EXCEPTION(Error("Cannot compile pcap filter '" + pcapFilter + "': " + pcap_geterr(m_pcap)));
     }
 
     res = pcap_setfilter(m_pcap, &program);
