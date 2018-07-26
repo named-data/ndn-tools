@@ -35,7 +35,6 @@
  **/
 
 #include "ndndump.hpp"
-#include "core/common.hpp"
 #include "core/version.hpp"
 
 #include <sstream>
@@ -112,7 +111,8 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("version") > 0) {
-    std::cout << "ndndump " << tools::VERSION << std::endl;
+    std::cout << "ndndump " << tools::VERSION << "\n"
+              << pcap_lib_version() << std::endl;
     return 0;
   }
 
