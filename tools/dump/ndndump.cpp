@@ -189,7 +189,13 @@ NdnDump::printPacket(const pcap_pkthdr* pkthdr, const uint8_t* payload) const
   Block netPacket;
 
   if (block.type() == lp::tlv::LpPacket) {
-    lpPacket = lp::Packet(block);
+    try {
+      lpPacket.wireDecode(block);
+    }
+    catch (const tlv::Error& e) {
+      std::cout << os.str() << ", " << "INVALID-NDNLPv2-PACKET: " << e.what() << std::endl;
+      return;
+    }
 
     Buffer::const_iterator begin, end;
     if (lpPacket.has<lp::FragmentField>()) {
@@ -237,7 +243,7 @@ NdnDump::printPacket(const pcap_pkthdr* pkthdr, const uint8_t* payload) const
     }
   }
   catch (const tlv::Error& e) {
-    std::cerr << e.what() << std::endl;
+    std::cout << os.str() << ", " << "INVALID-PACKET: " << e.what() << std::endl;
   }
 }
 

@@ -213,19 +213,63 @@ BOOST_AUTO_TEST_CASE(PcapTraceFile)
   }
 
   const std::string expected =
-    "1456768916.467099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, INTEREST: /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=2581361680\n"
-    "1456768916.567099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, INTEREST: /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=4138343109\n"
-    "1456768916.667099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, INTEREST: /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=4034910304\n"
-    "1456768916.767099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: UDP, NACK: Congestion, /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=2581361680\n"
-    "1456768916.867099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: UDP, NACK: Duplicate, /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=4138343109\n"
-    "1456768916.967099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: UDP, NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=4034910304\n"
-    "1456768917.067099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: TCP, INTEREST: /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=3192497423\n"
-    "1456768917.267099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, NACK: Congestion, /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=3192497423\n"
-    "1456768917.367099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: TCP, INTEREST: /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=522390724\n"
-    "1456768917.567099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, NACK: Duplicate, /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=522390724\n"
-    "1456768917.767099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=2002441365\n"
-    "1456768917.967099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: TCP, INTEREST: /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n"
-    "1456768918.067099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n";
+    "1456768916.467099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, "
+    "INTEREST: /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=2581361680\n"
+    "1456768916.567099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, "
+    "INTEREST: /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=4138343109\n"
+    "1456768916.667099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, "
+    "INTEREST: /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=4034910304\n"
+    "1456768916.767099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: UDP, "
+    "NACK: Congestion, /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=2581361680\n"
+    "1456768916.867099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: UDP, "
+    "NACK: Duplicate, /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=4138343109\n"
+    "1456768916.967099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: UDP, "
+    "NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=4034910304\n"
+    "1456768917.067099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: TCP, "
+    "INTEREST: /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=3192497423\n"
+    "1456768917.267099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, "
+    "NACK: Congestion, /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=3192497423\n"
+    "1456768917.367099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: TCP, "
+    "INTEREST: /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=522390724\n"
+    "1456768917.567099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, "
+    "NACK: Duplicate, /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=522390724\n"
+    "1456768917.767099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, "
+    "NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=2002441365\n"
+    "1456768917.967099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: TCP, "
+    "INTEREST: /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n"
+    "1456768918.067099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, "
+    "NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n";
+  BOOST_CHECK(output.is_equal(expected));
+}
+
+BOOST_AUTO_TEST_CASE(InvalidTlvLength)
+{
+  dump.inputFile = "tests/dump/invalid-tlv-length.pcap";
+  dump.wantTimestamp = false;
+
+  {
+    StdCoutRedirector redirect(output);
+    dump.run();
+  }
+
+  const std::string expected =
+    "From: 128.196.203.36, To: 128.187.81.12, Tunnel Type: TCP, INVALID-NDNLPv2-PACKET: "
+    "TLV-LENGTH of sub-element of type 5 exceeds TLV-VALUE boundary of parent block\n";
+  BOOST_CHECK(output.is_equal(expected));
+}
+
+BOOST_AUTO_TEST_CASE(UnrecognizedLpField)
+{
+  dump.inputFile = "tests/dump/unrecognized-lp-field.pcap";
+  dump.wantTimestamp = false;
+
+  {
+    StdCoutRedirector redirect(output);
+    dump.run();
+  }
+
+  const std::string expected = "From: 128.196.203.36, To: 128.187.81.12, Tunnel Type: TCP, "
+                               "INVALID-NDNLPv2-PACKET: unrecognized field 4 cannot be ignored\n";
   BOOST_CHECK(output.is_equal(expected));
 }
 
