@@ -74,6 +74,7 @@ main(int argc, char* argv[])
     ("filter,f",    po::value<std::string>(&nameFilter),
                     "print packet only if name matches this regular expression")
     ("no-promiscuous-mode,p", po::bool_switch(), "do not put the interface into promiscuous mode")
+    ("no-timestamp,t",        po::bool_switch(), "do not print a timestamp for each packet")
     ("verbose,v",   po::bool_switch(&instance.wantVerbose),
                     "print more detailed information about each packet")
     ("version,V",   "print program version and exit")
@@ -140,6 +141,7 @@ main(int argc, char* argv[])
   }
 
   instance.wantPromisc = !vm["no-promiscuous-mode"].as<bool>();
+  instance.wantTimestamp = !vm["no-timestamp"].as<bool>();
 
   try {
     instance.run();

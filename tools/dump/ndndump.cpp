@@ -158,7 +158,9 @@ NdnDump::printPacket(const pcap_pkthdr* pkthdr, const uint8_t* payload) const
   }
 
   std::ostringstream os;
-  printTimestamp(os, pkthdr->ts);
+  if (wantTimestamp) {
+    printTimestamp(os, pkthdr->ts);
+  }
 
   ssize_t payloadSize = pkthdr->len;
 

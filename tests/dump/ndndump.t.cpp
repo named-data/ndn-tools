@@ -191,6 +191,17 @@ BOOST_AUTO_TEST_CASE(CaptureUnknownNetworkPacket)
   BOOST_CHECK(output.is_equal(expected));
 }
 
+BOOST_AUTO_TEST_CASE(NoTimestamp)
+{
+  dump.wantTimestamp = false;
+
+  lp::Packet lpPacket;
+  this->receive(lpPacket);
+
+  const std::string expected = "Tunnel Type: EthernetFrame, NDNLPv2-IDLE\n";
+  BOOST_CHECK(output.is_equal(expected));
+}
+
 BOOST_AUTO_TEST_CASE(PcapTraceFile)
 {
   dump.inputFile = "tests/dump/nack.pcap";

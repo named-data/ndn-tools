@@ -54,6 +54,10 @@ Options
 
     Do not put the interface into promiscuous mode.
 
+.. option:: -t, --no-timestamp
+
+    Do not print a timestamp for each packet.
+
 .. option:: -v, --verbose
 
     Produce verbose output.

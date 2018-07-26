@@ -88,6 +88,7 @@ public: // options
   std::string pcapFilter = getDefaultPcapFilter();
   optional<std::regex> nameFilter;
   bool wantPromisc = true;
+  bool wantTimestamp = true;
   bool wantVerbose = false;
 
 private:
