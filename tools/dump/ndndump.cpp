@@ -82,7 +82,7 @@ NdnDump::run()
 
   std::string action;
   if (!interface.empty()) {
-    m_pcap = pcap_open_live(interface.data(), 65535, 0, 1000, errbuf);
+    m_pcap = pcap_open_live(interface.data(), 65535, wantPromisc, 1000, errbuf);
     if (m_pcap == nullptr) {
       BOOST_THROW_EXCEPTION(Error("Cannot open interface " + interface + ": " + errbuf));
     }
@@ -117,7 +117,7 @@ NdnDump::run()
   }
 
   if (!pcapFilter.empty()) {
-    if (isVerbose) {
+    if (wantVerbose) {
       std::cerr << "ndndump: using pcap filter: " << pcapFilter << std::endl;
     }
 

@@ -87,7 +87,8 @@ public: // options
   std::string inputFile;
   std::string pcapFilter = getDefaultPcapFilter();
   optional<std::regex> nameFilter;
-  bool isVerbose = false;
+  bool wantPromisc = true;
+  bool wantVerbose = false;
 
 private:
   pcap_t* m_pcap = nullptr;

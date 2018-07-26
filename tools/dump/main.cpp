@@ -73,7 +73,8 @@ main(int argc, char* argv[])
                     "read packets from the specified file; use \"-\" to read from standard input")
     ("filter,f",    po::value<std::string>(&nameFilter),
                     "print packet only if name matches this regular expression")
-    ("verbose,v",   po::bool_switch(&instance.isVerbose),
+    ("no-promiscuous-mode,p", po::bool_switch(), "do not put the interface into promiscuous mode")
+    ("verbose,v",   po::bool_switch(&instance.wantVerbose),
                     "print more detailed information about each packet")
     ("version,V",   "print program version and exit")
     ;
@@ -137,6 +138,8 @@ main(int argc, char* argv[])
     std::copy(pcapFilter.begin(), pcapFilter.end(), make_ostream_joiner(os, " "));
     instance.pcapFilter = os.str();
   }
+
+  instance.wantPromisc = !vm["no-promiscuous-mode"].as<bool>();
 
   try {
     instance.run();
