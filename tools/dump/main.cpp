@@ -50,7 +50,7 @@ usage(std::ostream& os, const std::string& appName, const po::options_descriptio
   os << "Usage: " << appName << " [options] [pcap-filter]\n"
      << "\n"
      << "Default pcap-filter:\n"
-     << "    '" << NdnDump::getDefaultPcapFilter() << "'\n"
+     << "  '" << NdnDump::getDefaultPcapFilter() << "'\n"
      << "\n"
      << options;
 }

@@ -65,7 +65,7 @@ public:
   static constexpr const char*
   getDefaultPcapFilter() noexcept
   {
-    return "(ether proto 0x8624) or (tcp port 6363) or (udp port 6363)";
+    return "(ether proto 0x8624) or (tcp port 6363) or (udp port 6363) or (udp port 56363)";
   }
 
 private:
