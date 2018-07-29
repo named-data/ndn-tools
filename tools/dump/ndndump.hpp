@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018,  Regents of the University of California.
+ * Copyright (c) 2011-2018, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -16,23 +16,6 @@
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
-/*
- * Copyright (c) 2011-2014, Regents of the University of California,
- *
- * This file is part of ndndump, the packet capture and analysis tool for Named Data
- * Networking (NDN).
- *
- * ndndump is free software: you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- *
- * ndndump is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * ndndump, e.g., in COPYING file.  If not, see <http://www.gnu.org/licenses/>.
- **/
 
 #ifndef NDN_TOOLS_DUMP_NDNDUMP_HPP
 #define NDN_TOOLS_DUMP_NDNDUMP_HPP
@@ -44,6 +27,8 @@
 
 namespace ndn {
 namespace dump {
+
+class OutputFormatter;
 
 class NdnDump : noncopyable
 {
@@ -72,12 +57,32 @@ private:
   void
   printTimestamp(std::ostream& os, const timeval& tv) const;
 
-  int
-  skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& payloadSize) const;
+  bool
+  dispatchByEtherType(OutputFormatter& out, const uint8_t* pkt, size_t len, uint16_t etherType) const;
 
-  int
-  skipAndProcessFrameHeader(int frameType, const uint8_t*& payload, ssize_t& payloadSize,
-                            std::ostream& os) const;
+  bool
+  dispatchByIpProto(OutputFormatter& out, const uint8_t* pkt, size_t len, uint8_t ipProto) const;
+
+  bool
+  printEther(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
+
+  bool
+  printLinuxSll(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
+
+  bool
+  printPpp(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
+
+  bool
+  printIp4(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
+
+  bool
+  printTcp(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
+
+  bool
+  printUdp(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
+
+  bool
+  printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
 
   bool
   matchesFilter(const Name& name) const;

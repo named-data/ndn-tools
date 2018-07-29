@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018,  University of Memphis.
+ * Copyright (c) 2014-2018, University of Memphis.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(CaptureIncompletePacket)
 
   this->receive(buffer);
 
-  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, INCOMPLETE-PACKET, size: 4\n";
+  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, INCOMPLETE-PACKET, length 4\n";
   BOOST_CHECK(output.is_equal(expected));
 }
 

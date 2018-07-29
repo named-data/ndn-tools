@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018,  Regents of the University of California.
+ * Copyright (c) 2011-2018, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -16,23 +16,6 @@
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
-/*
- * Copyright (c) 2011-2014, Regents of the University of California,
- *
- * This file is part of ndndump, the packet capture and analysis tool for Named Data
- * Networking (NDN).
- *
- * ndndump is free software: you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- *
- * ndndump is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * ndndump, e.g., in COPYING file.  If not, see <http://www.gnu.org/licenses/>.
- **/
 
 #include "ndndump.hpp"
 
@@ -49,20 +32,60 @@
 #include <ndn-cxx/lp/nack.hpp>
 #include <ndn-cxx/lp/packet.hpp>
 #include <ndn-cxx/net/ethernet.hpp>
+#include <ndn-cxx/util/string-helper.hpp>
+
+#include <boost/endian/conversion.hpp>
 
 namespace ndn {
 namespace dump {
+
+namespace endian = boost::endian;
+
+class OutputFormatter : noncopyable
+{
+public:
+  OutputFormatter(std::ostream& os, std::string d)
+    : m_os(os)
+    , m_delim(std::move(d))
+  {
+  }
+
+  OutputFormatter&
+  addDelimiter()
+  {
+    if (!m_isEmpty) {
+      m_wantDelim = true;
+    }
+    return *this;
+  }
+
+private:
+  std::ostream& m_os;
+  std::string m_delim;
+  bool m_isEmpty = true;
+  bool m_wantDelim = false;
+
+  template<typename T>
+  friend OutputFormatter& operator<<(OutputFormatter&, const T&);
+};
+
+template<typename T>
+OutputFormatter&
+operator<<(OutputFormatter& out, const T& val)
+{
+  if (out.m_wantDelim) {
+    out.m_os << out.m_delim;
+    out.m_wantDelim = false;
+  }
+  out.m_os << val;
+  out.m_isEmpty = false;
+  return out;
+}
 
 NdnDump::~NdnDump()
 {
   if (m_pcap)
     pcap_close(m_pcap);
-}
-
-static void
-pcapCallback(uint8_t* user, const pcap_pkthdr* pkthdr, const uint8_t* payload)
-{
-  reinterpret_cast<const NdnDump*>(user)->printPacket(pkthdr, payload);
 }
 
 void
@@ -134,7 +157,11 @@ NdnDump::run()
     }
   }
 
-  if (pcap_loop(m_pcap, -1, &pcapCallback, reinterpret_cast<uint8_t*>(this)) < 0) {
+  auto callback = [] (uint8_t* user, const pcap_pkthdr* pkthdr, const uint8_t* payload) {
+    reinterpret_cast<const NdnDump*>(user)->printPacket(pkthdr, payload);
+  };
+
+  if (pcap_loop(m_pcap, -1, callback, reinterpret_cast<uint8_t*>(this)) < 0) {
     BOOST_THROW_EXCEPTION(Error("pcap_loop: "s + pcap_geterr(m_pcap)));
   }
 }
@@ -158,92 +185,29 @@ NdnDump::printPacket(const pcap_pkthdr* pkthdr, const uint8_t* payload) const
   }
 
   std::ostringstream os;
-  if (wantTimestamp) {
-    printTimestamp(os, pkthdr->ts);
-  }
+  OutputFormatter out(os, ", ");
 
-  ssize_t payloadSize = pkthdr->len;
-
-  int frameType = skipDataLinkHeaderAndGetFrameType(payload, payloadSize);
-  if (frameType < 0) {
+  bool shouldPrint = false;
+  switch (m_dataLinkType) {
+  case DLT_EN10MB:
+    shouldPrint = printEther(out, payload, pkthdr->len);
+    break;
+  case DLT_LINUX_SLL:
+    shouldPrint = printLinuxSll(out, payload, pkthdr->len);
+    break;
+  case DLT_PPP:
+    shouldPrint = printPpp(out, payload, pkthdr->len);
+    break;
+  default:
+    BOOST_ASSERT(false);
     return;
   }
 
-  int res = skipAndProcessFrameHeader(frameType, payload, payloadSize, os);
-  if (res < 0) {
-    return;
-  }
-
-  bool isOk = false;
-  Block block;
-  std::tie(isOk, block) = Block::fromBuffer(payload, payloadSize);
-  if (!isOk) {
-    // if packet is incomplete, we will not be able to process it
-    if (payloadSize > 0) {
-      std::cout << os.str() << ", " << "INCOMPLETE-PACKET" << ", size: " << payloadSize << std::endl;
+  if (shouldPrint) {
+    if (wantTimestamp) {
+      printTimestamp(std::cout, pkthdr->ts);
     }
-    return;
-  }
-
-  lp::Packet lpPacket;
-  Block netPacket;
-
-  if (block.type() == lp::tlv::LpPacket) {
-    try {
-      lpPacket.wireDecode(block);
-    }
-    catch (const tlv::Error& e) {
-      std::cout << os.str() << ", " << "INVALID-NDNLPv2-PACKET: " << e.what() << std::endl;
-      return;
-    }
-
-    Buffer::const_iterator begin, end;
-    if (lpPacket.has<lp::FragmentField>()) {
-      std::tie(begin, end) = lpPacket.get<lp::FragmentField>();
-    }
-    else {
-      std::cout << os.str() << ", " << "NDNLPv2-IDLE" << std::endl;
-      return;
-    }
-
-    bool isOk = false;
-    std::tie(isOk, netPacket) = Block::fromBuffer(&*begin, std::distance(begin, end));
-    if (!isOk) {
-      // if network packet is fragmented, we will not be able to process it
-      std::cout << os.str() << ", " << "NDNLPv2-FRAGMENT" << std::endl;
-      return;
-    }
-  }
-  else {
-    netPacket = block;
-  }
-
-  try {
-    if (netPacket.type() == tlv::Interest) {
-      Interest interest(netPacket);
-      if (matchesFilter(interest.getName())) {
-        if (lpPacket.has<lp::NackField>()) {
-          lp::Nack nack(interest);
-          nack.setHeader(lpPacket.get<lp::NackField>());
-          std::cout << os.str() << ", " << "NACK: " << nack.getReason() << ", " << interest << std::endl;
-        }
-        else {
-          std::cout << os.str() << ", " << "INTEREST: " << interest << std::endl;
-        }
-      }
-    }
-    else if (netPacket.type() == tlv::Data) {
-      Data data(netPacket);
-      if (matchesFilter(data.getName())) {
-        std::cout << os.str() << ", " << "DATA: " << data.getName() << std::endl;
-      }
-    }
-    else {
-      std::cout << os.str() << ", " << "UNKNOWN-NETWORK-PACKET" << std::endl;
-    }
-  }
-  catch (const tlv::Error& e) {
-    std::cout << os.str() << ", " << "INVALID-PACKET: " << e.what() << std::endl;
+    std::cout << os.str() << std::endl;
   }
 }
 
@@ -257,143 +221,284 @@ NdnDump::printTimestamp(std::ostream& os, const timeval& tv) const
      << " ";
 }
 
-int
-NdnDump::skipDataLinkHeaderAndGetFrameType(const uint8_t*& payload, ssize_t& payloadSize) const
+bool
+NdnDump::dispatchByEtherType(OutputFormatter& out, const uint8_t* pkt, size_t len, uint16_t etherType) const
 {
-  int frameType = -1;
+  out.addDelimiter();
 
-  switch (m_dataLinkType) {
-    case DLT_EN10MB: { // Ethernet frames can have Ethernet or 802.3 encapsulation
-      const ether_header* eh = reinterpret_cast<const ether_header*>(payload);
-
-      if (payloadSize < ETHER_HDR_LEN) {
-        std::cerr << "Invalid Ethernet frame" << std::endl;
-        return -1;
-      }
-
-      frameType = ntohs(eh->ether_type);
-      payloadSize -= ETHER_HDR_LEN;
-      payload += ETHER_HDR_LEN;
-
-      break;
-    }
-    case DLT_PPP: {
-      frameType = *payload;
-      --payloadSize;
-      ++payload;
-
-      if (!(frameType & 1)) {
-        frameType = (frameType << 8) | *payload;
-        --payloadSize;
-        ++payload;
-      }
-
-      if (payloadSize < 4) { // PPP_HDRLEN in linux/ppp_defs.h
-        std::cerr << "Invalid PPP frame" << std::endl;
-        return -1;
-      }
-
-      break;
-    }
-    case DLT_LINUX_SLL: {
-      const sll_header* sll = reinterpret_cast<const sll_header*>(payload);
-
-      if (payloadSize < SLL_HDR_LEN) {
-        std::cerr << "Invalid LINUX_SLL frame" << std::endl;
-        return -1;
-      }
-
-      frameType = ntohs(sll->sll_protocol);
-      payloadSize -= SLL_HDR_LEN;
-      payload += SLL_HDR_LEN;
-
-      break;
-    }
-    default:
-      std::cerr << "Unknown frame type" << std::endl;
-      break;
+  switch (etherType) {
+  case ETHERTYPE_IP:
+    return printIp4(out, pkt, len);
+  case ethernet::ETHERTYPE_NDN:
+  case 0x7777: // NDN ethertype used in ndnSIM
+    out << "Tunnel Type: EthernetFrame";
+    return printNdn(out, pkt, len);
+  default:
+    out << "Unsupported ethertype " << AsHex{etherType};
+    return true;
   }
-
-  return frameType;
 }
 
-int
-NdnDump::skipAndProcessFrameHeader(int frameType, const uint8_t*& payload, ssize_t& payloadSize,
-                                   std::ostream& os) const
+bool
+NdnDump::dispatchByIpProto(OutputFormatter& out, const uint8_t* pkt, size_t len, uint8_t ipProto) const
 {
-  switch (frameType) {
-    case ETHERTYPE_IP:
-    case DLT_EN10MB: { // pcap encapsulation
-      const ip* ipHeader = reinterpret_cast<const ip*>(payload);
-      size_t ipHeaderSize = ipHeader->ip_hl * 4;
-      if (ipHeaderSize < 20) {
-        std::cerr << "Invalid IPv4 header len: " << ipHeaderSize << " bytes" << std::endl;
-        return -1;
-      }
+  out.addDelimiter();
 
-      os << "From: " << inet_ntoa(ipHeader->ip_src) << ", ";
-      os << "To: "   << inet_ntoa(ipHeader->ip_dst);
+  switch (ipProto) {
+  case IPPROTO_TCP:
+    return printTcp(out, pkt, len);
+  case IPPROTO_UDP:
+    return printUdp(out, pkt, len);
+  default:
+    out << "Unsupported IP proto " << ipProto;
+    return true;
+  }
+}
 
-      payloadSize -= ipHeaderSize;
-      payload += ipHeaderSize;
+bool
+NdnDump::printEther(OutputFormatter& out, const uint8_t* pkt, size_t len) const
+{
+  // IEEE 802.3 Ethernet
 
-      if (payloadSize < 0) {
-        std::cerr << "Invalid IPv4 packet" << std::endl;
-        return -1;
-      }
-
-      switch (ipHeader->ip_p) {
-        case IPPROTO_UDP: {
-          payloadSize -= sizeof(udphdr);
-          payload += sizeof(udphdr);
-
-          if (payloadSize < 0) {
-            std::cerr << "Invalid UDP/IP packet" << std::endl;
-            return -1;
-          }
-
-          os << ", Tunnel Type: UDP";
-          break;
-        }
-        case IPPROTO_TCP: {
-          const tcphdr* tcpHeader = reinterpret_cast<const tcphdr*>(payload);
-          size_t tcpHeaderSize = tcpHeader->th_off * 4;
-
-          if (tcpHeaderSize < 20) {
-            std::cerr << "Invalid TCP header len: " << tcpHeaderSize << " bytes" << std::endl;
-            return -1;
-          }
-
-          payloadSize -= tcpHeaderSize;
-          payload += tcpHeaderSize;
-
-          if (payloadSize < 0) {
-            std::cerr << "Invalid TCP/IP packet" << std::endl;
-            return -1;
-          }
-
-          os << ", Tunnel Type: TCP";
-          break;
-        }
-        default:
-          return -1;
-      }
-      break;
-    }
-    case ethernet::ETHERTYPE_NDN:
-    case 0x7777: // NDN ethertype used in ndnSIM
-      os << "Tunnel Type: EthernetFrame";
-      break;
-    case 0x0077: // protocol field in PPP header used in ndnSIM
-      os << "Tunnel Type: PPP";
-      payloadSize -= 2;
-      payload += 2;
-      break;
-    default: // do nothing if it is not a recognized type of a packet
-      return -1;
+  if (len < ethernet::HDR_LEN) {
+    out << "Invalid Ethernet frame, length " << len;
+    return true;
   }
 
-  return 0;
+  auto ether = reinterpret_cast<const ether_header*>(pkt);
+  pkt += ethernet::HDR_LEN;
+  len -= ethernet::HDR_LEN;
+
+  return dispatchByEtherType(out, pkt, len, endian::big_to_native(ether->ether_type));
+}
+
+bool
+NdnDump::printLinuxSll(OutputFormatter& out, const uint8_t* pkt, size_t len) const
+{
+  // Linux "cooked" capture encapsulation
+  // https://www.tcpdump.org/linktypes/LINKTYPE_LINUX_SLL.html
+
+  if (len < SLL_HDR_LEN) {
+    out << "Invalid LINUX_SLL frame, length " << len;
+    return true;
+  }
+
+  auto sll = reinterpret_cast<const sll_header*>(pkt);
+  pkt += SLL_HDR_LEN;
+  len -= SLL_HDR_LEN;
+
+  return dispatchByEtherType(out, pkt, len, endian::big_to_native(sll->sll_protocol));
+}
+
+bool
+NdnDump::printPpp(OutputFormatter& out, const uint8_t* pkt, size_t len) const
+{
+  // PPP, as per RFC 1661 and RFC 1662; if the first 2 bytes are 0xff and 0x03,
+  // it's PPP in HDLC-like framing, with the PPP header following those two bytes,
+  // otherwise it's PPP without framing, and the packet begins with the PPP header.
+  // The data in the frame is not octet-stuffed or bit-stuffed.
+
+  if (len < 2) {
+    out << "Invalid PPP frame, length " << len;
+    return true;
+  }
+
+  if (pkt[0] == 0xff && pkt[1] == 0x03) {
+    // PPP in HDLC-like framing, skip the Address and Control fields
+    if (len < 4) {
+      out << "Invalid PPP frame, length " << len;
+      return true;
+    }
+    pkt += 2;
+    len -= 2;
+  }
+
+  unsigned int proto = pkt[0];
+  if (proto & 0x1) {
+    // Protocol field is compressed in 1 byte
+    pkt += 1;
+    len -= 1;
+  }
+  else {
+    // Protocol field is 2 bytes, in network byte order
+    proto = (proto << 8) | pkt[1];
+    pkt += 2;
+    len -= 2;
+  }
+
+  switch (proto) {
+  case 0x0077: // NDN in PPP frame, used by ndnSIM pcap traces
+    // For some reason, ndnSIM produces PPP frames with 2 extra bytes
+    // between the protocol field and the beginning of the NDN packet
+    if (len < 2) {
+      out << "Invalid NDN/PPP frame";
+      return true;
+    }
+    pkt += 2;
+    len -= 2;
+    out << "Tunnel Type: PPP";
+    return printNdn(out, pkt, len);
+  default:
+    out << "Unsupported PPP proto " << AsHex{proto};
+    return true;
+  }
+}
+
+bool
+NdnDump::printIp4(OutputFormatter& out, const uint8_t* pkt, size_t len) const
+{
+  out.addDelimiter();
+
+  auto ih = reinterpret_cast<const ip*>(pkt);
+  size_t ipHeaderSize = ih->ip_hl * 4;
+  if (ipHeaderSize < 20) {
+    out << "Invalid IPv4 header len: " << ipHeaderSize << " bytes";
+    return true;
+  }
+
+  out << "From: " << inet_ntoa(ih->ip_src) << ", ";
+  out << "To: "   << inet_ntoa(ih->ip_dst);
+
+  if (len < ipHeaderSize) {
+    out << "Invalid IPv4 packet, length " << len;
+    return true;
+  }
+
+  pkt += ipHeaderSize;
+  len -= ipHeaderSize;
+
+  return dispatchByIpProto(out, pkt, len, ih->ip_p);
+}
+
+bool
+NdnDump::printTcp(OutputFormatter& out, const uint8_t* pkt, size_t len) const
+{
+  out.addDelimiter();
+
+  auto th = reinterpret_cast<const tcphdr*>(pkt);
+  size_t tcpHeaderSize = th->th_off * 4;
+  if (tcpHeaderSize < 20) {
+    out << "Invalid TCP header len: " << tcpHeaderSize << " bytes";
+    return true;
+  }
+
+  if (len < tcpHeaderSize) {
+    out << "Invalid TCP packet, length " << len;
+    return true;
+  }
+
+  pkt += tcpHeaderSize;
+  len -= tcpHeaderSize;
+
+  out << "Tunnel Type: TCP";
+  return printNdn(out, pkt, len);
+}
+
+bool
+NdnDump::printUdp(OutputFormatter& out, const uint8_t* pkt, size_t len) const
+{
+  out.addDelimiter();
+
+  if (len < sizeof(udphdr)) {
+    out << "Invalid UDP packet, length " << len;
+    return true;
+  }
+
+  pkt += sizeof(udphdr);
+  len -= sizeof(udphdr);
+
+  out << "Tunnel Type: UDP";
+  return printNdn(out, pkt, len);
+}
+
+bool
+NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
+{
+  if (len == 0) {
+    return false;
+  }
+  out.addDelimiter();
+
+  bool isOk = false;
+  Block block;
+  std::tie(isOk, block) = Block::fromBuffer(pkt, len);
+  if (!isOk) {
+    // if packet is incomplete, we will not be able to process it
+    out << "INCOMPLETE-PACKET, length " << len;
+    return true;
+  }
+
+  lp::Packet lpPacket;
+  Block netPacket;
+
+  if (block.type() == lp::tlv::LpPacket) {
+    try {
+      lpPacket.wireDecode(block);
+    }
+    catch (const tlv::Error& e) {
+      out << "INVALID-NDNLPv2-PACKET: " << e.what();
+      return true;
+    }
+
+    Buffer::const_iterator begin, end;
+    if (lpPacket.has<lp::FragmentField>()) {
+      std::tie(begin, end) = lpPacket.get<lp::FragmentField>();
+    }
+    else {
+      out << "NDNLPv2-IDLE";
+      return true;
+    }
+
+    bool isOk = false;
+    std::tie(isOk, netPacket) = Block::fromBuffer(&*begin, std::distance(begin, end));
+    if (!isOk) {
+      // if network packet is fragmented, we will not be able to process it
+      out << "NDNLPv2-FRAGMENT";
+      return true;
+    }
+  }
+  else {
+    netPacket = std::move(block);
+  }
+
+  try {
+    switch (netPacket.type()) {
+      case tlv::Interest: {
+        Interest interest(netPacket);
+        if (!matchesFilter(interest.getName())) {
+          return false;
+        }
+
+        if (lpPacket.has<lp::NackField>()) {
+          lp::Nack nack(interest);
+          nack.setHeader(lpPacket.get<lp::NackField>());
+          out << "NACK: " << nack.getReason() << ", " << interest;
+        }
+        else {
+          out << "INTEREST: " << interest;
+        }
+        break;
+      }
+      case tlv::Data: {
+        Data data(netPacket);
+        if (!matchesFilter(data.getName())) {
+          return false;
+        }
+
+        out << "DATA: " << data.getName();
+        break;
+      }
+      default: {
+        out << "UNKNOWN-NETWORK-PACKET";
+        break;
+      }
+    }
+  }
+  catch (const tlv::Error& e) {
+    out << "INVALID-PACKET: " << e.what();
+  }
+
+  return true;
 }
 
 bool
