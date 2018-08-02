@@ -477,7 +477,7 @@ function ndn.dissector(tvb, pInfo, root) -- Tvb, Pinfo, TreeItem
             pktType = "Nack"
          end
 
-         if pktName == "" and block.type == 7 then
+         if block.type == 7 then
             pktName = getUriFromName(block)
          end
       end
@@ -526,5 +526,8 @@ websocketDissectorTable:add("1-65535", ndn)
 
 local ethernetDissectorTable = DissectorTable.get("ethertype")
 ethernetDissectorTable:add(0x8624, ndn)
+
+local pppDissectorTable = DissectorTable.get("ppp.protocol")
+pppDissectorTable:add(0x0077, ndn)
 
 io.stderr:write("NDN dissector successfully loaded\n")

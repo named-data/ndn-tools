@@ -17,6 +17,8 @@ supported in the following cases:
 
 - NDN packets are encapsulated in Ethernet frames with EtherType 0x8624.
 
+- NDN packets are encapsulated in PPP frames with protocol type 0x0077.
+
 ## Available dissection features
 
 - When UDP packet is fragmented, the dissection is performed after the full IP reassembly.

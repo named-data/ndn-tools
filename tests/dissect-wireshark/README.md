@@ -25,6 +25,8 @@ Expected result of the dissection:
 
 - NDN interests are dissected from packets 1, 2, 3, and 8.
 - NDN data packet is dissected from defragmented packets 4, 5, 6, and 7.
+- In packet 1, the "Info" column of Wireshark shows: `Interest /ndn/broadcast/ndnrtc-chatrooms/2366d310b15ba97a62c8734d4a760174f78d14446be3d70a54ee80d3ed19c83b`
+- In packet 7, the "Info" column of Wireshark shows: `Data /example/testApp/1/testApp/%FD%00%00%01O%23E%07%ED`
 
 ### 2. IPv6 UDP
 
@@ -128,7 +130,7 @@ Expected result of the dissection: 12 "Ethernet (NDN)" frames.
 2.  No special requirements.
 3.  "Sequence: 12732154106453800448". "FragIndex: 0". "FragCount: 2". Fragment exists.
 4.  "Sequence: 12732154106453800449". "FragIndex: 1". "FragCount: 2". Fragment exists.
-5.  "NackReason: Congestion".
+5.  "NackReason: Congestion". The "Info" column shows "Nack /A".
 6.  "NackReason: Duplicate".
 7.  "NackReason: NoRoute".
 8.  "NackReason: 1".
@@ -186,3 +188,13 @@ Expected results of the dissection:
 - Seventh name component is `NameComponent: %80%81%82%83%84%85%86%87%88%89%8A%8B%8C%8D%8E%8F%90%91%92%93%94%95%96%97%98%99%9A%9B%9C%9D%9E%9F%A0%A1%A2%A3%A4%A5%A6%A7%A8%A9%AA%AB%AC%AD%AE%AF%B0%B1%B2%B3%B4%B5%B6%B7%B8%B9%BA%BB%BC%BD%BE%BF`.
 - Eighth name component is `NameComponent: %C0%C1%C2%C3%C4%C5%C6%C7%C8%C9%CA%CB%CC%CD%CE%CF%D0%D1%D2%D3%D4%D5%D6%D7%D8%D9%DA%DB%DC%DD%DE%DF%E0%E1%E2%E3%E4%E5%E6%E7%E8%E9%EA%EB%EC%ED%EE%EF%F0%F1%F2%F3%F4%F5%F6%F7%F8%F9%FA%FB%FC%FD%FE%FF`.
 - FinalBlockId and its nested NameComponent are both `%02`.
+
+### 13. PPP
+
+Trace file: `ppp.pcap`
+
+Trace summary: 8 packets created in a simple ndnSIM scenario
+
+Expected results of the dissection:
+- 4 interests (packets 1, 2, 5, 6), each carried in an LpPacket fragment
+- 4 data packets (packets 3, 4, 7, 8), also each carried in an LpPacket fragment
