@@ -1,6 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018, University of Memphis.
+ * Copyright (c) 2014-2018, University of Memphis,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -22,6 +23,15 @@
 #include "tests/identity-management-fixture.hpp"
 #include "tests/test-common.hpp"
 
+#include <net/ethernet.h>
+#include <netinet/ip.h>
+#include <netinet/ip6.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
+
+#include <boost/endian/conversion.hpp>
+
+#include <ndn-cxx/encoding/encoding-buffer.hpp>
 #include <ndn-cxx/lp/packet.hpp>
 #include <ndn-cxx/net/ethernet.hpp>
 
@@ -29,6 +39,7 @@ namespace ndn {
 namespace dump {
 namespace tests {
 
+namespace endian = boost::endian;
 using namespace ndn::tests;
 
 class StdCoutRedirector
@@ -63,20 +74,20 @@ protected:
   receive(const Packet& packet)
   {
     EncodingBuffer buffer(packet.wireEncode());
-    receive(buffer);
+    receiveEthernet(buffer);
   }
 
   void
-  receive(EncodingBuffer& buffer)
+  receiveEthernet(EncodingBuffer& buffer, uint16_t ethertype = s_ethertypeNdn)
   {
     ethernet::Address host;
 
     // Ethernet header
-    uint16_t type = htons(ethernet::ETHERTYPE_NDN);
-    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(&type), ethernet::TYPE_LEN);
+    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(&ethertype), ethernet::TYPE_LEN);
     buffer.prependByteArray(host.data(), host.size());
     buffer.prependByteArray(host.data(), host.size());
 
+    // pcap header
     pcap_pkthdr pkthdr{};
     pkthdr.caplen = pkthdr.len = buffer.size();
 
@@ -86,39 +97,97 @@ protected:
     }
   }
 
+  void
+  receiveIp4(EncodingBuffer& buffer, const ip* ipHeader)
+  {
+    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(ipHeader), sizeof(ip));
+    receiveEthernet(buffer, s_ethertypeIp4);
+  }
+
+  void
+  receiveIp6(EncodingBuffer& buffer, const ip6_hdr* ip6Header)
+  {
+    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(ip6Header), sizeof(ip6_hdr));
+    receiveEthernet(buffer, s_ethertypeIp6);
+  }
+
+  void
+  receiveTcp4(EncodingBuffer& buffer, const tcphdr* tcpHeader)
+  {
+    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(tcpHeader), sizeof(tcphdr));
+
+    ip ipHeader{};
+    ipHeader.ip_v = 4;
+    ipHeader.ip_hl = 5;
+    ipHeader.ip_len = endian::native_to_big(static_cast<uint16_t>(buffer.size() + sizeof(ipHeader)));
+    ipHeader.ip_ttl = 1;
+    ipHeader.ip_p = IPPROTO_TCP;
+
+    receiveIp4(buffer, &ipHeader);
+  }
+
+  void
+  receiveUdp4(EncodingBuffer& buffer, const udphdr* udpHeader)
+  {
+    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(udpHeader), sizeof(udphdr));
+
+    ip ipHeader{};
+    ipHeader.ip_v = 4;
+    ipHeader.ip_hl = 5;
+    ipHeader.ip_len = endian::native_to_big(static_cast<uint16_t>(buffer.size() + sizeof(ipHeader)));
+    ipHeader.ip_ttl = 1;
+    ipHeader.ip_p = IPPROTO_UDP;
+
+    receiveIp4(buffer, &ipHeader);
+  }
+
+  void
+  readFile(const std::string& filename)
+  {
+    StdCoutRedirector redirect(output);
+    dump.inputFile = filename;
+    dump.run();
+  }
+
 protected:
   NdnDump dump;
   boost::test_tools::output_test_stream output;
+
+  static const uint16_t s_ethertypeNdn;
+  static const uint16_t s_ethertypeIp4;
+  static const uint16_t s_ethertypeIp6;
 };
+
+const uint16_t NdnDumpFixture::s_ethertypeNdn = endian::native_to_big(ethernet::ETHERTYPE_NDN);
+const uint16_t NdnDumpFixture::s_ethertypeIp4 = endian::native_to_big(uint16_t(ETHERTYPE_IP));
+const uint16_t NdnDumpFixture::s_ethertypeIp6 = endian::native_to_big(uint16_t(ETHERTYPE_IPV6));
 
 BOOST_AUTO_TEST_SUITE(Dump)
 BOOST_FIXTURE_TEST_SUITE(TestNdnDump, NdnDumpFixture)
 
-BOOST_AUTO_TEST_CASE(CaptureInterest)
+BOOST_AUTO_TEST_CASE(Interest)
 {
-  Interest interest("/test");
+  ndn::Interest interest("/test");
   interest.setNonce(0);
 
   this->receive(interest);
 
-  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, INTEREST: /test?ndn.Nonce=0\n";
-  BOOST_CHECK(output.is_equal(expected));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, INTEREST: /test?ndn.Nonce=0\n"));
 }
 
-BOOST_AUTO_TEST_CASE(CaptureData)
+BOOST_AUTO_TEST_CASE(Data)
 {
-  Data data("/test");
+  ndn::Data data("/test");
   m_keyChain.sign(data);
 
   this->receive(data);
 
-  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, DATA: /test\n";
-  BOOST_CHECK(output.is_equal(expected));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, DATA: /test\n"));
 }
 
-BOOST_AUTO_TEST_CASE(CaptureNack)
+BOOST_AUTO_TEST_CASE(Nack)
 {
-  Interest interest("/test");
+  ndn::Interest interest("/test");
   interest.setNonce(0);
   lp::Nack nack(interest);
   nack.setReason(lp::NackReason::DUPLICATE);
@@ -127,11 +196,10 @@ BOOST_AUTO_TEST_CASE(CaptureNack)
 
   this->receive(lpPacket);
 
-  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, NACK: Duplicate, /test?ndn.Nonce=0\n";
-  BOOST_CHECK(output.is_equal(expected));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDNLPv2, NACK (Duplicate): /test?ndn.Nonce=0\n"));
 }
 
-BOOST_AUTO_TEST_CASE(CaptureLpFragment)
+BOOST_AUTO_TEST_CASE(LpFragment)
 {
   const uint8_t data[10] = {
     0x06, 0x08, // Data packet
@@ -147,21 +215,19 @@ BOOST_AUTO_TEST_CASE(CaptureLpFragment)
 
   this->receive(lpPacket);
 
-  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, NDNLPv2-FRAGMENT\n";
-  BOOST_CHECK(output.is_equal(expected));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDNLPv2 fragment\n"));
 }
 
-BOOST_AUTO_TEST_CASE(CaptureIdleLpPacket)
+BOOST_AUTO_TEST_CASE(LpIdle)
 {
   lp::Packet lpPacket;
 
   this->receive(lpPacket);
 
-  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, NDNLPv2-IDLE\n";
-  BOOST_CHECK(output.is_equal(expected));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDNLPv2 idle\n"));
 }
 
-BOOST_AUTO_TEST_CASE(CaptureIncompletePacket)
+BOOST_AUTO_TEST_CASE(IncompleteNdnPacket)
 {
   const uint8_t interest[] = {
   0x05, 0x0E, // Interest
@@ -175,19 +241,152 @@ BOOST_AUTO_TEST_CASE(CaptureIncompletePacket)
   EncodingBuffer buffer;
   buffer.prependByteArray(interest, 4);
 
-  this->receive(buffer);
+  this->receiveEthernet(buffer);
 
-  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, INCOMPLETE-PACKET, length 4\n";
-  BOOST_CHECK(output.is_equal(expected));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDN truncated packet, length 4\n"));
 }
 
-BOOST_AUTO_TEST_CASE(CaptureUnknownNetworkPacket)
+BOOST_AUTO_TEST_CASE(UnsupportedNdnPacket)
 {
   EncodingBuffer buffer(encoding::makeEmptyBlock(tlv::Name));
 
-  this->receive(buffer);
+  this->receiveEthernet(buffer);
 
-  const std::string expected = "0.000000 Tunnel Type: EthernetFrame, UNKNOWN-NETWORK-PACKET\n";
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, [Unsupported NDN packet type 7]\n"));
+}
+
+BOOST_AUTO_TEST_CASE(UnsupportedEtherType)
+{
+  EncodingBuffer pkt;
+  uint16_t type = ETHERTYPE_ARP;
+  endian::native_to_big_inplace(type);
+
+  this->receiveEthernet(pkt, type);
+
+  BOOST_CHECK(output.is_equal("0.000000 [Unsupported ethertype 0x806]\n"));
+}
+
+BOOST_AUTO_TEST_CASE(MalformedIpv4Header)
+{
+  dump.wantTimestamp = false;
+
+  uint8_t theAnswer = 42;
+
+  EncodingBuffer pkt1;
+  pkt1.prependByte(theAnswer);
+  this->receiveEthernet(pkt1, s_ethertypeIp4);
+  BOOST_CHECK(output.is_equal("IP truncated header, length 1\n"));
+
+  ip ipHdr2{};
+  ipHdr2.ip_v = 7;
+
+  EncodingBuffer pkt2;
+  this->receiveIp4(pkt2, &ipHdr2);
+  BOOST_CHECK(output.is_equal("IP bad version 7\n"));
+
+  ip ipHdr3{};
+  ipHdr3.ip_v = 4;
+  ipHdr3.ip_hl = 2;
+
+  EncodingBuffer pkt3;
+  this->receiveIp4(pkt3, &ipHdr3);
+  BOOST_CHECK(output.is_equal("IP bad header length 8\n"));
+
+  ip ipHdr4{};
+  ipHdr4.ip_v = 4;
+  ipHdr4.ip_hl = 5;
+  ipHdr4.ip_len = 10;
+  endian::native_to_big_inplace(ipHdr4.ip_len);
+
+  EncodingBuffer pkt4;
+  this->receiveIp4(pkt4, &ipHdr4);
+  BOOST_CHECK(output.is_equal("IP bad length 10\n"));
+
+  ip ipHdr5{};
+  ipHdr5.ip_v = 4;
+  ipHdr5.ip_hl = 5;
+  ipHdr5.ip_len = 1000;
+  endian::native_to_big_inplace(ipHdr5.ip_len);
+
+  EncodingBuffer pkt5;
+  this->receiveIp4(pkt5, &ipHdr5);
+  BOOST_CHECK(output.is_equal("IP truncated packet, 980 bytes missing\n"));
+}
+
+BOOST_AUTO_TEST_CASE(UnsupportedIpProto)
+{
+  dump.wantTimestamp = false;
+
+  ip ipHdr{};
+  ipHdr.ip_v = 4;
+  ipHdr.ip_hl = 5;
+  ipHdr.ip_len = sizeof(ipHdr);
+  endian::native_to_big_inplace(ipHdr.ip_len);
+  ipHdr.ip_p = IPPROTO_SCTP;
+
+  EncodingBuffer pkt;
+  this->receiveIp4(pkt, &ipHdr);
+  BOOST_CHECK(output.is_equal("IP 0.0.0.0 > 0.0.0.0, [Unsupported IP proto 132]\n"));
+}
+
+BOOST_AUTO_TEST_CASE(MalformedTcpHeader)
+{
+  dump.wantTimestamp = false;
+
+  tcphdr tcpHdr1{};
+  tcpHdr1.th_off = 0x2;
+
+  EncodingBuffer pkt1;
+  this->receiveTcp4(pkt1, &tcpHdr1);
+  BOOST_CHECK(output.is_equal("IP 0.0.0.0 > 0.0.0.0, TCP bad header length 8\n"));
+
+  tcphdr tcpHdr2{};
+  tcpHdr2.th_off = 0xf;
+
+  EncodingBuffer pkt2;
+  this->receiveTcp4(pkt2, &tcpHdr2);
+  BOOST_CHECK(output.is_equal("IP 0.0.0.0 > 0.0.0.0, TCP truncated header, 40 bytes missing\n"));
+}
+
+BOOST_AUTO_TEST_CASE(MalformedUdpHeader)
+{
+  dump.wantTimestamp = false;
+
+  udphdr udpHdr1{};
+  udpHdr1.uh_ulen = 3;
+  endian::native_to_big_inplace(udpHdr1.uh_ulen);
+
+  EncodingBuffer pkt1;
+  this->receiveUdp4(pkt1, &udpHdr1);
+  BOOST_CHECK(output.is_equal("IP 0.0.0.0 > 0.0.0.0, UDP bad length 3\n"));
+
+  udphdr udpHdr2{};
+  udpHdr2.uh_ulen = 1000;
+  endian::native_to_big_inplace(udpHdr2.uh_ulen);
+
+  EncodingBuffer pkt2;
+  this->receiveUdp4(pkt2, &udpHdr2);
+  BOOST_CHECK(output.is_equal("IP 0.0.0.0 > 0.0.0.0, UDP truncated packet, 992 bytes missing\n"));
+}
+
+BOOST_AUTO_TEST_CASE(InvalidTlvLength)
+{
+  dump.wantTimestamp = false;
+  this->readFile("tests/dump/invalid-tlv-length.pcap");
+
+  const std::string expected =
+    "IP 128.196.203.36 > 128.187.81.12, TCP, length 147, NDNLPv2 invalid packet: "
+    "TLV-LENGTH of sub-element of type 5 exceeds TLV-VALUE boundary of parent block\n";
+  BOOST_CHECK(output.is_equal(expected));
+}
+
+BOOST_AUTO_TEST_CASE(UnrecognizedLpField)
+{
+  dump.wantTimestamp = false;
+  this->readFile("tests/dump/unrecognized-lp-field.pcap");
+
+  const std::string expected = "IP 128.196.203.36 > 128.187.81.12, TCP, length 800, "
+                               "NDNLPv2 invalid packet: unrecognized field 4 cannot be ignored\n";
   BOOST_CHECK(output.is_equal(expected));
 }
 
@@ -198,78 +397,41 @@ BOOST_AUTO_TEST_CASE(NoTimestamp)
   lp::Packet lpPacket;
   this->receive(lpPacket);
 
-  const std::string expected = "Tunnel Type: EthernetFrame, NDNLPv2-IDLE\n";
-  BOOST_CHECK(output.is_equal(expected));
+  BOOST_CHECK(output.is_equal("Ethernet, NDNLPv2 idle\n"));
 }
 
-BOOST_AUTO_TEST_CASE(PcapTraceFile)
+BOOST_AUTO_TEST_CASE(FromFile)
 {
-  dump.inputFile = "tests/dump/nack.pcap";
   dump.pcapFilter = "";
-
-  {
-    StdCoutRedirector redirect(output);
-    dump.run();
-  }
+  this->readFile("tests/dump/nack.pcap");
 
   const std::string expected =
-    "1456768916.467099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, "
+    "1456768916.467099 IP 1.0.0.1 > 1.0.0.2, UDP, length 42, "
     "INTEREST: /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=2581361680\n"
-    "1456768916.567099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, "
+    "1456768916.567099 IP 1.0.0.1 > 1.0.0.2, UDP, length 41, "
     "INTEREST: /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=4138343109\n"
-    "1456768916.667099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: UDP, "
+    "1456768916.667099 IP 1.0.0.1 > 1.0.0.2, UDP, length 41, "
     "INTEREST: /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=4034910304\n"
-    "1456768916.767099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: UDP, "
-    "NACK: Congestion, /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=2581361680\n"
-    "1456768916.867099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: UDP, "
-    "NACK: Duplicate, /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=4138343109\n"
-    "1456768916.967099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: UDP, "
-    "NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=4034910304\n"
-    "1456768917.067099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: TCP, "
+    "1456768916.767099 IP 1.0.0.2 > 1.0.0.1, UDP, length 55, "
+    "NDNLPv2, NACK (Congestion): /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=2581361680\n"
+    "1456768916.867099 IP 1.0.0.2 > 1.0.0.1, UDP, length 54, "
+    "NDNLPv2, NACK (Duplicate): /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=4138343109\n"
+    "1456768916.967099 IP 1.0.0.2 > 1.0.0.1, UDP, length 54, "
+    "NDNLPv2, NACK (None): /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=4034910304\n"
+    "1456768917.067099 IP 1.0.0.1 > 1.0.0.2, TCP, length 42, "
     "INTEREST: /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=3192497423\n"
-    "1456768917.267099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, "
-    "NACK: Congestion, /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=3192497423\n"
-    "1456768917.367099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: TCP, "
+    "1456768917.267099 IP 1.0.0.2 > 1.0.0.1, TCP, length 55, "
+    "NDNLPv2, NACK (Congestion): /producer/nack/congestion?ndn.MustBeFresh=1&ndn.Nonce=3192497423\n"
+    "1456768917.367099 IP 1.0.0.1 > 1.0.0.2, TCP, length 82, "
     "INTEREST: /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=522390724\n"
-    "1456768917.567099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, "
-    "NACK: Duplicate, /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=522390724\n"
-    "1456768917.767099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, "
-    "NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=2002441365\n"
-    "1456768917.967099 From: 1.0.0.1, To: 1.0.0.2, Tunnel Type: TCP, "
+    "1456768917.567099 IP 1.0.0.2 > 1.0.0.1, TCP, length 54, "
+    "NDNLPv2, NACK (Duplicate): /producer/nack/duplicate?ndn.MustBeFresh=1&ndn.Nonce=522390724\n"
+    "1456768917.767099 IP 1.0.0.2 > 1.0.0.1, TCP, length 54, "
+    "NDNLPv2, NACK (None): /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=2002441365\n"
+    "1456768917.967099 IP 1.0.0.1 > 1.0.0.2, TCP, length 41, "
     "INTEREST: /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n"
-    "1456768918.067099 From: 1.0.0.2, To: 1.0.0.1, Tunnel Type: TCP, "
-    "NACK: None, /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n";
-  BOOST_CHECK(output.is_equal(expected));
-}
-
-BOOST_AUTO_TEST_CASE(InvalidTlvLength)
-{
-  dump.inputFile = "tests/dump/invalid-tlv-length.pcap";
-  dump.wantTimestamp = false;
-
-  {
-    StdCoutRedirector redirect(output);
-    dump.run();
-  }
-
-  const std::string expected =
-    "From: 128.196.203.36, To: 128.187.81.12, Tunnel Type: TCP, INVALID-NDNLPv2-PACKET: "
-    "TLV-LENGTH of sub-element of type 5 exceeds TLV-VALUE boundary of parent block\n";
-  BOOST_CHECK(output.is_equal(expected));
-}
-
-BOOST_AUTO_TEST_CASE(UnrecognizedLpField)
-{
-  dump.inputFile = "tests/dump/unrecognized-lp-field.pcap";
-  dump.wantTimestamp = false;
-
-  {
-    StdCoutRedirector redirect(output);
-    dump.run();
-  }
-
-  const std::string expected = "From: 128.196.203.36, To: 128.187.81.12, Tunnel Type: TCP, "
-                               "INVALID-NDNLPv2-PACKET: unrecognized field 4 cannot be ignored\n";
+    "1456768918.067099 IP 1.0.0.2 > 1.0.0.1, TCP, length 54, "
+    "NDNLPv2, NACK (None): /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n";
   BOOST_CHECK(output.is_equal(expected));
 }
 

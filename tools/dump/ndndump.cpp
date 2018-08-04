@@ -19,6 +19,7 @@
 
 #include "ndndump.hpp"
 
+#include <arpa/inet.h>
 #include <net/ethernet.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
@@ -91,7 +92,7 @@ NdnDump::~NdnDump()
 void
 NdnDump::run()
 {
-  char errbuf[PCAP_ERRBUF_SIZE];
+  char errbuf[PCAP_ERRBUF_SIZE] = {};
 
   if (inputFile.empty() && interface.empty()) {
     const char* defaultDevice = pcap_lookupdev(errbuf);
@@ -231,10 +232,10 @@ NdnDump::dispatchByEtherType(OutputFormatter& out, const uint8_t* pkt, size_t le
     return printIp4(out, pkt, len);
   case ethernet::ETHERTYPE_NDN:
   case 0x7777: // NDN ethertype used in ndnSIM
-    out << "Tunnel Type: EthernetFrame";
+    out << "Ethernet";
     return printNdn(out, pkt, len);
   default:
-    out << "Unsupported ethertype " << AsHex{etherType};
+    out << "[Unsupported ethertype " << AsHex{etherType} << "]";
     return true;
   }
 }
@@ -250,7 +251,7 @@ NdnDump::dispatchByIpProto(OutputFormatter& out, const uint8_t* pkt, size_t len,
   case IPPROTO_UDP:
     return printUdp(out, pkt, len);
   default:
-    out << "Unsupported IP proto " << ipProto;
+    out << "[Unsupported IP proto " << static_cast<int>(ipProto) << "]";
     return true;
   }
 }
@@ -261,7 +262,7 @@ NdnDump::printEther(OutputFormatter& out, const uint8_t* pkt, size_t len) const
   // IEEE 802.3 Ethernet
 
   if (len < ethernet::HDR_LEN) {
-    out << "Invalid Ethernet frame, length " << len;
+    out << "Truncated Ethernet frame, length " << len;
     return true;
   }
 
@@ -279,7 +280,7 @@ NdnDump::printLinuxSll(OutputFormatter& out, const uint8_t* pkt, size_t len) con
   // https://www.tcpdump.org/linktypes/LINKTYPE_LINUX_SLL.html
 
   if (len < SLL_HDR_LEN) {
-    out << "Invalid LINUX_SLL frame, length " << len;
+    out << "Truncated LINUX_SLL frame, length " << len;
     return true;
   }
 
@@ -299,14 +300,14 @@ NdnDump::printPpp(OutputFormatter& out, const uint8_t* pkt, size_t len) const
   // The data in the frame is not octet-stuffed or bit-stuffed.
 
   if (len < 2) {
-    out << "Invalid PPP frame, length " << len;
+    out << "Truncated PPP frame, length " << len;
     return true;
   }
 
   if (pkt[0] == 0xff && pkt[1] == 0x03) {
     // PPP in HDLC-like framing, skip the Address and Control fields
     if (len < 4) {
-      out << "Invalid PPP frame, length " << len;
+      out << "Truncated PPP frame, length " << len;
       return true;
     }
     pkt += 2;
@@ -331,41 +332,72 @@ NdnDump::printPpp(OutputFormatter& out, const uint8_t* pkt, size_t len) const
     // For some reason, ndnSIM produces PPP frames with 2 extra bytes
     // between the protocol field and the beginning of the NDN packet
     if (len < 2) {
-      out << "Invalid NDN/PPP frame";
+      out << "Truncated NDN/PPP frame";
       return true;
     }
     pkt += 2;
     len -= 2;
-    out << "Tunnel Type: PPP";
+    out << "PPP";
     return printNdn(out, pkt, len);
   default:
-    out << "Unsupported PPP proto " << AsHex{proto};
+    out << "[Unsupported PPP proto " << AsHex{proto} << "]";
     return true;
+  }
+}
+
+static void
+printIpAddress(OutputFormatter& out, int af, const void* addr)
+{
+  char addrStr[1 + std::max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN)] = {};
+  if (inet_ntop(af, addr, addrStr, sizeof(addrStr))) {
+    out << addrStr;
+  }
+  else {
+    out << "???";
   }
 }
 
 bool
 NdnDump::printIp4(OutputFormatter& out, const uint8_t* pkt, size_t len) const
 {
-  out.addDelimiter();
+  out.addDelimiter() << "IP ";
+
+  if (len < sizeof(ip)) {
+    out << "truncated header, length " << len;
+    return true;
+  }
 
   auto ih = reinterpret_cast<const ip*>(pkt);
-  size_t ipHeaderSize = ih->ip_hl * 4;
-  if (ipHeaderSize < 20) {
-    out << "Invalid IPv4 header len: " << ipHeaderSize << " bytes";
+  if (ih->ip_v != 4) {
+    // huh? link layer said this was an IPv4 packet but IP header says otherwise
+    out << "bad version " << ih->ip_v;
     return true;
   }
 
-  out << "From: " << inet_ntoa(ih->ip_src) << ", ";
-  out << "To: "   << inet_ntoa(ih->ip_dst);
-
-  if (len < ipHeaderSize) {
-    out << "Invalid IPv4 packet, length " << len;
+  size_t ipHdrLen = ih->ip_hl * 4;
+  if (ipHdrLen < sizeof(ip)) {
+    out << "bad header length " << ipHdrLen;
     return true;
   }
 
-  pkt += ipHeaderSize;
-  len -= ipHeaderSize;
+  size_t ipLen = endian::big_to_native(ih->ip_len);
+  if (ipLen < ipHdrLen) {
+    out << "bad length " << ipLen;
+    return true;
+  }
+  if (ipLen > len) {
+    out << "truncated packet, " << ipLen - len << " bytes missing";
+    return true;
+  }
+  // if we reached this point, the following is true:
+  //     sizeof(ip) <= ipHdrLen <= ipLen <= len
+
+  printIpAddress(out, AF_INET, &ih->ip_src);
+  out << " > ";
+  printIpAddress(out, AF_INET, &ih->ip_dst);
+
+  pkt += ipHdrLen;
+  len -= ipHdrLen;
 
   return dispatchByIpProto(out, pkt, len, ih->ip_p);
 }
@@ -373,41 +405,61 @@ NdnDump::printIp4(OutputFormatter& out, const uint8_t* pkt, size_t len) const
 bool
 NdnDump::printTcp(OutputFormatter& out, const uint8_t* pkt, size_t len) const
 {
-  out.addDelimiter();
+  out.addDelimiter() << "TCP";
+
+  if (len < sizeof(tcphdr)) {
+    out << " truncated header, length " << len;
+    return true;
+  }
 
   auto th = reinterpret_cast<const tcphdr*>(pkt);
-  size_t tcpHeaderSize = th->th_off * 4;
-  if (tcpHeaderSize < 20) {
-    out << "Invalid TCP header len: " << tcpHeaderSize << " bytes";
+  size_t tcpHdrLen = th->th_off * 4;
+  if (tcpHdrLen < sizeof(tcphdr)) {
+    out << " bad header length " << tcpHdrLen;
+    return true;
+  }
+  if (tcpHdrLen > len) {
+    out << " truncated header, " << tcpHdrLen - len << " bytes missing";
     return true;
   }
 
-  if (len < tcpHeaderSize) {
-    out << "Invalid TCP packet, length " << len;
-    return true;
-  }
+  pkt += tcpHdrLen;
+  len -= tcpHdrLen;
 
-  pkt += tcpHeaderSize;
-  len -= tcpHeaderSize;
+  out.addDelimiter() << "length " << len;
 
-  out << "Tunnel Type: TCP";
   return printNdn(out, pkt, len);
 }
 
 bool
 NdnDump::printUdp(OutputFormatter& out, const uint8_t* pkt, size_t len) const
 {
-  out.addDelimiter();
+  out.addDelimiter() << "UDP";
 
   if (len < sizeof(udphdr)) {
-    out << "Invalid UDP packet, length " << len;
+    out << " truncated header, length " << len;
     return true;
+  }
+
+  auto uh = reinterpret_cast<const udphdr*>(pkt);
+  size_t udpLen = endian::big_to_native(uh->uh_ulen);
+  if (udpLen < sizeof(udphdr)) {
+    out << " bad length " << udpLen;
+    return true;
+  }
+  if (udpLen > len) {
+    out << " truncated packet, " << udpLen - len << " bytes missing";
+    return true;
+  }
+  else {
+    len = udpLen;
   }
 
   pkt += sizeof(udphdr);
   len -= sizeof(udphdr);
 
-  out << "Tunnel Type: UDP";
+  out.addDelimiter() << "length " << len;
+
   return printNdn(out, pkt, len);
 }
 
@@ -424,7 +476,7 @@ NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
   std::tie(isOk, block) = Block::fromBuffer(pkt, len);
   if (!isOk) {
     // if packet is incomplete, we will not be able to process it
-    out << "INCOMPLETE-PACKET, length " << len;
+    out << "NDN truncated packet, length " << len;
     return true;
   }
 
@@ -432,11 +484,12 @@ NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
   Block netPacket;
 
   if (block.type() == lp::tlv::LpPacket) {
+    out << "NDNLPv2";
     try {
       lpPacket.wireDecode(block);
     }
     catch (const tlv::Error& e) {
-      out << "INVALID-NDNLPv2-PACKET: " << e.what();
+      out << " invalid packet: " << e.what();
       return true;
     }
 
@@ -445,7 +498,7 @@ NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
       std::tie(begin, end) = lpPacket.get<lp::FragmentField>();
     }
     else {
-      out << "NDNLPv2-IDLE";
+      out << " idle";
       return true;
     }
 
@@ -453,13 +506,14 @@ NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
     std::tie(isOk, netPacket) = Block::fromBuffer(&*begin, std::distance(begin, end));
     if (!isOk) {
       // if network packet is fragmented, we will not be able to process it
-      out << "NDNLPv2-FRAGMENT";
+      out << " fragment";
       return true;
     }
   }
   else {
     netPacket = std::move(block);
   }
+  out.addDelimiter();
 
   try {
     switch (netPacket.type()) {
@@ -472,7 +526,7 @@ NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
         if (lpPacket.has<lp::NackField>()) {
           lp::Nack nack(interest);
           nack.setHeader(lpPacket.get<lp::NackField>());
-          out << "NACK: " << nack.getReason() << ", " << interest;
+          out << "NACK (" << nack.getReason() << "): " << interest;
         }
         else {
           out << "INTEREST: " << interest;
@@ -489,13 +543,13 @@ NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
         break;
       }
       default: {
-        out << "UNKNOWN-NETWORK-PACKET";
+        out << "[Unsupported NDN packet type " << netPacket.type() << "]";
         break;
       }
     }
   }
   catch (const tlv::Error& e) {
-    out << "INVALID-PACKET: " << e.what();
+    out << "invalid network packet: " << e.what();
   }
 
   return true;
