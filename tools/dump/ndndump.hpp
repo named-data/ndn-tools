@@ -76,6 +76,9 @@ private:
   printIp4(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
 
   bool
+  printIp6(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
+
+  bool
   printTcp(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
 
   bool

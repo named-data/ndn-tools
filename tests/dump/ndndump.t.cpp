@@ -313,6 +313,34 @@ BOOST_AUTO_TEST_CASE(MalformedIpv4Header)
   BOOST_CHECK(output.is_equal("IP truncated packet, 980 bytes missing\n"));
 }
 
+BOOST_AUTO_TEST_CASE(MalformedIpv6Header)
+{
+  dump.wantTimestamp = false;
+
+  uint8_t theAnswer = 42;
+
+  EncodingBuffer pkt1;
+  pkt1.prependByte(theAnswer);
+  this->receiveEthernet(pkt1, s_ethertypeIp6);
+  BOOST_CHECK(output.is_equal("IP6 truncated header, length 1\n"));
+
+  ip6_hdr ip6Hdr2{};
+  ip6Hdr2.ip6_vfc = 10 << 4;
+
+  EncodingBuffer pkt2;
+  this->receiveIp6(pkt2, &ip6Hdr2);
+  BOOST_CHECK(output.is_equal("IP6 bad version 10\n"));
+
+  ip6_hdr ip6Hdr3{};
+  ip6Hdr3.ip6_vfc = 6 << 4;
+  ip6Hdr3.ip6_plen = 1400;
+  endian::native_to_big_inplace(ip6Hdr3.ip6_plen);
+
+  EncodingBuffer pkt3;
+  this->receiveIp6(pkt3, &ip6Hdr3);
+  BOOST_CHECK(output.is_equal("IP6 truncated payload, 1400 bytes missing\n"));
+}
+
 BOOST_AUTO_TEST_CASE(UnsupportedIpProto)
 {
   dump.wantTimestamp = false;
@@ -324,9 +352,17 @@ BOOST_AUTO_TEST_CASE(UnsupportedIpProto)
   endian::native_to_big_inplace(ipHdr.ip_len);
   ipHdr.ip_p = IPPROTO_SCTP;
 
-  EncodingBuffer pkt;
-  this->receiveIp4(pkt, &ipHdr);
+  EncodingBuffer pkt1;
+  this->receiveIp4(pkt1, &ipHdr);
   BOOST_CHECK(output.is_equal("IP 0.0.0.0 > 0.0.0.0, [Unsupported IP proto 132]\n"));
+
+  ip6_hdr ip6Hdr{};
+  ip6Hdr.ip6_vfc = 6 << 4;
+  ip6Hdr.ip6_nxt = IPPROTO_NONE;
+
+  EncodingBuffer pkt2;
+  this->receiveIp6(pkt2, &ip6Hdr);
+  BOOST_CHECK(output.is_equal("IP6 :: > ::, [No next header]\n"));
 }
 
 BOOST_AUTO_TEST_CASE(MalformedTcpHeader)
@@ -432,6 +468,68 @@ BOOST_AUTO_TEST_CASE(FromFile)
     "INTEREST: /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n"
     "1456768918.067099 IP 1.0.0.2 > 1.0.0.1, TCP, length 54, "
     "NDNLPv2, NACK (None): /producer/nack/no-reason?ndn.MustBeFresh=1&ndn.Nonce=3776824408\n";
+  BOOST_CHECK(output.is_equal(expected));
+}
+
+BOOST_AUTO_TEST_CASE(LinuxSllTcp4)
+{
+  dump.wantTimestamp = false;
+  this->readFile("tests/dump/linux-sll-tcp4.pcap");
+
+  const std::string expected =
+    "IP 162.211.64.84 > 131.179.196.46, TCP, length 57, "
+    "INTEREST: /ndn/edu/ucla/ping/4436024701616433461?ndn.MustBeFresh=1&ndn.Nonce=1827520902\n"
+    "IP 162.211.64.84 > 131.179.196.46, TCP, length 41, "
+    "INTEREST: /ndn/edu/arizona/ping/8202?ndn.Nonce=1059849935\n"
+    "IP 131.179.196.46 > 162.211.64.84, TCP, length 403, "
+    "DATA: /ndn/edu/arizona/ping/8202\n"
+    "IP 131.179.196.46 > 162.211.64.84, TCP, length 57, "
+    "INTEREST: /ndn/edu/ucla/ping/4436024701616433462?ndn.MustBeFresh=1&ndn.Nonce=4082468009\n"
+    "IP 162.211.64.84 > 131.179.196.46, TCP, length 57, "
+    "INTEREST: /ndn/edu/ucla/ping/4436024701616433462?ndn.MustBeFresh=1&ndn.Nonce=4082468009\n";
+  BOOST_CHECK(output.is_equal(expected));
+}
+
+BOOST_AUTO_TEST_CASE(LinuxSllUdp4)
+{
+  dump.wantTimestamp = false;
+  this->readFile("tests/dump/linux-sll-udp4.pcap");
+
+  const std::string expected =
+    "IP 162.211.64.84 > 131.179.196.46, UDP, length 42, "
+    "INTEREST: /ndn/edu/arizona/ping/31044?ndn.Nonce=3171630323\n"
+    "IP 131.179.196.46 > 162.211.64.84, UDP, length 404, "
+    "DATA: /ndn/edu/arizona/ping/31044\n";
+  BOOST_CHECK(output.is_equal(expected));
+}
+
+BOOST_AUTO_TEST_CASE(LinuxSllTcp6)
+{
+  dump.wantTimestamp = false;
+  this->readFile("tests/dump/linux-sll-tcp6.pcap");
+
+  const std::string expected =
+    "IP6 2602:fff6:d:b317::39f8 > 2001:660:3302:282c:160::163, TCP, length 42, "
+    "INTEREST: /ndn/edu/arizona/ping/19573?ndn.Nonce=777756283\n"
+    "IP6 2001:660:3302:282c:160::163 > 2602:fff6:d:b317::39f8, TCP, length 404, "
+    "DATA: /ndn/edu/arizona/ping/19573\n"
+    "IP6 2001:660:3302:282c:160::163 > 2602:fff6:d:b317::39f8, TCP, length 56, "
+    "INTEREST: /ndn/fr/lip6/ping/7847878851635149046?ndn.MustBeFresh=1&ndn.Nonce=1836363210\n";
+  BOOST_CHECK(output.is_equal(expected));
+}
+
+BOOST_AUTO_TEST_CASE(LinuxSllUdp6)
+{
+  dump.wantTimestamp = false;
+  this->readFile("tests/dump/linux-sll-udp6.pcap");
+
+  const std::string expected =
+    "IP6 2602:fff6:d:b317::39f8 > 2001:660:3302:282c:160::163, UDP, length 39, "
+    "INTEREST: /ndn/edu/arizona/ping/18?ndn.Nonce=571618686\n"
+    "IP6 2001:660:3302:282c:160::163 > 2602:fff6:d:b317::39f8, UDP, length 401, "
+    "DATA: /ndn/edu/arizona/ping/18\n"
+    "IP6 2001:660:3302:282c:160::163 > 2602:fff6:d:b317::39f8, UDP, length 56, "
+    "INTEREST: /ndn/fr/lip6/ping/7847878851635149038?ndn.MustBeFresh=1&ndn.Nonce=192371114\n";
   BOOST_CHECK(output.is_equal(expected));
 }
 

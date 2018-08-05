@@ -22,6 +22,7 @@
 #include <arpa/inet.h>
 #include <net/ethernet.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 
@@ -230,6 +231,8 @@ NdnDump::dispatchByEtherType(OutputFormatter& out, const uint8_t* pkt, size_t le
   switch (etherType) {
   case ETHERTYPE_IP:
     return printIp4(out, pkt, len);
+  case ETHERTYPE_IPV6:
+    return printIp6(out, pkt, len);
   case ethernet::ETHERTYPE_NDN:
   case 0x7777: // NDN ethertype used in ndnSIM
     out << "Ethernet";
@@ -246,6 +249,9 @@ NdnDump::dispatchByIpProto(OutputFormatter& out, const uint8_t* pkt, size_t len,
   out.addDelimiter();
 
   switch (ipProto) {
+  case IPPROTO_NONE:
+    out << "[No next header]";
+    return true;
   case IPPROTO_TCP:
     return printTcp(out, pkt, len);
   case IPPROTO_UDP:
@@ -400,6 +406,41 @@ NdnDump::printIp4(OutputFormatter& out, const uint8_t* pkt, size_t len) const
   len -= ipHdrLen;
 
   return dispatchByIpProto(out, pkt, len, ih->ip_p);
+}
+
+bool
+NdnDump::printIp6(OutputFormatter& out, const uint8_t* pkt, size_t len) const
+{
+  out.addDelimiter() << "IP6 ";
+
+  if (len < sizeof(ip6_hdr)) {
+    out << "truncated header, length " << len;
+    return true;
+  }
+
+  auto ip6 = reinterpret_cast<const ip6_hdr*>(pkt);
+  unsigned int ipVer = (ip6->ip6_vfc & 0xf0) >> 4;
+  if (ipVer != 6) {
+    // huh? link layer said this was an IPv6 packet but IP header says otherwise
+    out << "bad version " << ipVer;
+    return true;
+  }
+
+  pkt += sizeof(ip6_hdr);
+  len -= sizeof(ip6_hdr);
+
+  size_t payloadLen = endian::big_to_native(ip6->ip6_plen);
+  if (len < payloadLen) {
+    out << "truncated payload, " << payloadLen - len << " bytes missing";
+    return true;
+  }
+
+  printIpAddress(out, AF_INET6, &ip6->ip6_src);
+  out << " > ";
+  printIpAddress(out, AF_INET6, &ip6->ip6_dst);
+
+  // we assume no extension headers are present
+  return dispatchByIpProto(out, pkt, len, ip6->ip6_nxt);
 }
 
 bool
