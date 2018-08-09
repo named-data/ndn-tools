@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2016,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2015-2018,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -74,11 +74,11 @@ BOOST_FIXTURE_TEST_CASE(Normal, PingIntegratedFixture)
 {
   server::Options serverOpts;
   serverOpts.prefix = "ndn:/test-prefix";
-  serverOpts.freshnessPeriod = time::milliseconds(5000);
+  serverOpts.freshnessPeriod = 5_s;
   serverOpts.nMaxPings = 4;
-  serverOpts.shouldPrintTimestamp = false;
+  serverOpts.wantTimestamp = false;
   serverOpts.payloadSize = 0;
-  server.reset(new server::PingServer(serverFace, m_keyChain, serverOpts));
+  server = make_unique<server::PingServer>(serverFace, m_keyChain, serverOpts);
   BOOST_REQUIRE_EQUAL(0, server->getNPings());
   server->start();
 
@@ -88,17 +88,17 @@ BOOST_FIXTURE_TEST_CASE(Normal, PingIntegratedFixture)
   clientOpts.shouldGenerateRandomSeq = false;
   clientOpts.shouldPrintTimestamp = false;
   clientOpts.nPings = 4;
-  clientOpts.interval = time::milliseconds(100);
-  clientOpts.timeout = time::milliseconds(2000);
+  clientOpts.interval = 100_ms;
+  clientOpts.timeout = 2_s;
   clientOpts.startSeq = 1000;
-  client.reset(new client::Ping(clientFace, clientOpts));
+  client = make_unique<client::Ping>(clientFace, clientOpts);
   client->afterFinish.connect(bind(&PingIntegratedFixture::onFinish, this));
   client->start();
 
-  this->advanceClocks(io, time::milliseconds(1), 400);
+  advanceClocks(io, 1_ms, 400);
   io.run();
 
-  BOOST_REQUIRE_EQUAL(4, server->getNPings());
+  BOOST_CHECK_EQUAL(4, server->getNPings());
 }
 
 BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
@@ -107,11 +107,11 @@ BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
 
   server::Options serverOpts;
   serverOpts.prefix = "ndn:/test-prefix";
-  serverOpts.freshnessPeriod = time::milliseconds(5000);
+  serverOpts.freshnessPeriod = 5_s;
   serverOpts.nMaxPings = 4;
-  serverOpts.shouldPrintTimestamp = false;
+  serverOpts.wantTimestamp = false;
   serverOpts.payloadSize = 0;
-  server.reset(new server::PingServer(serverFace, m_keyChain, serverOpts));
+  server = make_unique<server::PingServer>(serverFace, m_keyChain, serverOpts);
   BOOST_REQUIRE_EQUAL(0, server->getNPings());
   server->start();
 
@@ -121,17 +121,17 @@ BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
   clientOpts.shouldGenerateRandomSeq = false;
   clientOpts.shouldPrintTimestamp = false;
   clientOpts.nPings = 4;
-  clientOpts.interval = time::milliseconds(100);
-  clientOpts.timeout = time::milliseconds(500);
+  clientOpts.interval = 100_ms;
+  clientOpts.timeout = 500_ms;
   clientOpts.startSeq = 1000;
-  client.reset(new client::Ping(clientFace, clientOpts));
+  client = make_unique<client::Ping>(clientFace, clientOpts);
   client->afterFinish.connect(bind(&PingIntegratedFixture::onFinish, this));
   client->start();
 
-  this->advanceClocks(io, time::milliseconds(1), 1000);
+  advanceClocks(io, 1_ms, 1000);
   io.run();
 
-  BOOST_REQUIRE_EQUAL(0, server->getNPings());
+  BOOST_CHECK_EQUAL(0, server->getNPings());
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestIntegrated

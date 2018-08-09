@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2015,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2015-2018, Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -30,6 +30,8 @@ namespace ndn {
 namespace ping {
 namespace server {
 
+namespace po = boost::program_options;
+
 class Runner : noncopyable
 {
 public:
@@ -38,171 +40,142 @@ public:
     : m_options(options)
     , m_pingServer(m_face, m_keyChain, options)
     , m_tracer(m_pingServer, options)
-    , m_signalSetInt(m_face.getIoService(), SIGINT)
+    , m_signalSet(m_face.getIoService(), SIGINT)
   {
-    m_signalSetInt.async_wait(bind(&Runner::afterIntSignal, this, _1));
-
     m_pingServer.afterFinish.connect([this] {
-        this->cancel();
-      });
+      m_pingServer.stop();
+      m_signalSet.cancel();
+    });
+
+    m_signalSet.async_wait([this] (const auto& ec, auto) {
+      if (ec != boost::asio::error::operation_aborted) {
+        m_pingServer.stop();
+      }
+    });
   }
 
   int
   run()
   {
+    std::cout << "PING SERVER " << m_options.prefix << std::endl;
+
     try {
       m_pingServer.start();
       m_face.processEvents();
     }
-    catch (std::exception& e) {
+    catch (const std::exception& e) {
       std::cerr << "ERROR: " << e.what() << std::endl;
       return 1;
     }
 
-    std::cout << "\n--- ping server " << m_options.prefix << " ---" << std::endl;
-    std::cout << m_pingServer.getNPings() << " packets processed" << std::endl;
-
+    std::cout << "\n--- " << m_options.prefix << " ping server statistics ---\n"
+              << m_pingServer.getNPings() << " packets processed" << std::endl;
     return 0;
   }
 
 private:
-  void
-  cancel()
-  {
-    m_signalSetInt.cancel();
-    m_pingServer.stop();
-  }
-
-  void
-  afterIntSignal(const boost::system::error_code& errorCode)
-  {
-    if (errorCode == boost::asio::error::operation_aborted) {
-      return;
-    }
-
-    cancel();
-  }
-
-private:
   const Options& m_options;
+
   Face m_face;
   KeyChain m_keyChain;
   PingServer m_pingServer;
   Tracer m_tracer;
 
-  boost::asio::signal_set m_signalSetInt;
+  boost::asio::signal_set m_signalSet;
 };
 
-static time::milliseconds
-getMinimumFreshnessPeriod()
-{
-  return time::milliseconds(1000);
-}
-
 static void
-usage(const boost::program_options::options_description& options)
+usage(std::ostream& os, const std::string& programName, const po::options_description& options)
 {
-  std::cout << "Usage: ndnpingserver [options] ndn:/name/prefix\n"
-      "\n"
-      "Starts a NDN ping server that responds to Interests under name "
-      "ndn:/name/prefix/ping.\n"
-      "\n";
-  std::cout << options;
-  exit(2);
+  os << "Usage: " << programName << " [options] <prefix>\n"
+     << "\n"
+     << "Starts a NDN ping server that responds to Interests under name ndn:<prefix>/ping\n"
+     << "\n"
+     << options;
 }
 
-int
+static int
 main(int argc, char* argv[])
 {
   Options options;
-  options.freshnessPeriod = getMinimumFreshnessPeriod();
-  options.shouldLimitSatisfied = false;
-  options.nMaxPings = 0;
-  options.shouldPrintTimestamp = false;
-  options.payloadSize = 0;
+  std::string prefix;
+  auto nMaxPings = static_cast<std::make_signed_t<size_t>>(options.nMaxPings);
+  auto payloadSize = static_cast<std::make_signed_t<size_t>>(options.payloadSize);
 
-  namespace po = boost::program_options;
+  po::options_description visibleDesc("Options");
+  visibleDesc.add_options()
+    ("help,h",      "print this help message and exit")
+    ("freshness,x", po::value<time::milliseconds::rep>()->default_value(options.freshnessPeriod.count()),
+                    "FreshnessPeriod of the ping response, in milliseconds")
+    ("satisfy,p",   po::value(&nMaxPings)->default_value(nMaxPings),
+                    "maximum number of pings to be satisfied (0=infinite)")
+    ("size,s",      po::value(&payloadSize)->default_value(payloadSize),
+                    "size of response payload")
+    ("timestamp,t", po::bool_switch(&options.wantTimestamp), "log timestamp with responses")
+    ("version,V",   "print program version and exit")
+    ;
 
-  po::options_description visibleOptDesc("Allowed options");
-  visibleOptDesc.add_options()
-    ("help,h", "print this message and exit")
-    ("version,V", "display version and exit")
-    ("freshness,x", po::value<int>(),
-                   ("set freshness period in milliseconds (minimum " +
-                   std::to_string(getMinimumFreshnessPeriod().count()) + " ms)").c_str())
-    ("satisfy,p", po::value<int>(&options.nMaxPings), "set maximum number of pings to be satisfied")
-    ("timestamp,t", "log timestamp with responses")
-    ("size,s", po::value<int>(&options.payloadSize), "specify size of response payload")
-  ;
-  po::options_description hiddenOptDesc("Hidden options");
-  hiddenOptDesc.add_options()
-    ("prefix", po::value<std::string>(), "prefix to register")
-  ;
+  po::options_description hiddenDesc;
+  hiddenDesc.add_options()
+    ("prefix", po::value<std::string>(&prefix));
 
-  po::options_description optDesc("Allowed options");
-  optDesc.add(visibleOptDesc).add(hiddenOptDesc);
+  po::positional_options_description posDesc;
+  posDesc.add("prefix", -1);
 
+  po::options_description optDesc;
+  optDesc.add(visibleDesc).add(hiddenDesc);
+
+  po::variables_map vm;
   try {
-    po::positional_options_description optPos;
-    optPos.add("prefix", -1);
-
-    po::variables_map optVm;
-    po::store(po::command_line_parser(argc, argv).options(optDesc).positional(optPos).run(), optVm);
-    po::notify(optVm);
-
-    if (optVm.count("help") > 0) {
-      usage(visibleOptDesc);
-    }
-
-    if (optVm.count("version") > 0) {
-      std::cout << "ndnpingserver " << tools::VERSION << std::endl;
-      exit(0);
-    }
-
-    if (optVm.count("prefix") > 0) {
-      options.prefix = Name(optVm["prefix"].as<std::string>());
-    }
-    else {
-      std::cerr << "ERROR: No prefix specified" << std::endl;
-      usage(visibleOptDesc);
-    }
-
-    if (optVm.count("freshness") > 0) {
-      options.freshnessPeriod = time::milliseconds(optVm["freshness"].as<int>());
-
-      if (options.freshnessPeriod.count() < getMinimumFreshnessPeriod().count()) {
-        std::cerr << "ERROR: Specified FreshnessPeriod is less than the minimum "
-                  << getMinimumFreshnessPeriod() << std::endl;
-        usage(visibleOptDesc);
-      }
-    }
-
-    if (optVm.count("satisfy") > 0) {
-      options.shouldLimitSatisfied = true;
-
-      if (options.nMaxPings < 1) {
-        std::cerr << "ERROR: Maximum number of pings to satisfy must be greater than 0" << std::endl;
-        usage(visibleOptDesc);
-      }
-    }
-
-    if (optVm.count("timestamp") > 0) {
-      options.shouldPrintTimestamp = true;
-    }
-
-    if (optVm.count("size") > 0) {
-      if (options.payloadSize < 0) {
-        std::cerr << "ERROR: Payload size must be greater than or equal to 0" << std::endl;
-        usage(visibleOptDesc);
-      }
-    }
+    po::store(po::command_line_parser(argc, argv).options(optDesc).positional(posDesc).run(), vm);
+    po::notify(vm);
   }
   catch (const po::error& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl;
-    usage(visibleOptDesc);
+    std::cerr << "ERROR: " << e.what() << "\n\n";
+    usage(std::cerr, argv[0], visibleDesc);
+    return 2;
+  }
+  catch (const boost::bad_any_cast& e) {
+    std::cerr << "ERROR: " << e.what() << "\n\n";
+    usage(std::cerr, argv[0], visibleDesc);
+    return 2;
   }
 
-  std::cout << "PING SERVER " << options.prefix << std::endl;
+  if (vm.count("help") > 0) {
+    usage(std::cout, argv[0], visibleDesc);
+    return 0;
+  }
+
+  if (vm.count("version") > 0) {
+    std::cout << "ndnpingserver " << tools::VERSION << std::endl;
+    return 0;
+  }
+
+  if (prefix.empty()) {
+    std::cerr << "ERROR: no name prefix specified\n\n";
+    usage(std::cerr, argv[0], visibleDesc);
+    return 2;
+  }
+  options.prefix = prefix;
+
+  options.freshnessPeriod = time::milliseconds(vm["freshness"].as<time::milliseconds::rep>());
+  if (options.freshnessPeriod < 0_ms) {
+    std::cerr << "ERROR: FreshnessPeriod cannot be negative" << std::endl;
+    return 2;
+  }
+
+  if (nMaxPings < 0) {
+    std::cerr << "ERROR: maximum number of pings to satisfy cannot be negative" << std::endl;
+    return 2;
+  }
+  options.nMaxPings = static_cast<size_t>(nMaxPings);
+
+  if (payloadSize < 0) {
+    std::cerr << "ERROR: payload size cannot be negative" << std::endl;
+    return 2;
+  }
+  options.payloadSize = static_cast<size_t>(payloadSize);
+
   return Runner(options).run();
 }
 

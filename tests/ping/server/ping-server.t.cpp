@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2016,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2014-2018,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -18,10 +18,11 @@
  */
 
 #include "tools/ping/server/ping-server.hpp"
-#include <ndn-cxx/util/dummy-client-face.hpp>
 
 #include "tests/test-common.hpp"
 #include "../../identity-management-fixture.hpp"
+
+#include <ndn-cxx/util/dummy-client-face.hpp>
 
 namespace ndn {
 namespace ping {
@@ -63,7 +64,7 @@ private:
     opt.prefix = "ndn:/test-prefix";
     opt.freshnessPeriod = time::milliseconds(5000);
     opt.nMaxPings = 2;
-    opt.shouldPrintTimestamp = false;
+    opt.wantTimestamp = false;
     opt.payloadSize = 0;
     return opt;
   }
@@ -80,14 +81,14 @@ BOOST_FIXTURE_TEST_CASE(CreatePingServer, CreatePingServerFixture)
   BOOST_REQUIRE_EQUAL(0, pingServer.getNPings());
   pingServer.start();
 
-  this->advanceClocks(io, time::milliseconds(1), 200);
+  advanceClocks(io, 1_ms, 200);
 
   face.receive(makePingInterest(1000));
   face.receive(makePingInterest(1001));
 
   io.run();
 
-  BOOST_REQUIRE_EQUAL(2, pingServer.getNPings());
+  BOOST_CHECK_EQUAL(2, pingServer.getNPings());
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestPingServer

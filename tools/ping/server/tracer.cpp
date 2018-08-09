@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2015,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2015-2018,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -28,17 +28,17 @@ namespace server {
 Tracer::Tracer(PingServer& pingServer, const Options& options)
   : m_options(options)
 {
-  pingServer.afterReceive.connect(bind(&Tracer::onReceive, this, _1));
+  pingServer.afterReceive.connect([this] (const Name& name) { onReceive(name); });
 }
 
 void
 Tracer::onReceive(const Name& name)
 {
-  if (m_options.shouldPrintTimestamp) {
-    std::cout << time::toIsoString(time::system_clock::now())  << " - ";
+  if (m_options.wantTimestamp) {
+    std::cout << time::toIsoString(time::system_clock::now()) << " - ";
   }
 
-  std::cout << "interest received: seq=" << name.at(-1).toUri() << std::endl;
+  std::cout << "interest received: seq=" << name.at(-1) << std::endl;
 }
 
 } // namespace server

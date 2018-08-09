@@ -30,37 +30,36 @@ namespace server {
 
 PingServer::PingServer(Face& face, KeyChain& keyChain, const Options& options)
   : m_options(options)
-  , m_keyChain(keyChain)
-  , m_name(options.prefix)
-  , m_nPings(0)
   , m_face(face)
-  , m_registeredPrefixId(nullptr)
+  , m_keyChain(keyChain)
+  , m_nPings(0)
+  , m_regPrefixId(nullptr)
 {
-  shared_ptr<Buffer> b = make_shared<Buffer>();
+  auto b = make_shared<Buffer>();
   b->assign(m_options.payloadSize, 'a');
-  m_payload = Block(tlv::Content, b);
+  m_payload = Block(tlv::Content, std::move(b));
 }
 
 void
 PingServer::start()
 {
-  m_name.append("ping");
-  m_registeredPrefixId = m_face.setInterestFilter(m_name,
-                                                  bind(&PingServer::onInterest,
-                                                       this, _2),
-                                                  bind(&PingServer::onRegisterFailed,
-                                                       this, _2));
+  m_regPrefixId = m_face.setInterestFilter(
+                    Name(m_options.prefix).append("ping"),
+                    bind(&PingServer::onInterest, this, _2),
+                    [] (const auto&, const auto& reason) {
+                      BOOST_THROW_EXCEPTION(std::runtime_error("Failed to register prefix: " + reason));
+                    });
 }
 
 void
 PingServer::stop()
 {
-  if (m_registeredPrefixId != nullptr) {
-    m_face.unsetInterestFilter(m_registeredPrefixId);
+  if (m_regPrefixId != nullptr) {
+    m_face.unsetInterestFilter(m_regPrefixId);
   }
 }
 
-int
+size_t
 PingServer::getNPings() const
 {
   return m_nPings;
@@ -69,26 +68,18 @@ PingServer::getNPings() const
 void
 PingServer::onInterest(const Interest& interest)
 {
-  Name interestName = interest.getName();
+  afterReceive(interest.getName());
 
-  afterReceive(interestName);
-
-  shared_ptr<Data> data = make_shared<Data>(interestName);
+  auto data = make_shared<Data>(interest.getName());
   data->setFreshnessPeriod(m_options.freshnessPeriod);
   data->setContent(m_payload);
   m_keyChain.sign(*data, signingWithSha256());
   m_face.put(*data);
 
   ++m_nPings;
-  if (m_options.shouldLimitSatisfied && m_options.nMaxPings > 0 && m_options.nMaxPings == m_nPings) {
+  if (m_options.nMaxPings > 0 && m_options.nMaxPings == m_nPings) {
     afterFinish();
   }
-}
-
-void
-PingServer::onRegisterFailed(const std::string& reason)
-{
-  throw "Failed to register prefix in local hub's daemon, REASON: " + reason;
 }
 
 } // namespace server

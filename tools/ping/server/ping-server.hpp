@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2015,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2015-2018,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -30,16 +30,15 @@ namespace ping {
 namespace server {
 
 /**
- * @brief options for ndnping server
+ * @brief Options for PingServer
  */
 struct Options
 {
-  Name prefix;                        //!< prefix to register
-  time::milliseconds freshnessPeriod; //!< freshness period
-  bool shouldLimitSatisfied;          //!< should limit the number of pings satisfied
-  int nMaxPings;                      //!< max number of pings to satisfy
-  bool shouldPrintTimestamp;          //!< print timestamp when response sent
-  int payloadSize;                    //!< user specified payload size
+  Name prefix;                              //!< prefix to register
+  time::milliseconds freshnessPeriod = 1_s; //!< data freshness period
+  size_t nMaxPings = 0;                     //!< max number of pings to satisfy (0 == no limit)
+  size_t payloadSize = 0;                   //!< response payload size (0 == no payload)
+  bool wantTimestamp = false;               //!< print timestamp when response sent
 };
 
 /**
@@ -87,7 +86,7 @@ public:
   /**
    * @brief gets the number of pings received
    */
-  int
+  size_t
   getNPings() const;
 
 private:
@@ -99,27 +98,17 @@ private:
   void
   onInterest(const Interest& interest);
 
-  /**
-   * @brief Called when prefix registration failed
-   *
-   * @param reason reason for failure
-   */
-  void
-  onRegisterFailed(const std::string& reason);
-
 private:
   const Options& m_options;
-  KeyChain& m_keyChain;
-  Name m_name;
-  int m_nPings;
   Face& m_face;
+  KeyChain& m_keyChain;
+  size_t m_nPings;
   Block m_payload;
-
-  const RegisteredPrefixId* m_registeredPrefixId;
+  const RegisteredPrefixId* m_regPrefixId;
 };
 
 } // namespace server
 } // namespace ping
 } // namespace ndn
 
-#endif //NDN_TOOLS_PING_SERVER_PING_SERVER_HPP
+#endif // NDN_TOOLS_PING_SERVER_PING_SERVER_HPP
