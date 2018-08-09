@@ -39,6 +39,7 @@ struct Options
   size_t nMaxPings = 0;                     //!< max number of pings to satisfy (0 == no limit)
   size_t payloadSize = 0;                   //!< response payload size (0 == no payload)
   bool wantTimestamp = false;               //!< print timestamp when response sent
+  bool wantQuiet = false;                   //!< suppress printing per-packet log message
 };
 
 /**

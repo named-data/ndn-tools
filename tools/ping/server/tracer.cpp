@@ -28,7 +28,9 @@ namespace server {
 Tracer::Tracer(PingServer& pingServer, const Options& options)
   : m_options(options)
 {
-  pingServer.afterReceive.connect([this] (const Name& name) { onReceive(name); });
+  if (!m_options.wantQuiet) {
+    pingServer.afterReceive.connect([this] (const Name& name) { onReceive(name); });
+  }
 }
 
 void

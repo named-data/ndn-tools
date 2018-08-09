@@ -111,7 +111,10 @@ main(int argc, char* argv[])
                     "maximum number of pings to be satisfied (0=infinite)")
     ("size,s",      po::value(&payloadSize)->default_value(payloadSize),
                     "size of response payload")
-    ("timestamp,t", po::bool_switch(&options.wantTimestamp), "log timestamp with responses")
+    ("timestamp,t", po::bool_switch(&options.wantTimestamp),
+                    "prepend a timestamp to each log message")
+    ("quiet,q",     po::bool_switch(&options.wantQuiet),
+                    "do not print a log message each time a ping packet is received")
     ("version,V",   "print program version and exit")
     ;
 

@@ -48,12 +48,12 @@ protected:
   makePingInterest(int seq) const
   {
     Name name(pingOptions.prefix);
-    name.append("ping");
-    name.append(std::to_string(seq));
-    Interest interest(name);
-    interest.setMustBeFresh(true);
-    interest.setInterestLifetime(time::milliseconds(2000));
-    return interest;
+    name.append("ping")
+        .append(to_string(seq));
+
+    return Interest(name)
+           .setMustBeFresh(true)
+           .setInterestLifetime(2_s);
   }
 
 private:
@@ -61,11 +61,12 @@ private:
   makeOptions()
   {
     Options opt;
-    opt.prefix = "ndn:/test-prefix";
-    opt.freshnessPeriod = time::milliseconds(5000);
+    opt.prefix = "/test-prefix";
+    opt.freshnessPeriod = 5_s;
     opt.nMaxPings = 2;
-    opt.wantTimestamp = false;
     opt.payloadSize = 0;
+    opt.wantTimestamp = false;
+    opt.wantQuiet = true;
     return opt;
   }
 
