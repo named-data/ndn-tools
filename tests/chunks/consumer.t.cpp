@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(OutputDataSequential)
   output_test_stream output("");
   Consumer cons(security::v2::getAcceptAllValidator(), output);
 
-  auto interest = makeInterest(name);
+  auto interest = makeInterest(name, true);
 
   for (size_t i = 0; i < testStrings.size(); ++i) {
     output.flush();
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(OutputDataUnordered)
   output_test_stream output("");
   Consumer cons(security::v2::getAcceptAllValidator(), output);
 
-  auto interest = makeInterest(name);
+  auto interest = makeInterest(name, true);
   std::vector<shared_ptr<Data>> dataStore;
 
   for (size_t i = 0; i < testStrings.size(); ++i) {
@@ -149,7 +149,7 @@ public:
   {
     isDiscoverRunning = true;
 
-    auto interest = makeInterest(m_prefix);
+    auto interest = makeInterest(m_prefix, true);
     expressInterest(*interest, 1, 1);
   }
 

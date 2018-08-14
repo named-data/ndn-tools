@@ -167,36 +167,25 @@ BOOST_FIXTURE_TEST_SUITE(TestNdnDump, NdnDumpFixture)
 
 BOOST_AUTO_TEST_CASE(Interest)
 {
-  ndn::Interest interest("/test");
-  interest.setNonce(0);
-
-  this->receive(interest);
-
-  BOOST_CHECK(output.is_equal("0.000000 Ethernet, INTEREST: /test?ndn.Nonce=0\n"));
+  this->receive(*makeInterest("/test", true, DEFAULT_INTEREST_LIFETIME, 1));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, INTEREST: /test?ndn.Nonce=1\n"));
 }
 
 BOOST_AUTO_TEST_CASE(Data)
 {
-  ndn::Data data("/test");
-  m_keyChain.sign(data);
-
-  this->receive(data);
-
+  this->receive(*makeData("/test"));
   BOOST_CHECK(output.is_equal("0.000000 Ethernet, DATA: /test\n"));
 }
 
 BOOST_AUTO_TEST_CASE(Nack)
 {
-  ndn::Interest interest("/test");
-  interest.setNonce(0);
-  lp::Nack nack(interest);
-  nack.setReason(lp::NackReason::DUPLICATE);
-  lp::Packet lpPacket(interest.wireEncode());
+  auto interest = makeInterest("/test", true, DEFAULT_INTEREST_LIFETIME, 1);
+  auto nack = makeNack(*interest, lp::NackReason::DUPLICATE);
+  lp::Packet lpPacket(interest->wireEncode());
   lpPacket.add<lp::NackField>(nack.getHeader());
 
   this->receive(lpPacket);
-
-  BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDNLPv2, NACK (Duplicate): /test?ndn.Nonce=0\n"));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDNLPv2, NACK (Duplicate): /test?ndn.Nonce=1\n"));
 }
 
 BOOST_AUTO_TEST_CASE(LpFragment)
@@ -214,16 +203,13 @@ BOOST_AUTO_TEST_CASE(LpFragment)
   lpPacket.add<lp::SequenceField>(1000);
 
   this->receive(lpPacket);
-
   BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDNLPv2 fragment\n"));
 }
 
 BOOST_AUTO_TEST_CASE(LpIdle)
 {
   lp::Packet lpPacket;
-
   this->receive(lpPacket);
-
   BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDNLPv2 idle\n"));
 }
 
@@ -237,21 +223,17 @@ BOOST_AUTO_TEST_CASE(IncompleteNdnPacket)
     0x0a, 0x04, // Nonce
       0x00, 0x00, 0x00, 0x01
   };
-
   EncodingBuffer buffer;
   buffer.prependByteArray(interest, 4);
 
   this->receiveEthernet(buffer);
-
   BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDN truncated packet, length 4\n"));
 }
 
 BOOST_AUTO_TEST_CASE(UnsupportedNdnPacket)
 {
   EncodingBuffer buffer(encoding::makeEmptyBlock(tlv::Name));
-
   this->receiveEthernet(buffer);
-
   BOOST_CHECK(output.is_equal("0.000000 Ethernet, [Unsupported NDN packet type 7]\n"));
 }
 
@@ -262,7 +244,6 @@ BOOST_AUTO_TEST_CASE(UnsupportedEtherType)
   endian::native_to_big_inplace(type);
 
   this->receiveEthernet(pkt, type);
-
   BOOST_CHECK(output.is_equal("0.000000 [Unsupported ethertype 0x806]\n"));
 }
 

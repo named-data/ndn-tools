@@ -84,8 +84,7 @@ BOOST_AUTO_TEST_CASE(Basic)
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
   BOOST_CHECK_EQUAL(face.sentInterests.front().getName().getPrefix(4), "/localhost/nfd/rib/register");
 
-  Interest interest("/poke/test");
-  face.receive(interest);
+  face.receive(*makeInterest("/poke/test"));
   this->advanceClocks(io, 1_ms, 10);
   io.run();
 
@@ -112,8 +111,7 @@ BOOST_AUTO_TEST_CASE(FinalBlockId)
 
   this->advanceClocks(io, 1_ms, 10);
 
-  Interest interest("/poke/test/123");
-  face.receive(interest);
+  face.receive(*makeInterest("/poke/test/123"));
   this->advanceClocks(io, 1_ms, 10);
   io.run();
 
@@ -136,8 +134,7 @@ BOOST_AUTO_TEST_CASE(FreshnessPeriod)
 
   this->advanceClocks(io, 1_ms, 10);
 
-  Interest interest("/poke/test");
-  face.receive(interest);
+  face.receive(*makeInterest("/poke/test"));
   this->advanceClocks(io, 1_ms, 10);
   io.run();
 
@@ -159,8 +156,7 @@ BOOST_AUTO_TEST_CASE(DigestSha256)
 
   this->advanceClocks(io, 1_ms, 10);
 
-  Interest interest("/poke/test");
-  face.receive(interest);
+  face.receive(*makeInterest("/poke/test"));
   this->advanceClocks(io, 1_ms, 10);
   io.run();
 
@@ -203,8 +199,7 @@ BOOST_AUTO_TEST_CASE(ExceedMaxPacketSize)
 
   this->advanceClocks(io, 1_ms, 10);
 
-  Interest interest("/poke/test");
-  face.receive(interest);
+  face.receive(*makeInterest("/poke/test"));
   BOOST_CHECK_THROW(face.processEvents(), Face::OversizedPacketError);
 
   // We can't check wasDataSent() correctly here because it will be set to true, even if put failed

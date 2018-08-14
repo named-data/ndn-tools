@@ -52,6 +52,7 @@ protected:
         .append(to_string(seq));
 
     return Interest(name)
+           .setCanBePrefix(false)
            .setMustBeFresh(true)
            .setInterestLifetime(2_s);
   }

@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
   size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / options.maxSegmentSize);
 
   // version request
-  face.receive(*makeInterest(prefix));
+  face.receive(*makeInterest(prefix, true));
   face.processEvents();
 
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
@@ -123,7 +123,7 @@ BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
   nameWithVersion.append(lastData.getName()[-2]);
   size_t requestSegmentNo = 1;
 
-  face.receive(*makeInterest(nameWithVersion.appendSegment(requestSegmentNo)));
+  face.receive(*makeInterest(nameWithVersion.appendSegment(requestSegmentNo), true));
   face.processEvents();
 
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 2);
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
   size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / options.maxSegmentSize);
 
   // version request
-  face.receive(*makeInterest(prefix));
+  face.receive(*makeInterest(prefix, true));
   face.processEvents();
 
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
   Name nameWithVersion(prefix);
   size_t requestSegmentNo = 1;
 
-  face.receive(*makeInterest(nameWithVersion.appendSegment(requestSegmentNo)));
+  face.receive(*makeInterest(nameWithVersion.appendSegment(requestSegmentNo), true));
   face.processEvents();
 
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 2);
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(RequestNotExistingSegment)
   size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / options.maxSegmentSize);
 
   // version request
-  face.receive(*makeInterest(prefix));
+  face.receive(*makeInterest(prefix, true));
   face.processEvents();
 
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
@@ -192,7 +192,7 @@ BOOST_AUTO_TEST_CASE(RequestNotExistingSegment)
   // segment request
   Name nameWithVersion(prefix);
   nameWithVersion.append(lastData.getName()[-2]);
-  face.receive(*makeInterest(nameWithVersion.appendSegment(nSegments)));
+  face.receive(*makeInterest(nameWithVersion.appendSegment(nSegments), true));
   face.processEvents();
 
   // no new data

@@ -67,8 +67,10 @@ If a client uses the name structure with `<client-identifier>` field, it is RECO
 one or more printable characters only, to make it easier for a human operator to read the logs.
 A client implementation MAY restrict this field to be non-empty and have printable characters only.
 
-The probe Interest SHOULD carry MustBeFresh selector by default.
-A client implementation MAY allow the operator to turn off MustBeFresh selector.
+The probe Interest SHOULD NOT carry CanBePrefix element.
+
+The probe Interest SHOULD carry MustBeFresh element.
+A client implementation MAY allow the operator to remove MustBeFresh element.
 
 ### Reply Data
 
