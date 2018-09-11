@@ -13,7 +13,7 @@ elif [[ -z $DISABLE_ASAN ]]; then
 fi
 
 # Cleanup
-sudo env "PATH=$PATH" ./waf --color=yes distclean
+sudo_preserve_env PATH -- ./waf --color=yes distclean
 
 if [[ $JOB_NAME != *"code-coverage" && $JOB_NAME != *"limited-build" ]]; then
   # Configure/build in optimized mode with tests
@@ -21,14 +21,14 @@ if [[ $JOB_NAME != *"code-coverage" && $JOB_NAME != *"limited-build" ]]; then
   ./waf --color=yes build -j${WAF_JOBS:-1}
 
   # Cleanup
-  sudo env "PATH=$PATH" ./waf --color=yes distclean
+  sudo_preserve_env PATH -- ./waf --color=yes distclean
 
   # Configure/build in optimized mode without tests
   ./waf --color=yes configure
   ./waf --color=yes build -j${WAF_JOBS:-1}
 
   # Cleanup
-  sudo env "PATH=$PATH" ./waf --color=yes distclean
+  sudo_preserve_env PATH -- ./waf --color=yes distclean
 fi
 
 # Configure/build in debug mode with tests
@@ -38,4 +38,4 @@ fi
 # (tests will be run against debug version)
 
 # Install
-sudo env "PATH=$PATH" ./waf --color=yes install
+sudo_preserve_env PATH -- ./waf --color=yes install
