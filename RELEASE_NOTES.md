@@ -1,6 +1,43 @@
 Release Notes
 =============
 
+## Version 0.6.2
+
+The build requirements have been upgraded to gcc >= 5.3 or clang >= 3.6, boost >= 1.58,
+openssl >= 1.0.2. This effectively drops support for all versions of Ubuntu older than 16.04
+that use distribution-provided compilers and packages.
+
+The compilation now uses the C++14 standard.
+
+dissect-wireshark:
+- Show Name and FinalBlockId as URIs (Issue #3106)
+- Improve NDNLPv2 support (Issue #4463)
+- Add support for dissecting PPP frames
+
+dump:
+- Remove dependency on Boost.Regex
+- Stop using tcpdump headers files
+- Compile pcap filter with optimizations enabled
+- Capture in promiscuous mode by default, add an option to disable it
+- Add `-t` option to suppress printing per-packet timestamp
+- Properly handle exceptions thrown by `lp::Packet::wireDecode()` (Issue #3943)
+- Add udp port 56363 to the default pcap filter
+- Enable stricter parsing of IP/TCP/UDP headers
+- Add IPv6 support
+- Code cleanup
+
+poke:
+- Use unsetInterestFilter on Face instead of shutdown (Issue #4642)
+- Improve unit testing (Issue #3740)
+
+chunks:
+- Fix AIMD hanging with files smaller than the chunk size (Issue #4439)
+
+ping:
+- Add `--quiet` option to ndnpingserver (Issue #4673)
+- Set `CanBePrefix=false` to ndn-ping (Issue #4581)
+- Code cleanup
+
 ## Version 0.6.1
 
 chunks:
