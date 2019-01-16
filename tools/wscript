@@ -4,7 +4,7 @@ top = '..'
 from waflib import Options
 
 def options(opt):
-    for subdir in opt.path.ant_glob(['*'], dir=True, src=False):
+    for subdir in opt.path.ant_glob('*', dir=True, src=False):
         tool = subdir.path_from(opt.path)
         opt.add_option('--enable-%s' % tool,
                        help='Build tool %s, enabled by default' % tool,
@@ -29,7 +29,7 @@ def configure(conf):
         is_disabled = getattr(Options.options, 'disable_%s' % tool)
 
         if is_enabled and is_disabled:
-            conf.fatal("--enable-%s and --disable-%s cannot be both specified" % (tool, tool))
+            conf.fatal('--enable-%s and --disable-%s cannot be both specified' % (tool, tool))
 
         if is_enabled:
             enabled_tools.add(tool)

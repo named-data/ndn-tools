@@ -54,7 +54,7 @@ def build(bld):
         VERSION_BUILD=VERSION)
 
     bld.objects(target='core-objects',
-                source=bld.path.ant_glob(['core/*.cpp']) + ['core/version.cpp'],
+                source=bld.path.ant_glob('core/*.cpp') + ['core/version.cpp'],
                 use='NDN_CXX BOOST',
                 includes='.',
                 export_includes='.')

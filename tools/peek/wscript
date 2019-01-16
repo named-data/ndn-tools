@@ -10,6 +10,7 @@ def build(bld):
 
     bld.program(
         target='../../bin/ndnpeek',
+        name='ndnpeek',
         source='ndnpeek/main.cpp',
         use='ndnpeek-objects')
 
@@ -20,10 +21,11 @@ def build(bld):
 
     bld.program(
         target='../../bin/ndnpoke',
+        name='ndnpoke',
         source='ndnpoke/main.cpp',
         use='ndnpoke-objects')
 
     ## (for unit tests)
 
     bld(target='peek-objects',
-        use=['ndnpeek-objects', 'ndnpoke-objects'])
+        use='ndnpeek-objects ndnpoke-objects')
