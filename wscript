@@ -14,7 +14,7 @@ def options(opt):
              tooldir=['.waf-tools'])
 
     opt.add_option('--with-tests', action='store_true', default=False,
-                   dest='with_tests', help='''Build unit tests''')
+                   help='Build unit tests')
 
     opt.recurse('tools')
 
@@ -48,9 +48,9 @@ def build(bld):
     version(bld)
 
     bld(features='subst',
+        name='version.cpp',
         source='core/version.cpp.in',
         target='core/version.cpp',
-        name='version.cpp',
         VERSION_BUILD=VERSION)
 
     bld.objects(target='core-objects',
@@ -58,6 +58,13 @@ def build(bld):
                 use='NDN_CXX BOOST',
                 includes='.',
                 export_includes='.')
+
+    if Utils.unversioned_sys_platform() == 'linux':
+        systemd_units = bld.path.ant_glob('systemd/*.in')
+        bld(features='subst',
+            name='systemd-units',
+            source=systemd_units,
+            target=[u.change_ext('') for u in systemd_units])
 
     bld.recurse('tools')
     bld.recurse('tests')
