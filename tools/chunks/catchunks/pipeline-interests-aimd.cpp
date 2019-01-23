@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -43,7 +43,6 @@ PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstima
   , m_options(options)
   , m_rttEstimator(rttEstimator)
   , m_scheduler(m_face.getIoService())
-  , m_checkRtoEvent(m_scheduler)
   , m_highData(0)
   , m_highInterest(0)
   , m_recPoint(0)
