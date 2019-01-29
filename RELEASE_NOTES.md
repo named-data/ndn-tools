@@ -1,6 +1,22 @@
 Release Notes
 =============
 
+## Version 0.6.3
+
+chunks:
+- Fix impossible RTT values (Issue #4604)
+- Add support for RDR metadata in ndnputchunks (Issue #4556)
+- Use `PendingInterestHandle` and `RegisteredPrefixHandle` (Issues #4316, #3919)
+
+ping:
+- Add systemd unit file for ndnpingserver (Issue #4594)
+- Use `PendingInterestHandle` and `RegisteredPrefixHandle` (Issues #4316, #3919)
+
+poke:
+- Use `PendingInterestHandle` and `RegisteredPrefixHandle` (Issues #4316, #3919)
+
+Various build system and build script improvements.
+
 ## Version 0.6.2
 
 The build requirements have been upgraded to gcc >= 5.3 or clang >= 3.6, boost >= 1.58,
