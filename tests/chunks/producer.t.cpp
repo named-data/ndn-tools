@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018,  Regents of the University of California,
+ * Copyright (c) 2016-2019,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -28,6 +28,7 @@
 #include "tests/test-common.hpp"
 #include "tests/identity-management-fixture.hpp"
 
+#include <ndn-cxx/metadata-object.hpp>
 #include <ndn-cxx/security/pib/identity.hpp>
 #include <ndn-cxx/security/pib/key.hpp>
 #include <ndn-cxx/util/dummy-client-face.hpp>
@@ -197,6 +198,34 @@ BOOST_AUTO_TEST_CASE(RequestNotExistingSegment)
 
   // no new data
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
+}
+
+BOOST_AUTO_TEST_CASE(RequestMetadata)
+{
+  Producer producer(prefix.appendVersion(version), face, m_keyChain, testString, options);
+  io.poll();
+
+  // ask for metadata with a valid discovery interest
+  face.receive(MetadataObject::makeDiscoveryInterest(Name(prefix).getPrefix(-1)));
+  face.processEvents();
+
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
+  auto lastData = face.sentData.back();
+
+  // check the name of metadata packet
+  BOOST_CHECK(MetadataObject::isValidName(lastData.getName()));
+
+  // make metadata object from metadata packet
+  MetadataObject mobject(lastData);
+  BOOST_CHECK_EQUAL(mobject.getVersionedName(), prefix);
+
+  // ask for metadata with an invalid discovery interest
+  face.receive(MetadataObject::makeDiscoveryInterest(Name(prefix).getPrefix(-1))
+               .setCanBePrefix(false));
+  face.processEvents();
+
+  // we expect Nack in response to a discovery interest without CanBePrefix
+  BOOST_CHECK_EQUAL(face.sentNacks.size(), 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestProducer

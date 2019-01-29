@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -25,9 +25,12 @@
  * @author Andrea Tosatto
  * @author Davide Pesavento
  * @author Klaus Schneider
+ * @author Chavoosh Ghasemi
  */
 
 #include "producer.hpp"
+
+#include <ndn-cxx/metadata-object.hpp>
 
 namespace ndn {
 namespace chunks {
@@ -52,10 +55,19 @@ Producer::Producer(const Name& prefix, Face& face, KeyChain& keyChain, std::istr
   if (m_options.wantShowVersion)
     std::cout << m_versionedPrefix[-1] << std::endl;
 
-  m_face.setInterestFilter(m_prefix,
-                           bind(&Producer::onInterest, this, _2),
-                           RegisterPrefixSuccessCallback(),
-                           bind(&Producer::onRegisterFailed, this, _1, _2));
+  // register m_prefix without interest handler
+  m_face.registerPrefix(m_prefix, nullptr, bind(&Producer::onRegisterFailed, this, _1, _2));
+
+  // match Interests whose name starts with m_versionedPrefix
+  face.setInterestFilter(m_versionedPrefix, bind(&Producer::processSegmentInterest, this, _2));
+
+  // match Interests whose name is exactly m_prefix
+  face.setInterestFilter(InterestFilter(m_prefix, ""),
+                         bind(&Producer::processSegmentInterest, this, _2));
+
+  // match discovery Interests
+  face.setInterestFilter(MetadataObject::makeDiscoveryInterest(m_prefix).getName(),
+                         bind(&Producer::processDiscoveryInterest, this, _2));
 
   if (!m_options.isQuiet)
     std::cerr << "Data published with name: " << m_versionedPrefix << std::endl;
@@ -68,7 +80,32 @@ Producer::run()
 }
 
 void
-Producer::onInterest(const Interest& interest)
+Producer::processDiscoveryInterest(const Interest& interest)
+{
+  if (m_options.isVerbose)
+    std::cerr << "Discovery Interest: " << interest << std::endl;
+
+  if (!interest.getCanBePrefix()) {
+    if (m_options.isVerbose)
+      std::cerr << "Discovery Interest lacks CanBePrefix, sending Nack" << std::endl;
+    m_face.put(lp::Nack(interest));
+    return;
+  }
+
+  MetadataObject mobject;
+  mobject.setVersionedName(m_versionedPrefix);
+
+  // make a metadata packet based on the received discovery Interest name
+  Data mdata(mobject.makeData(interest.getName(), m_keyChain, m_options.signingInfo));
+
+  if (m_options.isVerbose)
+    std::cerr << "Sending metadata: " << mdata << std::endl;
+
+  m_face.put(mdata);
+}
+
+void
+Producer::processSegmentInterest(const Interest& interest)
 {
   BOOST_ASSERT(m_store.size() > 0);
 
@@ -78,9 +115,7 @@ Producer::onInterest(const Interest& interest)
   const Name& name = interest.getName();
   shared_ptr<Data> data;
 
-  // is this a discovery Interest or a sequence retrieval?
-  if (name.size() == m_versionedPrefix.size() + 1 && m_versionedPrefix.isPrefixOf(name) &&
-      name[-1].isSegment()) {
+  if (name.size() == m_versionedPrefix.size() + 1 && name[-1].isSegment()) {
     const auto segmentNo = static_cast<size_t>(interest.getName()[-1].toSegment());
     // specific segment retrieval
     if (segmentNo < m_store.size()) {
@@ -88,7 +123,7 @@ Producer::onInterest(const Interest& interest)
     }
   }
   else if (interest.matchesData(*m_store[0])) {
-    // Interest has version and is looking for the first segment or has no version
+    // unspecified version or segment number, return first segment
     data = m_store[0];
   }
 
@@ -97,6 +132,11 @@ Producer::onInterest(const Interest& interest)
       std::cerr << "Data: " << *data << std::endl;
 
     m_face.put(*data);
+  }
+  else {
+    if (m_options.isVerbose)
+      std::cerr << "Interest cannot be satisfied, sending Nack" << std::endl;
+    m_face.put(lp::Nack(interest));
   }
 }
 

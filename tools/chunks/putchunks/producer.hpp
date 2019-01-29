@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -85,8 +85,17 @@ private:
   void
   populateStore(std::istream& is);
 
+  /**
+   * @brief Respond with a metadata packet containing the versioned content name
+   */
   void
-  onInterest(const Interest& interest);
+  processDiscoveryInterest(const Interest& interest);
+
+  /**
+   * @brief Respond with the requested segment of content
+   */
+  void
+  processSegmentInterest(const Interest& interest);
 
   void
   onRegisterFailed(const Name& prefix, const std::string& reason);
