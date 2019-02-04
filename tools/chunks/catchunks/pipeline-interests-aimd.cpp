@@ -86,9 +86,6 @@ PipelineInterestsAimd::doRun()
 void
 PipelineInterestsAimd::doCancel()
 {
-  for (const auto& entry : m_segmentInfo) {
-    m_face.removePendingInterest(entry.second.interestId);
-  }
   m_checkRtoEvent.cancel();
   m_segmentInfo.clear();
 }
@@ -155,8 +152,6 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
                   << " is " << m_retxCount[segNo] << std::endl;
       }
     }
-
-    m_face.removePendingInterest(m_segmentInfo[segNo].interestId);
   }
 
   Interest interest(Name(m_prefix).appendSegment(segNo));
@@ -164,26 +159,24 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
   interest.setMustBeFresh(m_options.mustBeFresh);
   interest.setMaxSuffixComponents(1);
 
-  auto interestId = m_face.expressInterest(interest,
-                                           bind(&PipelineInterestsAimd::handleData, this, _1, _2),
-                                           bind(&PipelineInterestsAimd::handleNack, this, _1, _2),
-                                           bind(&PipelineInterestsAimd::handleLifetimeExpiration, this, _1));
+  SegmentInfo& segInfo = m_segmentInfo[segNo];
+  segInfo.interestHdl = m_face.expressInterest(interest,
+                                               bind(&PipelineInterestsAimd::handleData, this, _1, _2),
+                                               bind(&PipelineInterestsAimd::handleNack, this, _1, _2),
+                                               bind(&PipelineInterestsAimd::handleLifetimeExpiration, this, _1));
+  segInfo.timeSent = time::steady_clock::now();
+  segInfo.rto = m_rttEstimator.getEstimatedRto();
+
   m_nInFlight++;
   m_nSent++;
 
   if (isRetransmission) {
-    SegmentInfo& segInfo = m_segmentInfo[segNo];
-    segInfo.timeSent = time::steady_clock::now();
-    segInfo.rto = m_rttEstimator.getEstimatedRto();
     segInfo.state = SegmentState::Retransmitted;
     m_nRetransmitted++;
   }
   else {
     m_highInterest = segNo;
-    m_segmentInfo[segNo] = {interestId,
-                            time::steady_clock::now(),
-                            m_rttEstimator.getEstimatedRto(),
-                            SegmentState::FirstTimeSent};
+    segInfo.state = SegmentState::FirstTimeSent;
   }
 }
 
@@ -427,7 +420,6 @@ PipelineInterestsAimd::cancelInFlightSegmentsGreaterThan(uint64_t segNo)
   for (auto it = m_segmentInfo.begin(); it != m_segmentInfo.end();) {
     // cancel fetching all segments that follow
     if (it->first > segNo) {
-      m_face.removePendingInterest(it->second.interestId);
       it = m_segmentInfo.erase(it);
       m_nInFlight--;
     }

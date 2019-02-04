@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -76,7 +76,7 @@ operator<<(std::ostream& os, SegmentState state);
  */
 struct SegmentInfo
 {
-  const PendingInterestId* interestId; ///< pending interest ID returned by ndn::Face::expressInterest
+  ScopedPendingInterestHandle interestHdl;
   time::steady_clock::TimePoint timeSent;
   Milliseconds rto;
   SegmentState state;

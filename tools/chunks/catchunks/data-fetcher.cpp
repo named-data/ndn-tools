@@ -1,8 +1,8 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+/*
+ * Copyright (c) 2016-2019, Regents of the University of California,
+ *                          Colorado State University,
+ *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -75,7 +75,7 @@ DataFetcher::cancel()
 {
   if (isRunning()) {
     m_isStopped = true;
-    m_face.removePendingInterest(m_interestId);
+    m_pendingInterest.cancel();
     m_scheduler.cancelAllEvents();
   }
 }
@@ -84,10 +84,10 @@ void
 DataFetcher::expressInterest(const Interest& interest, const shared_ptr<DataFetcher>& self)
 {
   m_nCongestionRetries = 0;
-  m_interestId = m_face.expressInterest(interest,
-                                        bind(&DataFetcher::handleData, this, _1, _2, self),
-                                        bind(&DataFetcher::handleNack, this, _1, _2, self),
-                                        bind(&DataFetcher::handleTimeout, this, _1, self));
+  m_pendingInterest = m_face.expressInterest(interest,
+                                             bind(&DataFetcher::handleData, this, _1, _2, self),
+                                             bind(&DataFetcher::handleNack, this, _1, _2, self),
+                                             bind(&DataFetcher::handleTimeout, this, _1, self));
 }
 
 void

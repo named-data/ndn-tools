@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2018,  Arizona Board of Regents.
+ * Copyright (c) 2015-2019,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -105,7 +105,7 @@ private:
   KeyChain& m_keyChain;
   size_t m_nPings;
   Block m_payload;
-  const RegisteredPrefixId* m_regPrefixId;
+  RegisteredPrefixHandle m_registeredPrefix;
 };
 
 } // namespace server
