@@ -193,7 +193,7 @@ local NDN_DICT = {
    [10] = {name = "Nonce"                        , field = ProtoField.uint32("ndn.nonce", "Nonce", base.HEX)                       , value = getNonce},
    [12] = {name = "InterestLifetime"             , field = ProtoField.uint64("ndn.interestlifetime", "InterestLifetime", base.DEC) , value = getNonNegativeInteger},
    [34] = {name = "HopLimit"                     , field = ProtoField.uint64("ndn.hoplimit", "HopLimit", base.DEC)                 , value = getNonNegativeInteger},
-   [35] = {name = "Parameters"                   , field = ProtoField.string("ndn.parameters", "Parameters")},
+   [36] = {name = "Parameters"                   , field = ProtoField.string("ndn.parameters", "Parameters")},
 
    -- Data and its sub-elements in Packet Format v0.3
    [6]  = {name = "Data"                         , summary = true},
