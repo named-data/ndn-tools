@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -109,10 +109,26 @@ DiscoverVersionIterative::handleTimeout(const Interest& interest, const std::str
       std::cerr << "Found data with the latest version: " << m_latestVersion << std::endl;
 
     // we discovered at least one version. assume what we have is the latest.
-    this->emitSignal(onDiscoverySuccess, *m_latestVersionData);
+    this->emitSignal(onDiscoverySuccess, Name(interest.getName()).appendVersion(m_latestVersion));
   }
   else {
     DiscoverVersion::handleTimeout(interest, reason);
+  }
+}
+
+void
+DiscoverVersionIterative::handleNack(const Interest& interest, const std::string& reason)
+{
+  if (m_foundVersion) {
+    // a version has been found and after a nack this version can be used as the latest.
+    if (isVerbose)
+      std::cerr << "Found data with the latest version: " << m_latestVersion << std::endl;
+
+    // we discovered at least one version. assume what we have is the latest.
+    this->emitSignal(onDiscoverySuccess, Name(interest.getName()).appendVersion(m_latestVersion));
+  }
+  else {
+    DiscoverVersion::handleNack(interest, reason);
   }
 }
 

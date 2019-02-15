@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -40,7 +40,6 @@ PipelineInterests::PipelineInterests(Face& face)
   , m_nReceived(0)
   , m_receivedSize(0)
   , m_nextSegmentNo(0)
-  , m_excludedSegmentNo(0)
   , m_isStopping(false)
 {
 }
@@ -48,20 +47,13 @@ PipelineInterests::PipelineInterests(Face& face)
 PipelineInterests::~PipelineInterests() = default;
 
 void
-PipelineInterests::run(const Data& data, DataCallback dataCb, FailureCallback failureCb)
+PipelineInterests::run(const Name& versionedName, DataCallback dataCb, FailureCallback failureCb)
 {
+  BOOST_ASSERT(!versionedName.empty() && versionedName[-1].isVersion());
   BOOST_ASSERT(dataCb != nullptr);
+  m_prefix = versionedName;
   m_onData = std::move(dataCb);
   m_onFailure = std::move(failureCb);
-  m_prefix = data.getName().getPrefix(-1);
-  m_excludedSegmentNo = getSegmentFromPacket(data);
-
-  if (data.getFinalBlock()) {
-    m_lastSegmentNo = data.getFinalBlock()->toSegment();
-    m_hasFinalBlockId = true;
-  }
-
-  onData(data);
 
   // record the start time of the pipeline
   m_startTime = time::steady_clock::now();
@@ -82,17 +74,14 @@ PipelineInterests::cancel()
 bool
 PipelineInterests::allSegmentsReceived() const
 {
-  BOOST_ASSERT(m_nReceived > 0);
-  return m_hasFinalBlockId && static_cast<uint64_t>(m_nReceived - 1) >= m_lastSegmentNo;
+  return m_nReceived > 0 &&
+         m_hasFinalBlockId &&
+         static_cast<uint64_t>(m_nReceived - 1) >= m_lastSegmentNo;
 }
 
 uint64_t
 PipelineInterests::getNextSegmentNo()
 {
-  // skip the excluded segment
-  if (m_nextSegmentNo == m_excludedSegmentNo)
-    m_nextSegmentNo++;
-
   return m_nextSegmentNo++;
 }
 

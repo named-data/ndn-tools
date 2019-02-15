@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -80,12 +80,12 @@ protected:
   }
 
   virtual void
-  onSuccess(const Data& data)
+  onSuccess(const Name& versionedName)
   {
     isDiscoveryFinished = true;
 
-    if (data.getName()[name.size()].isVersion())
-      discoveredVersion = data.getName()[name.size()].toVersion();
+    BOOST_REQUIRE(!versionedName.empty() && versionedName[-1].isVersion());
+    discoveredVersion = versionedName[-1].toVersion();
   }
 
   virtual void

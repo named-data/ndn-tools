@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -70,9 +70,9 @@ protected:
   }
 
   void
-  runWithData(const Data& data)
+  run(const Name& name, uint64_t version = 0)
   {
-    pipeline->run(data,
+    pipeline->run(Name(name).appendVersion(version),
                   [] (const Data&) {},
                   [this] (const std::string&) { hasFailed = true; });
   }

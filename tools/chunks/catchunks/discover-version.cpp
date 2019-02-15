@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -47,12 +47,6 @@ DiscoverVersion::expressInterest(const Interest& interest, int maxRetriesNack, i
                                bind(&DiscoverVersion::handleNack, this, _1, _2),
                                bind(&DiscoverVersion::handleTimeout, this, _1, _2),
                                isVerbose);
-}
-
-void
-DiscoverVersion::handleData(const Interest& interest, const Data& data)
-{
-  onDiscoverySuccess(data);
 }
 
 void

@@ -45,8 +45,8 @@ Consumer::run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests
   m_nextToPrint = 0;
   m_bufferedData.clear();
 
-  m_discover->onDiscoverySuccess.connect([this] (const Data& data) {
-    m_pipeline->run(data,
+  m_discover->onDiscoverySuccess.connect([this] (const Name& versionedName) {
+    m_pipeline->run(versionedName,
       [this] (const Data& data) { handleData(data); },
       [] (const std::string& msg) { NDN_THROW(std::runtime_error(msg)); });
   });

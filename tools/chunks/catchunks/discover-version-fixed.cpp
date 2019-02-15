@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -52,16 +52,18 @@ DiscoverVersionFixed::handleData(const Interest& interest, const Data& data)
   if (isVerbose)
     std::cerr << "Data: " << data << std::endl;
 
-  size_t segmentIndex = interest.getName().size();
-  if (data.getName()[segmentIndex].isSegment()) {
+  // data name must end with a segment number, preceded by a version number
+  if (data.getName().size() >= 2 &&
+      data.getName()[-1].isSegment() &&
+      data.getName()[-2].isVersion()) {
     if (isVerbose)
-      std::cerr << "Found data with the requested version: " << m_prefix[-1] << std::endl;
+      std::cerr << "Found data with the requested version: " << data.getName()[-2] << std::endl;
 
-    this->emitSignal(onDiscoverySuccess, data);
+    this->emitSignal(onDiscoverySuccess, data.getName().getPrefix(-1));
   }
   else {
     // data isn't a valid segment, add to the exclude list
-    m_strayExcludes.excludeOne(data.getName()[segmentIndex]);
+    m_strayExcludes.excludeOne(data.getName()[-1]);
     Interest newInterest(interest);
     newInterest.refreshNonce();
     newInterest.setExclude(m_strayExcludes);

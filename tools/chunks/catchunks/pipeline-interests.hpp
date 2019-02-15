@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -67,12 +67,12 @@ public:
   /**
    * @brief start fetching all the segments of the specified prefix
    *
-   * @param data a segment of the segmented Data to fetch; the Data name must end with a segment number
+   * @param versionedName the name of the segmented Data ending with a version number
    * @param onData callback for every segment correctly received, must not be empty
    * @param onFailure callback if an error occurs, may be empty
    */
   void
-  run(const Data& data, DataCallback onData, FailureCallback onFailure);
+  run(const Name& versionedName, DataCallback onData, FailureCallback onFailure);
 
   /**
    * @brief stop all fetch operations
@@ -163,7 +163,6 @@ private:
   DataCallback m_onData;
   FailureCallback m_onFailure;
   uint64_t m_nextSegmentNo;
-  uint64_t m_excludedSegmentNo;
   time::steady_clock::TimePoint m_startTime;
   bool m_isStopping;
 };

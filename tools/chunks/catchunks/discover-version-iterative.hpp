@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -94,6 +94,9 @@ private:
 
   void
   handleTimeout(const Interest& interest, const std::string& reason) final;
+
+  void
+  handleNack(const Interest& interest, const std::string& reason) final;
 
 private:
   uint64_t m_latestVersion;

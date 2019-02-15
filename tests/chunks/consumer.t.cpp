@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -157,7 +157,10 @@ private:
   void
   handleData(const Interest& interest, const Data& data) final
   {
-    this->emitSignal(onDiscoverySuccess, data);
+    if (!data.getName().empty() && data.getName()[-1].isVersion())
+      this->emitSignal(onDiscoverySuccess, data.getName());
+    else
+      this->emitSignal(onDiscoveryFailure, "Invalid versioned name");
   }
 
 public:
@@ -210,7 +213,8 @@ BOOST_FIXTURE_TEST_CASE(RunBasic, UnitTestTimeFixture)
   this->advanceClocks(io, time::nanoseconds(1));
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
 
-  auto data = makeData(prefix.appendSegment(0));
+  // this Data packet answers the discovery Interest, so it must end with a version number
+  auto data = makeData(prefix.appendVersion(0));
   face.receive(*data);
 
   this->advanceClocks(io, time::nanoseconds(1));

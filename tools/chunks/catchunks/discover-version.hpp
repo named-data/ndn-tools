@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -46,9 +46,9 @@ class DiscoverVersion : virtual protected Options, noncopyable
 {
 public: // signals
   /**
-   * @brief Signal emited when the first segment of a specific version is found.
+   * @brief Signal emitted when the versioned name of Data is found.
    */
-  signal::Signal<DiscoverVersion, const Data&> onDiscoverySuccess;
+  signal::Signal<DiscoverVersion, Name> onDiscoverySuccess;
 
   /**
    * @brief Signal emitted when a failure occurs.
@@ -78,7 +78,7 @@ protected:
   expressInterest(const Interest& interest, int maxRetriesNack, int maxRetriesTimeout);
 
   virtual void
-  handleData(const Interest& interest, const Data& data);
+  handleData(const Interest& interest, const Data& data) = 0;
 
   virtual void
   handleNack(const Interest& interest, const std::string& reason);
