@@ -7,7 +7,7 @@ def options(opt):
     for subdir in opt.path.ant_glob('*', dir=True, src=False):
         tool = subdir.path_from(opt.path)
         opt.add_option('--enable-%s' % tool,
-                       help='Build tool %s, enabled by default' % tool,
+                       help='Build tool %s (enabled by default)' % tool,
                        action='store_true', dest='enable_%s' % tool)
         opt.add_option('--disable-%s' % tool,
                        help='Do not build tool %s' % tool,
@@ -38,13 +38,13 @@ def configure(conf):
             disabled_tools.add(tool)
 
     if len(enabled_tools) == 0:
-        conf.env['BUILD_TOOLS'] = list(all_tools - disabled_tools)
+        conf.env.BUILD_TOOLS = list(all_tools - disabled_tools)
     else:
-        conf.env['BUILD_TOOLS'] = list(enabled_tools)
+        conf.env.BUILD_TOOLS = list(enabled_tools)
 
-    for tool in conf.env['BUILD_TOOLS']:
+    for tool in conf.env.BUILD_TOOLS:
         conf.recurse(tool, mandatory=False)
 
 def build(bld):
-    for tool in bld.env['BUILD_TOOLS']:
+    for tool in bld.env.BUILD_TOOLS:
         bld.recurse(tool)

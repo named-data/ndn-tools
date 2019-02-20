@@ -9,30 +9,38 @@ import os, subprocess
 
 def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
-    opt.load(['default-compiler-flags', 'coverage', 'sanitizers', 'boost',
+    opt.load(['default-compiler-flags',
+              'coverage', 'sanitizers', 'boost',
               'sphinx_build'],
              tooldir=['.waf-tools'])
 
-    opt.add_option('--with-tests', action='store_true', default=False,
-                   help='Build unit tests')
+    opt_group = opt.add_option_group('Tools Options')
+
+    opt_group.add_option('--with-tests', action='store_true', default=False,
+                         help='Build unit tests')
 
     opt.recurse('tools')
 
 def configure(conf):
     conf.load(['compiler_cxx', 'gnu_dirs',
-               'default-compiler-flags', 'sphinx_build', 'boost'])
+               'default-compiler-flags', 'boost', 'sphinx_build'])
+
+    conf.env.WITH_TESTS = conf.options.with_tests
 
     if 'PKG_CONFIG_PATH' not in os.environ:
         os.environ['PKG_CONFIG_PATH'] = Utils.subst_vars('${LIBDIR}/pkgconfig', conf.env)
-    conf.check_cfg(package='libndn-cxx', args=['--cflags', '--libs'],
-                   uselib_store='NDN_CXX', mandatory=True)
+    conf.check_cfg(package='libndn-cxx', args=['--cflags', '--libs'], uselib_store='NDN_CXX')
 
-    boost_libs = 'system filesystem program_options thread log log_setup'
-    if conf.options.with_tests:
-        conf.env['WITH_TESTS'] = True
+    boost_libs = ['system', 'program_options', 'filesystem']
+    if conf.env.WITH_TESTS:
+        boost_libs.append('unit_test_framework')
         conf.define('WITH_TESTS', 1)
-        boost_libs += ' unit_test_framework'
+
     conf.check_boost(lib=boost_libs, mt=True)
+    if conf.env.BOOST_VERSION_NUMBER < 105800:
+        conf.fatal('Minimum required Boost version is 1.58.0\n'
+                   'Please upgrade your distribution or manually install a newer version of Boost'
+                   ' (https://redmine.named-data.net/projects/nfd/wiki/Boost_FAQ)')
 
     conf.recurse('tools')
 
@@ -42,7 +50,7 @@ def configure(conf):
     conf.load('coverage')
     conf.load('sanitizers')
 
-    conf.msg('Tools to build', ', '.join(conf.env['BUILD_TOOLS']))
+    conf.msg('Tools to build', ', '.join(conf.env.BUILD_TOOLS))
 
 def build(bld):
     version(bld)

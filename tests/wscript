@@ -2,14 +2,14 @@
 top = '..'
 
 def build(bld):
-    if not bld.env['WITH_TESTS']:
+    if not bld.env.WITH_TESTS:
         return
 
     tmp_path = 'TMP_TESTS_PATH="%s"' % bld.bldnode.make_node('tmp-files')
     bld.program(
         target='../unit-tests',
         name='unit-tests',
-        source=bld.path.ant_glob(['*.cpp'] + ['%s/**/*.cpp' % tool for tool in bld.env['BUILD_TOOLS']]),
-        use=['core-objects'] + ['%s-objects' % tool for tool in bld.env['BUILD_TOOLS']],
-        install_path=None,
-        defines=[tmp_path])
+        source=bld.path.ant_glob(['*.cpp'] + ['%s/**/*.cpp' % tool for tool in bld.env.BUILD_TOOLS]),
+        use=['core-objects'] + ['%s-objects' % tool for tool in bld.env.BUILD_TOOLS],
+        defines=[tmp_path],
+        install_path=None)
