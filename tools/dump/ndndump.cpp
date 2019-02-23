@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2011-2018, Regents of the University of California.
+ * Copyright (c) 2011-2019, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -99,7 +99,7 @@ NdnDump::run()
     const char* defaultDevice = pcap_lookupdev(errbuf);
 
     if (defaultDevice == nullptr) {
-      BOOST_THROW_EXCEPTION(Error(errbuf));
+      NDN_THROW(Error(errbuf));
     }
 
     interface = defaultDevice;
@@ -109,14 +109,14 @@ NdnDump::run()
   if (!interface.empty()) {
     m_pcap = pcap_open_live(interface.data(), 65535, wantPromisc, 1000, errbuf);
     if (m_pcap == nullptr) {
-      BOOST_THROW_EXCEPTION(Error("Cannot open interface " + interface + ": " + errbuf));
+      NDN_THROW(Error("Cannot open interface " + interface + ": " + errbuf));
     }
     action = "listening on " + interface;
   }
   else {
     m_pcap = pcap_open_offline(inputFile.data(), errbuf);
     if (m_pcap == nullptr) {
-      BOOST_THROW_EXCEPTION(Error("Cannot open file '" + inputFile + "' for reading: " + errbuf));
+      NDN_THROW(Error("Cannot open file '" + inputFile + "' for reading: " + errbuf));
     }
     action = "reading from file " + inputFile;
   }
@@ -138,7 +138,7 @@ NdnDump::run()
     // we know how to handle these
     break;
   default:
-    BOOST_THROW_EXCEPTION(Error("Unsupported link-layer header type " + formattedDlt));
+    NDN_THROW(Error("Unsupported link-layer header type " + formattedDlt));
   }
 
   if (!pcapFilter.empty()) {
@@ -149,13 +149,13 @@ NdnDump::run()
     bpf_program program;
     int res = pcap_compile(m_pcap, &program, pcapFilter.data(), 1, PCAP_NETMASK_UNKNOWN);
     if (res < 0) {
-      BOOST_THROW_EXCEPTION(Error("Cannot compile pcap filter '" + pcapFilter + "': " + pcap_geterr(m_pcap)));
+      NDN_THROW(Error("Cannot compile pcap filter '" + pcapFilter + "': " + pcap_geterr(m_pcap)));
     }
 
     res = pcap_setfilter(m_pcap, &program);
     pcap_freecode(&program);
     if (res < 0) {
-      BOOST_THROW_EXCEPTION(Error("Cannot set pcap filter: "s + pcap_geterr(m_pcap)));
+      NDN_THROW(Error("Cannot set pcap filter: "s + pcap_geterr(m_pcap)));
     }
   }
 
@@ -164,7 +164,7 @@ NdnDump::run()
   };
 
   if (pcap_loop(m_pcap, -1, callback, reinterpret_cast<uint8_t*>(this)) < 0) {
-    BOOST_THROW_EXCEPTION(Error("pcap_loop: "s + pcap_geterr(m_pcap)));
+    NDN_THROW(Error("pcap_loop: "s + pcap_geterr(m_pcap)));
   }
 }
 

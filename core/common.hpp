@@ -57,7 +57,6 @@
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
-#include <boost/throw_exception.hpp>
 
 #include <ndn-cxx/data.hpp>
 #include <ndn-cxx/face.hpp>
@@ -65,6 +64,7 @@
 #include <ndn-cxx/name.hpp>
 #include <ndn-cxx/security/key-chain.hpp>
 #include <ndn-cxx/util/backports.hpp>
+#include <ndn-cxx/util/exception.hpp>
 #include <ndn-cxx/util/scheduler.hpp>
 #include <ndn-cxx/util/signal.hpp>
 #include <ndn-cxx/util/time.hpp>

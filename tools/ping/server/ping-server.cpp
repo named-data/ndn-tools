@@ -46,7 +46,7 @@ PingServer::start()
                        Name(m_options.prefix).append("ping"),
                        bind(&PingServer::onInterest, this, _2),
                        [] (const auto&, const auto& reason) {
-                         BOOST_THROW_EXCEPTION(std::runtime_error("Failed to register prefix: " + reason));
+                         NDN_THROW(std::runtime_error("Failed to register prefix: " + reason));
                        });
 }
 

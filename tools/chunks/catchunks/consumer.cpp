@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -48,10 +48,10 @@ Consumer::run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests
   m_discover->onDiscoverySuccess.connect([this] (const Data& data) {
     m_pipeline->run(data,
       [this] (const Data& data) { handleData(data); },
-      [] (const std::string& msg) { BOOST_THROW_EXCEPTION(std::runtime_error(msg)); });
+      [] (const std::string& msg) { NDN_THROW(std::runtime_error(msg)); });
   });
   m_discover->onDiscoveryFailure.connect([] (const std::string& msg) {
-    BOOST_THROW_EXCEPTION(std::runtime_error(msg));
+    NDN_THROW(std::runtime_error(msg));
   });
   m_discover->run();
 }
@@ -64,7 +64,7 @@ Consumer::handleData(const Data& data)
   m_validator.validate(data,
     [this, dataPtr] (const Data& data) {
       if (data.getContentType() == ndn::tlv::ContentType_Nack) {
-        BOOST_THROW_EXCEPTION(ApplicationNackError(data));
+        NDN_THROW(ApplicationNackError(data));
       }
 
       // 'data' passed to callback comes from DataValidationState and was not created with make_shared
@@ -72,7 +72,7 @@ Consumer::handleData(const Data& data)
       writeInOrderData();
     },
     [] (const Data&, const security::v2::ValidationError& error) {
-      BOOST_THROW_EXCEPTION(DataValidationError(error));
+      NDN_THROW(DataValidationError(error));
     });
 }
 
