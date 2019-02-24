@@ -454,7 +454,7 @@ NdnDump::printTcp(OutputFormatter& out, const uint8_t* pkt, size_t len) const
   }
 
   auto th = reinterpret_cast<const tcphdr*>(pkt);
-  size_t tcpHdrLen = th->th_off * 4;
+  size_t tcpHdrLen = th->TH_OFF * 4;
   if (tcpHdrLen < sizeof(tcphdr)) {
     out << " bad header length " << tcpHdrLen;
     return true;
@@ -483,7 +483,7 @@ NdnDump::printUdp(OutputFormatter& out, const uint8_t* pkt, size_t len) const
   }
 
   auto uh = reinterpret_cast<const udphdr*>(pkt);
-  size_t udpLen = endian::big_to_native(uh->uh_ulen);
+  size_t udpLen = endian::big_to_native(uh->UH_LEN);
   if (udpLen < sizeof(udphdr)) {
     out << " bad length " << udpLen;
     return true;

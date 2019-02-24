@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2011-2018, Regents of the University of California.
+ * Copyright (c) 2011-2019, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -24,6 +24,18 @@
 
 #include <pcap.h>
 #include <regex>
+
+#ifdef HAVE_BSD_TCPHDR
+#define TH_OFF th_off
+#else
+#define TH_OFF doff
+#endif
+
+#ifdef HAVE_BSD_UDPHDR
+#define UH_LEN uh_ulen
+#else
+#define UH_LEN len
+#endif
 
 namespace ndn {
 namespace dump {

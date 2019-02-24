@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018, University of Memphis,
+ * Copyright (c) 2014-2019, University of Memphis,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
@@ -351,14 +351,14 @@ BOOST_AUTO_TEST_CASE(MalformedTcpHeader)
   dump.wantTimestamp = false;
 
   tcphdr tcpHdr1{};
-  tcpHdr1.th_off = 0x2;
+  tcpHdr1.TH_OFF = 0x2;
 
   EncodingBuffer pkt1;
   this->receiveTcp4(pkt1, &tcpHdr1);
   BOOST_CHECK(output.is_equal("IP 0.0.0.0 > 0.0.0.0, TCP bad header length 8\n"));
 
   tcphdr tcpHdr2{};
-  tcpHdr2.th_off = 0xf;
+  tcpHdr2.TH_OFF = 0xf;
 
   EncodingBuffer pkt2;
   this->receiveTcp4(pkt2, &tcpHdr2);
@@ -370,16 +370,16 @@ BOOST_AUTO_TEST_CASE(MalformedUdpHeader)
   dump.wantTimestamp = false;
 
   udphdr udpHdr1{};
-  udpHdr1.uh_ulen = 3;
-  endian::native_to_big_inplace(udpHdr1.uh_ulen);
+  udpHdr1.UH_LEN = 3;
+  endian::native_to_big_inplace(udpHdr1.UH_LEN);
 
   EncodingBuffer pkt1;
   this->receiveUdp4(pkt1, &udpHdr1);
   BOOST_CHECK(output.is_equal("IP 0.0.0.0 > 0.0.0.0, UDP bad length 3\n"));
 
   udphdr udpHdr2{};
-  udpHdr2.uh_ulen = 1000;
-  endian::native_to_big_inplace(udpHdr2.uh_ulen);
+  udpHdr2.UH_LEN = 1000;
+  endian::native_to_big_inplace(udpHdr2.UH_LEN);
 
   EncodingBuffer pkt2;
   this->receiveUdp4(pkt2, &udpHdr2);
