@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -34,6 +34,7 @@
 #include "consumer.hpp"
 #include "discover-version-fixed.hpp"
 #include "discover-version-iterative.hpp"
+#include "discover-version-realtime.hpp"
 #include "pipeline-interests-aimd.hpp"
 #include "pipeline-interests-fixed-window.hpp"
 #include "options.hpp"
@@ -70,7 +71,7 @@ main(int argc, char** argv)
   basicDesc.add_options()
     ("help,h",      "print this help message and exit")
     ("discover-version,d", po::value<std::string>(&discoverType)->default_value(discoverType),
-                            "version discovery algorithm to use; valid values are: 'fixed', 'iterative'")
+                            "version discovery algorithm to use; valid values are: 'fixed', 'iterative', 'realtime'")
     ("pipeline-type,p", po::value<std::string>(&pipelineType)->default_value(pipelineType),
                          "type of Interest pipeline to use; valid values are: 'fixed', 'aimd'")
     ("fresh,f",     po::bool_switch(&options.mustBeFresh), "only return fresh content")
@@ -228,6 +229,10 @@ main(int argc, char** argv)
       optionsIterative.maxRetriesAfterVersionFound = maxRetriesAfterVersionFound;
       optionsIterative.discoveryTimeout = time::milliseconds(discoveryTimeoutMs);
       discover = make_unique<DiscoverVersionIterative>(prefix, face, optionsIterative);
+    }
+    else if (discoverType == "realtime") {
+      DiscoverVersionRealtime::Options optionsRealtime(options);
+      discover = make_unique<DiscoverVersionRealtime>(prefix, face, optionsRealtime);
     }
     else {
       std::cerr << "ERROR: discover version type not valid" << std::endl;
