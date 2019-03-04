@@ -33,7 +33,6 @@
 #include "aimd-rtt-estimator.hpp"
 #include "consumer.hpp"
 #include "discover-version-fixed.hpp"
-#include "discover-version-iterative.hpp"
 #include "discover-version-realtime.hpp"
 #include "pipeline-interests-aimd.hpp"
 #include "pipeline-interests-fixed-window.hpp"
@@ -51,11 +50,10 @@ main(int argc, char** argv)
 {
   std::string programName(argv[0]);
   Options options;
-  std::string discoverType("iterative");
+  std::string discoverType("realtime");
   std::string pipelineType("aimd");
   size_t maxPipelineSize(1);
-  int maxRetriesAfterVersionFound(0);
-  int64_t discoveryTimeoutMs(300);
+  int64_t discoveryTimeoutMs(DEFAULT_INTEREST_LIFETIME.count());
   std::string uri;
 
   // congestion control parameters, CWA refers to conservative window adaptation,
@@ -71,7 +69,7 @@ main(int argc, char** argv)
   basicDesc.add_options()
     ("help,h",      "print this help message and exit")
     ("discover-version,d", po::value<std::string>(&discoverType)->default_value(discoverType),
-                            "version discovery algorithm to use; valid values are: 'fixed', 'iterative', 'realtime'")
+                            "version discovery algorithm to use; valid values are: 'fixed', 'realtime'")
     ("pipeline-type,p", po::value<std::string>(&pipelineType)->default_value(pipelineType),
                          "type of Interest pipeline to use; valid values are: 'fixed', 'aimd'")
     ("fresh,f",     po::bool_switch(&options.mustBeFresh), "only return fresh content")
@@ -84,14 +82,10 @@ main(int argc, char** argv)
     ("version,V",   "print program version and exit")
     ;
 
-  po::options_description iterDiscoveryDesc("Iterative version discovery options");
-  iterDiscoveryDesc.add_options()
-    ("retries-iterative,i", po::value<int>(&maxRetriesAfterVersionFound)->default_value(maxRetriesAfterVersionFound),
-                            "number of timeouts that have to occur in order to confirm a discovered Data "
-                            "version as the latest one")
+  po::options_description realDiscoveryDesc("Realtime version discovery options");
+  realDiscoveryDesc.add_options()
     ("discovery-timeout,t", po::value<int64_t>(&discoveryTimeoutMs)->default_value(discoveryTimeoutMs),
-                            "discovery timeout (in milliseconds)")
-    ;
+                            "discovery timeout (in milliseconds)");
 
   po::options_description fixedPipeDesc("Fixed pipeline options");
   fixedPipeDesc.add_options()
@@ -136,7 +130,7 @@ main(int argc, char** argv)
     ;
 
   po::options_description visibleDesc;
-  visibleDesc.add(basicDesc).add(iterDiscoveryDesc).add(fixedPipeDesc).add(aimdPipeDesc);
+  visibleDesc.add(basicDesc).add(realDiscoveryDesc).add(fixedPipeDesc).add(aimdPipeDesc);
 
   po::options_description hiddenDesc;
   hiddenDesc.add_options()
@@ -196,11 +190,6 @@ main(int argc, char** argv)
     return 2;
   }
 
-  if (maxRetriesAfterVersionFound < 0 || maxRetriesAfterVersionFound > 1024) {
-    std::cerr << "ERROR: retries iterative value must be between 0 and 1024" << std::endl;
-    return 2;
-  }
-
   if (discoveryTimeoutMs < 0) {
     std::cerr << "ERROR: timeout cannot be negative" << std::endl;
     return 2;
@@ -224,14 +213,9 @@ main(int argc, char** argv)
     if (discoverType == "fixed") {
       discover = make_unique<DiscoverVersionFixed>(prefix, face, options);
     }
-    else if (discoverType == "iterative") {
-      DiscoverVersionIterative::Options optionsIterative(options);
-      optionsIterative.maxRetriesAfterVersionFound = maxRetriesAfterVersionFound;
-      optionsIterative.discoveryTimeout = time::milliseconds(discoveryTimeoutMs);
-      discover = make_unique<DiscoverVersionIterative>(prefix, face, optionsIterative);
-    }
     else if (discoverType == "realtime") {
       DiscoverVersionRealtime::Options optionsRealtime(options);
+      optionsRealtime.discoveryTimeout = time::milliseconds(discoveryTimeoutMs);
       discover = make_unique<DiscoverVersionRealtime>(prefix, face, optionsRealtime);
     }
     else {

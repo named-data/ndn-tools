@@ -17,13 +17,15 @@
                specified prefix and version number. A version component must be present at the
                end of the user-specified NDN name.
 
-* `iterative`: sends a series of interests with ChildSelector set to prefer the
-               rightmost child and Exclude selectors, attempting to find a data packet with the
-               specified prefix and the latest (the largest in the NDN canonical ordering)
-               version number.  The version is declared "latest" after a predefined number of
-               data retrieval timeouts (default: 1).
+* `realtime` : sends discovery interests to fetch metadata of the solicited content from which
+               the data version will be resolved.
+               The version number of the solicited content is included in the name of returned
+               metadata data packet.
+               For more information about the packet format and naming convention of interest and
+               data packets for realtime version discovery, please refer to:
+[Realtime Data Retrieval (RDR) protocol wiki page](https://redmine.named-data.net/projects/ndn-tlv/wiki/RDR)
 
-The default discovery method is `iterative`.
+The default discovery method is `realtime`.
 
 ## Interest pipeline types in ndncatchunks
 
@@ -70,9 +72,9 @@ to the supplied NDN name.
 
 To retrieve the latest version of a published file, the following command can be used:
 
-    ndncatchunks -d iterative ndn:/localhost/demo/gpl3
+    ndncatchunks ndn:/localhost/demo/gpl3
 
-This command will use the iterative method to discover the latest version of the file.
+This command will use the realtime method to discover the version number of the file.
 
 To fetch a specific version of a published file, you can use the `fixed` version discovery method.
 In this case the version needs to be supplied as part of the name. For example, if the version
