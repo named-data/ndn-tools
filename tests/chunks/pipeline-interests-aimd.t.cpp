@@ -179,8 +179,19 @@ BOOST_AUTO_TEST_CASE(Timeout)
   BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 4.5, MARGIN);
   BOOST_CHECK_EQUAL(face.sentInterests.size(), nDataSegments); // all the segment requests have been sent
 
-  // timeout segment 3
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nTimeouts, 0);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nLossDecr, 0);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nMarkDecr, 0);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nRetransmitted, 0);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nSkippedRetx, 0);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nCongMarks, 0);
+
+  // timeout segment 3 & 6
   advanceClocks(io, time::milliseconds(150));
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nTimeouts, 2);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nRetransmitted, 1);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nLossDecr, 1);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nSkippedRetx, 0);
 
   BOOST_CHECK_EQUAL(pipeline->m_nReceived, 5);
   BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.25, MARGIN); // window size drop to 1/2 of previous size
@@ -194,6 +205,12 @@ BOOST_AUTO_TEST_CASE(Timeout)
   BOOST_CHECK_CLOSE(aimdPipeline->m_cwnd, 2.75, MARGIN); // congestion avoidance
   BOOST_CHECK_EQUAL(aimdPipeline->m_retxQueue.size(), 0);
   BOOST_CHECK_EQUAL(aimdPipeline->m_retxCount[3], 1);
+
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nTimeouts, 2);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nRetransmitted, 2);
+  BOOST_CHECK_EQUAL(aimdPipeline->m_nTimeouts,
+      aimdPipeline->m_nRetransmitted + aimdPipeline->m_nSkippedRetx);
+
 }
 
 BOOST_AUTO_TEST_CASE(CongestionMarksWithCwa)

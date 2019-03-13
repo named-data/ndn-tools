@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -36,7 +36,7 @@ namespace chunks {
 struct Options
 {
   time::milliseconds interestLifetime = ndn::DEFAULT_INTEREST_LIFETIME;
-  int maxRetriesOnTimeoutOrNack = 3;
+  int maxRetriesOnTimeoutOrNack = 15;
   bool mustBeFresh = false;
   bool isQuiet = false;
   bool isVerbose = false;

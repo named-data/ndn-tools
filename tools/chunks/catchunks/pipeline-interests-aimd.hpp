@@ -200,8 +200,12 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
                        ///< it remains fixed until the next packet loss event happens
 
   int64_t m_nInFlight; ///< # of segments in flight
-  int64_t m_nLossEvents; ///< # of loss events occurred
-  int64_t m_nRetransmitted; ///< # of segments retransmitted
+  int64_t m_nLossDecr; ///< # of window decreases caused by packet loss
+  int64_t m_nMarkDecr; ///< # of window decreases caused by congestion marks
+  int64_t m_nTimeouts; ///< # of timed out segments
+  int64_t m_nSkippedRetx; ///< # of segments queued for retransmission but received before the
+                          ///< retransmission occurred
+  int64_t m_nRetransmitted; ///< # of retransmitted segments
   int64_t m_nCongMarks; ///< # of data packets with congestion mark
   int64_t m_nSent; ///< # of interest packets sent out (including retransmissions)
 

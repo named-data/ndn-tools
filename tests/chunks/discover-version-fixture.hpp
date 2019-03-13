@@ -75,7 +75,7 @@ protected:
     Options options;
     options.isVerbose = false;
     options.interestLifetime = time::seconds(1);
-    options.maxRetriesOnTimeoutOrNack = 3;
+    options.maxRetriesOnTimeoutOrNack = 15;
     return options;
   }
 

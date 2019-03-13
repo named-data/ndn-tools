@@ -136,9 +136,9 @@ PipelineInterests::printSummary() const
   duration<double, milliseconds::period> timeElapsed = steady_clock::now() - getStartTime();
   double throughput = (8 * m_receivedSize * 1000) / timeElapsed.count();
 
-  std::cerr << "\nAll segments have been received.\n"
+  std::cerr << "\n\nAll segments have been received.\n"
             << "Time elapsed: " << timeElapsed << "\n"
-            << "Total # of segments received: " << m_nReceived << "\n"
+            << "Segments received: " << m_nReceived << "\n"
             << "Total size: " << static_cast<double>(m_receivedSize) / 1000 << "kB" << "\n"
             << "Goodput: " << formatThroughput(throughput) << "\n";
 }

@@ -58,7 +58,7 @@ protected:
   {
     Options options;
     options.isVerbose = false;
-    options.maxRetriesOnTimeoutOrNack = 3;
+    options.maxRetriesOnTimeoutOrNack = 15;
     return options;
   }
 };

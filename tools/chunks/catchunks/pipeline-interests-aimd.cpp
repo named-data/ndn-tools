@@ -47,7 +47,10 @@ PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstima
   , m_highInterest(0)
   , m_recPoint(0)
   , m_nInFlight(0)
-  , m_nLossEvents(0)
+  , m_nLossDecr(0)
+  , m_nMarkDecr(0)
+  , m_nTimeouts(0)
+  , m_nSkippedRetx(0)
   , m_nRetransmitted(0)
   , m_nCongMarks(0)
   , m_nSent(0)
@@ -103,6 +106,7 @@ PipelineInterestsAimd::checkRto()
     if (segInfo.state != SegmentState::InRetxQueue) { // skip segments already in the retx queue
       Milliseconds timeElapsed = time::steady_clock::now() - segInfo.timeSent;
       if (timeElapsed.count() > segInfo.rto.count()) { // timer expired?
+        m_nTimeouts++;
         hasTimeout = true;
         enqueueForRetransmission(entry.first);
       }
@@ -191,6 +195,7 @@ PipelineInterestsAimd::schedulePackets()
       uint64_t retxSegNo = m_retxQueue.front();
       m_retxQueue.pop();
       if (m_segmentInfo.count(retxSegNo) == 0) {
+        m_nSkippedRetx++;
         continue;
       }
       // the segment is still in the map, that means it needs to be retransmitted
@@ -257,6 +262,7 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
       if (m_options.disableCwa || m_highData > m_recPoint) {
         m_recPoint = m_highInterest;  // react to only one congestion event (timeout or congestion mark)
                                       // per RTT (conservative window adaptation)
+        m_nMarkDecr++;
         decreaseWindow();
 
         if (m_options.isVerbose) {
@@ -333,6 +339,7 @@ PipelineInterestsAimd::handleLifetimeExpiration(const Interest& interest)
   if (isStopping())
     return;
 
+  m_nTimeouts++;
   enqueueForRetransmission(getSegmentFromPacket(interest));
   recordTimeout();
   schedulePackets();
@@ -347,7 +354,7 @@ PipelineInterestsAimd::recordTimeout()
 
     decreaseWindow();
     m_rttEstimator.backoffRto();
-    m_nLossEvents++;
+    m_nLossDecr++;
 
     if (m_options.isVerbose) {
       std::cerr << "Packet loss event, new cwnd = " << m_cwnd
@@ -433,11 +440,11 @@ void
 PipelineInterestsAimd::printSummary() const
 {
   PipelineInterests::printSummary();
-  std::cerr << "Total # of lost/retransmitted segments: " << m_nRetransmitted
-            << " (caused " << m_nLossEvents << " window decreases)\n"
-            << "Packet loss rate: "
-            << (m_nSent == 0 ? 0 : (static_cast<double>(m_nRetransmitted) / static_cast<double>(m_nSent) * 100))  << "%\n"
-            << "Total # of received congestion marks: " << m_nCongMarks << "\n"
+  std::cerr << "Congestion marks: " << m_nCongMarks << " (caused " << m_nMarkDecr << " window decreases)\n"
+            << "Timeouts: " << m_nTimeouts << " (caused " << m_nLossDecr << " window decreases)\n"
+            << "Retransmitted segments: " << m_nRetransmitted
+            << " (" << (m_nSent == 0 ? 0 : (static_cast<double>(m_nRetransmitted) / m_nSent * 100.0))  << "%)"
+            << ", skipped: " << m_nSkippedRetx << "\n"
             << "RTT ";
 
   if (m_rttEstimator.getMinRtt() == std::numeric_limits<double>::max() ||
