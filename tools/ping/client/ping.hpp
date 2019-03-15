@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2015-2016,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2015-2019,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -167,7 +167,7 @@ private:
   uint64_t m_nextSeq;
   int m_nOutstanding;
   Face& m_face;
-  scheduler::Scheduler m_scheduler;
+  Scheduler m_scheduler;
   scheduler::ScopedEventId m_nextPingEvent;
 };
 

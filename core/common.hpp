@@ -81,7 +81,6 @@ using std::size_t;
 using boost::noncopyable;
 
 namespace signal = util::signal;
-namespace scheduler = util::scheduler;
 
 } // namespace ndn
 
