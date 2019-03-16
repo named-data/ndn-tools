@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -27,13 +27,13 @@
  * @author Chavoosh Ghasemi
  */
 
-#include "pipeline-interests-fixed-window.hpp"
+#include "pipeline-interests-fixed.hpp"
 #include "data-fetcher.hpp"
 
 namespace ndn {
 namespace chunks {
 
-PipelineInterestsFixedWindow::PipelineInterestsFixedWindow(Face& face, const Options& options)
+PipelineInterestsFixed::PipelineInterestsFixed(Face& face, const Options& options)
   : PipelineInterests(face)
   , m_options(options)
   , m_hasFailure(false)
@@ -41,13 +41,13 @@ PipelineInterestsFixedWindow::PipelineInterestsFixedWindow(Face& face, const Opt
   m_segmentFetchers.resize(m_options.maxPipelineSize);
 }
 
-PipelineInterestsFixedWindow::~PipelineInterestsFixedWindow()
+PipelineInterestsFixed::~PipelineInterestsFixed()
 {
   cancel();
 }
 
 void
-PipelineInterestsFixedWindow::doRun()
+PipelineInterestsFixed::doRun()
 {
   // if the FinalBlockId is unknown, this could potentially request non-existent segments
   for (size_t nRequestedSegments = 0;
@@ -60,7 +60,7 @@ PipelineInterestsFixedWindow::doRun()
 }
 
 bool
-PipelineInterestsFixedWindow::fetchNextSegment(std::size_t pipeNo)
+PipelineInterestsFixed::fetchNextSegment(std::size_t pipeNo)
 {
   if (isStopping())
     return false;
@@ -86,9 +86,9 @@ PipelineInterestsFixedWindow::fetchNextSegment(std::size_t pipeNo)
   auto fetcher = DataFetcher::fetch(m_face, interest,
                                     m_options.maxRetriesOnTimeoutOrNack,
                                     m_options.maxRetriesOnTimeoutOrNack,
-                                    bind(&PipelineInterestsFixedWindow::handleData, this, _1, _2, pipeNo),
-                                    bind(&PipelineInterestsFixedWindow::handleFail, this, _2, pipeNo),
-                                    bind(&PipelineInterestsFixedWindow::handleFail, this, _2, pipeNo),
+                                    bind(&PipelineInterestsFixed::handleData, this, _1, _2, pipeNo),
+                                    bind(&PipelineInterestsFixed::handleFail, this, _2, pipeNo),
+                                    bind(&PipelineInterestsFixed::handleFail, this, _2, pipeNo),
                                     m_options.isVerbose);
 
   BOOST_ASSERT(!m_segmentFetchers[pipeNo].first || !m_segmentFetchers[pipeNo].first->isRunning());
@@ -98,7 +98,7 @@ PipelineInterestsFixedWindow::fetchNextSegment(std::size_t pipeNo)
 }
 
 void
-PipelineInterestsFixedWindow::doCancel()
+PipelineInterestsFixed::doCancel()
 {
   for (auto& fetcher : m_segmentFetchers) {
     if (fetcher.first)
@@ -109,7 +109,7 @@ PipelineInterestsFixedWindow::doCancel()
 }
 
 void
-PipelineInterestsFixedWindow::handleData(const Interest& interest, const Data& data, size_t pipeNo)
+PipelineInterestsFixed::handleData(const Interest& interest, const Data& data, size_t pipeNo)
 {
   if (isStopping())
     return;
@@ -150,7 +150,7 @@ PipelineInterestsFixedWindow::handleData(const Interest& interest, const Data& d
   }
 }
 
-void PipelineInterestsFixedWindow::handleFail(const std::string& reason, std::size_t pipeNo)
+void PipelineInterestsFixed::handleFail(const std::string& reason, std::size_t pipeNo)
 {
   if (isStopping())
     return;

@@ -24,7 +24,7 @@
  * @author Chavoosh Ghasemi
  */
 
-#include "tools/chunks/catchunks/pipeline-interests-fixed-window.hpp"
+#include "tools/chunks/catchunks/pipeline-interests-fixed.hpp"
 #include "tools/chunks/catchunks/data-fetcher.hpp"
 
 #include "pipeline-interests-fixture.hpp"
@@ -33,20 +33,28 @@ namespace ndn {
 namespace chunks {
 namespace tests {
 
-class PipelineInterestFixedWindowFixture : public PipelineInterestsFixture
+class PipelineInterestFixedFixture : public PipelineInterestsFixture
 {
 public:
-  PipelineInterestFixedWindowFixture()
+  PipelineInterestFixedFixture()
     : opt(makeOptions())
   {
-    setPipeline(make_unique<PipelineInterestsFixedWindow>(face, PipelineInterestsFixedWindow::Options(opt)));
+    createPipeline();
+  }
+
+  void
+  createPipeline()
+  {
+    auto pline = make_unique<PipelineInterestsFixed>(face, opt);
+    pipeline = pline.get();
+    setPipeline(std::move(pline));
   }
 
 private:
-  static PipelineInterestsFixedWindow::Options
+  static PipelineInterestsFixed::Options
   makeOptions()
   {
-    PipelineInterestsFixedWindow::Options options;
+    PipelineInterestsFixed::Options options;
     options.isQuiet = true;
     options.isVerbose = false;
     options.interestLifetime = time::seconds(1);
@@ -56,11 +64,12 @@ private:
   }
 
 protected:
-  PipelineInterestsFixedWindow::Options opt;
+  PipelineInterestsFixed::Options opt;
+  PipelineInterestsFixed* pipeline;
 };
 
 BOOST_AUTO_TEST_SUITE(Chunks)
-BOOST_FIXTURE_TEST_SUITE(TestPipelineInterestsFixedWindow, PipelineInterestFixedWindowFixture)
+BOOST_FIXTURE_TEST_SUITE(TestPipelineInterestsFixed, PipelineInterestFixedFixture)
 
 BOOST_AUTO_TEST_CASE(FullPipeline)
 {

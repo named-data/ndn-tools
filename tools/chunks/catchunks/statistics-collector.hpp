@@ -1,7 +1,7 @@
-/**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+/*
+ * Copyright (c) 2016-2019,  Regents of the University of California,
+ *                           Colorado State University,
+ *                           University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -22,23 +22,22 @@
  * @author Weiwei Liu
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_AIMD_STATISTICS_COLLECTOR_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_AIMD_STATISTICS_COLLECTOR_HPP
+#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_STATISTICS_COLLECTOR_HPP
+#define NDN_TOOLS_CHUNKS_CATCHUNKS_STATISTICS_COLLECTOR_HPP
 
-#include "pipeline-interests-aimd.hpp"
-#include "aimd-rtt-estimator.hpp"
+#include "pipeline-interests-adaptive.hpp"
+#include "rtt-estimator.hpp"
 
 namespace ndn {
 namespace chunks {
-namespace aimd {
 
 /**
- * @brief Statistics collector for AIMD pipeline
+ * @brief Statistics collector for Adaptive pipelines
  */
 class StatisticsCollector : noncopyable
 {
 public:
-  StatisticsCollector(PipelineInterestsAimd& pipeline, RttEstimator& rttEstimator,
+  StatisticsCollector(PipelineInterestsAdaptive& pipeline, RttEstimator& rttEstimator,
                       std::ostream& osCwnd, std::ostream& osRtt);
 
 private:
@@ -46,8 +45,7 @@ private:
   std::ostream& m_osRtt;
 };
 
-} // namespace aimd
 } // namespace chunks
 } // namespace ndn
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_AIMD_STATISTICS_COLLECTOR_HPP
+#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_STATISTICS_COLLECTOR_HPP

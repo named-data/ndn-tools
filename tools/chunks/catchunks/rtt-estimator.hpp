@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018,  Arizona Board of Regents.
+ * Copyright (c) 2016-2019,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -22,14 +22,13 @@
  * @author Chavoosh Ghasemi
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_AIMD_RTT_ESTIMATOR_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_AIMD_RTT_ESTIMATOR_HPP
+#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_RTT_ESTIMATOR_HPP
+#define NDN_TOOLS_CHUNKS_CATCHUNKS_RTT_ESTIMATOR_HPP
 
 #include "core/common.hpp"
 
 namespace ndn {
 namespace chunks {
-namespace aimd {
 
 typedef time::duration<double, time::milliseconds::period> Milliseconds;
 
@@ -161,8 +160,7 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
 std::ostream&
 operator<<(std::ostream& os, const RttEstimator::Options& options);
 
-} // namespace aimd
 } // namespace chunks
 } // namespace ndn
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_AIMD_RTT_ESTIMATOR_HPP
+#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_RTT_ESTIMATOR_HPP

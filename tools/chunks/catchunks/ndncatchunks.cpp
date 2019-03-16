@@ -29,14 +29,14 @@
  * @author Chavoosh Ghasemi
  */
 
-#include "aimd-statistics-collector.hpp"
-#include "aimd-rtt-estimator.hpp"
 #include "consumer.hpp"
 #include "discover-version-fixed.hpp"
 #include "discover-version-realtime.hpp"
-#include "pipeline-interests-aimd.hpp"
-#include "pipeline-interests-fixed-window.hpp"
 #include "options.hpp"
+#include "pipeline-interests-adaptive.hpp"
+#include "pipeline-interests-fixed.hpp"
+#include "rtt-estimator.hpp"
+#include "statistics-collector.hpp"
 #include "core/version.hpp"
 
 #include <fstream>
@@ -93,44 +93,41 @@ main(int argc, char** argv)
                         "size of the Interest pipeline")
     ;
 
-  po::options_description aimdPipeDesc("AIMD pipeline options");
-  aimdPipeDesc.add_options()
-    ("aimd-debug-cwnd", po::value<std::string>(&cwndPath),
-                        "log file for AIMD cwnd statistics")
-    ("aimd-debug-rtt", po::value<std::string>(&rttPath),
-                       "log file for AIMD rtt statistics")
-    ("aimd-disable-cwa", po::bool_switch(&disableCwa),
-                         "disable Conservative Window Adaptation, "
-                         "i.e. reduce window on each congestion event (timeout or congestion mark) "
-                         "instead of at most once per RTT")
-    ("aimd-ignore-cong-marks",  po::bool_switch(&ignoreCongMarks),
-                                "disable reaction to congestion marks, "
-                                "the default is to decrease the window after receiving a congestion mark")
-    ("aimd-reset-cwnd-to-init", po::bool_switch(&resetCwndToInit),
-                                "reset cwnd to initial cwnd when loss event occurs, default is "
-                                "resetting to ssthresh")
-    ("aimd-initial-cwnd",       po::value<int>(&initCwnd)->default_value(initCwnd),
-                                "initial cwnd")
-    ("aimd-initial-ssthresh",   po::value<int>(&initSsthresh),
-                                "initial slow start threshold (defaults to infinity)")
-    ("aimd-aistep",    po::value<double>(&aiStep)->default_value(aiStep),
-                       "additive-increase step")
-    ("aimd-mdcoef",    po::value<double>(&mdCoef)->default_value(mdCoef),
-                       "multiplicative-decrease coefficient")
-    ("aimd-rto-alpha", po::value<double>(&alpha)->default_value(alpha),
-                       "alpha value for rto calculation")
-    ("aimd-rto-beta",  po::value<double>(&beta)->default_value(beta),
-                       "beta value for rto calculation")
-    ("aimd-rto-k",     po::value<int>(&k)->default_value(k),
-                       "k value for rto calculation")
-    ("aimd-rto-min",   po::value<double>(&minRto)->default_value(minRto),
-                       "min rto value in milliseconds")
-    ("aimd-rto-max",   po::value<double>(&maxRto)->default_value(maxRto),
-                       "max rto value in milliseconds")
+  po::options_description adaptivePipeDesc("Adaptive pipeline options (AIMD)");
+  adaptivePipeDesc.add_options()
+    ("log-cwnd", po::value<std::string>(&cwndPath), "log file for cwnd statistics")
+    ("log-rtt", po::value<std::string>(&rttPath), "log file for rtt statistics")
+    ("disable-cwa", po::bool_switch(&disableCwa),
+                    "disable Conservative Window Adaptation, "
+                    "i.e. reduce window on each congestion event (timeout or congestion mark) "
+                    "instead of at most once per RTT")
+    ("ignore-marks", po::bool_switch(&ignoreCongMarks),
+                     "ignore congestion marks, "
+                     "the default is to decrease the window after receiving a congestion mark")
+    ("reset-cwnd-to-init", po::bool_switch(&resetCwndToInit),
+                           "reset cwnd to initial value after loss/mark, default is "
+                           "resetting to ssthresh")
+    ("init-cwnd",       po::value<int>(&initCwnd)->default_value(initCwnd), "initial cwnd")
+    ("init-ssthresh",   po::value<int>(&initSsthresh),
+                        "initial slow start threshold (defaults to infinity)")
+    ("aistep",    po::value<double>(&aiStep)->default_value(aiStep),
+                  "additive-increase step")
+    ("mdcoef",    po::value<double>(&mdCoef)->default_value(mdCoef),
+                  "multiplicative-decrease coefficient")
+    ("rto-alpha", po::value<double>(&alpha)->default_value(alpha),
+                  "alpha value for rto calculation")
+    ("rto-beta",  po::value<double>(&beta)->default_value(beta),
+                  "beta value for rto calculation")
+    ("rto-k",     po::value<int>(&k)->default_value(k),
+                  "k value for rto calculation")
+    ("min-rto",   po::value<double>(&minRto)->default_value(minRto),
+                  "minimum rto value in milliseconds")
+    ("max-rto",   po::value<double>(&maxRto)->default_value(maxRto),
+                  "maximum rto value in milliseconds")
     ;
 
   po::options_description visibleDesc;
-  visibleDesc.add(basicDesc).add(realDiscoveryDesc).add(fixedPipeDesc).add(aimdPipeDesc);
+  visibleDesc.add(basicDesc).add(realDiscoveryDesc).add(fixedPipeDesc).add(adaptivePipeDesc);
 
   po::options_description hiddenDesc;
   hiddenDesc.add_options()
@@ -224,28 +221,28 @@ main(int argc, char** argv)
     }
 
     unique_ptr<PipelineInterests> pipeline;
-    unique_ptr<aimd::StatisticsCollector> statsCollector;
-    unique_ptr<aimd::RttEstimator> rttEstimator;
+    unique_ptr<StatisticsCollector> statsCollector;
+    unique_ptr<RttEstimator> rttEstimator;
     std::ofstream statsFileCwnd;
     std::ofstream statsFileRtt;
 
     if (pipelineType == "fixed") {
-      PipelineInterestsFixedWindow::Options optionsPipeline(options);
+      PipelineInterestsFixed::Options optionsPipeline(options);
       optionsPipeline.maxPipelineSize = maxPipelineSize;
-      pipeline = make_unique<PipelineInterestsFixedWindow>(face, optionsPipeline);
+      pipeline = make_unique<PipelineInterestsFixed>(face, optionsPipeline);
     }
     else if (pipelineType == "aimd") {
-      aimd::RttEstimator::Options optionsRttEst;
+      RttEstimator::Options optionsRttEst;
       optionsRttEst.isVerbose = options.isVerbose;
       optionsRttEst.alpha = alpha;
       optionsRttEst.beta = beta;
       optionsRttEst.k = k;
-      optionsRttEst.minRto = aimd::Milliseconds(minRto);
-      optionsRttEst.maxRto = aimd::Milliseconds(maxRto);
+      optionsRttEst.minRto = Milliseconds(minRto);
+      optionsRttEst.maxRto = Milliseconds(maxRto);
 
-      rttEstimator = make_unique<aimd::RttEstimator>(optionsRttEst);
+      rttEstimator = make_unique<RttEstimator>(optionsRttEst);
 
-      PipelineInterestsAimd::Options optionsPipeline(options);
+      PipelineInterestsAdaptive::Options optionsPipeline(options);
       optionsPipeline.disableCwa = disableCwa;
       optionsPipeline.resetCwndToInit = resetCwndToInit;
       optionsPipeline.initCwnd = static_cast<double>(initCwnd);
@@ -254,7 +251,7 @@ main(int argc, char** argv)
       optionsPipeline.mdCoef = mdCoef;
       optionsPipeline.ignoreCongMarks = ignoreCongMarks;
 
-      auto aimdPipeline = make_unique<PipelineInterestsAimd>(face, *rttEstimator, optionsPipeline);
+      auto adaptivePipeline = make_unique<PipelineInterestsAdaptive>(face, *rttEstimator, optionsPipeline);
 
       if (!cwndPath.empty() || !rttPath.empty()) {
         if (!cwndPath.empty()) {
@@ -271,11 +268,11 @@ main(int argc, char** argv)
             return 4;
           }
         }
-        statsCollector = make_unique<aimd::StatisticsCollector>(*aimdPipeline, *rttEstimator,
-                                                                statsFileCwnd, statsFileRtt);
+        statsCollector = make_unique<StatisticsCollector>(*adaptivePipeline, *rttEstimator,
+                                                          statsFileCwnd, statsFileRtt);
       }
 
-      pipeline = std::move(aimdPipeline);
+      pipeline = std::move(adaptivePipeline);
     }
     else {
       std::cerr << "ERROR: Interest pipeline type not valid" << std::endl;

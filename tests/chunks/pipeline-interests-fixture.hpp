@@ -47,7 +47,7 @@ protected:
   void
   setPipeline(unique_ptr<PipelineInterests> pline)
   {
-    pipeline = std::move(pline);
+    m_pipeline = std::move(pline);
   }
 
   shared_ptr<Data>
@@ -72,18 +72,20 @@ protected:
   void
   run(const Name& name, uint64_t version = 0)
   {
-    pipeline->run(Name(name).appendVersion(version),
-                  [] (const Data&) {},
-                  [this] (const std::string&) { hasFailed = true; });
+    m_pipeline->run(Name(name).appendVersion(version),
+                [] (const Data&) {},
+                [this] (const std::string&) { hasFailed = true; });
   }
 
 protected:
   boost::asio::io_service io;
   util::DummyClientFace face{io};
-  unique_ptr<PipelineInterests> pipeline;
   Name name{"/ndn/chunks/test"};
   uint64_t nDataSegments = 0;
   bool hasFailed = false;
+
+private:
+  unique_ptr<PipelineInterests> m_pipeline;
 };
 
 } // namespace tests

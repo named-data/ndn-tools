@@ -23,13 +23,14 @@
  * @author Shuo Yang
  * @author Weiwei Liu
  * @author Chavoosh Ghasemi
+ * @author Klaus Schneider
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_AIMD_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_AIMD_HPP
+#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_ADAPTIVE_HPP
+#define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_ADAPTIVE_HPP
 
 #include "options.hpp"
-#include "aimd-rtt-estimator.hpp"
+#include "rtt-estimator.hpp"
 #include "pipeline-interests.hpp"
 
 #include <queue>
@@ -37,13 +38,12 @@
 
 namespace ndn {
 namespace chunks {
-namespace aimd {
 
-class PipelineInterestsAimdOptions : public Options
+class PipelineInterestsAdaptiveOptions : public Options
 {
 public:
   explicit
-  PipelineInterestsAimdOptions(const Options& options = Options())
+  PipelineInterestsAdaptiveOptions(const Options& options = Options())
     : Options(options)
   {
   }
@@ -85,7 +85,7 @@ struct SegmentInfo
 /**
  * @brief Service for retrieving Data via an Interest pipeline
  *
- * Retrieves all segmented Data under the specified prefix by maintaining a dynamic AIMD
+ * Retrieves all segmented Data under the specified prefix by maintaining a dynamic
  * congestion window combined with a Conservative Loss Adaptation algorithm. For details,
  * please refer to the description in section "Interest pipeline types in ndncatchunks" of
  * tools/chunks/README.md
@@ -93,22 +93,22 @@ struct SegmentInfo
  * Provides retrieved Data on arrival with no ordering guarantees. Data is delivered to the
  * PipelineInterests' user via callback immediately upon arrival.
  */
-class PipelineInterestsAimd : public PipelineInterests
+class PipelineInterestsAdaptive : public PipelineInterests
 {
 public:
-  typedef PipelineInterestsAimdOptions Options;
+  typedef PipelineInterestsAdaptiveOptions Options;
 
 public:
   /**
-   * @brief create a PipelineInterestsAimd service
+   * @brief create a PipelineInterestsAdaptive service
    *
    * Configures the pipelining service without specifying the retrieval namespace. After this
    * configuration the method run must be called to start the Pipeline.
    */
-  PipelineInterestsAimd(Face& face, RttEstimator& rttEstimator,
-                        const Options& options = Options());
+  PipelineInterestsAdaptive(Face& face, RttEstimator& rttEstimator,
+                            const Options& options = Options());
 
-  ~PipelineInterestsAimd() final;
+  ~PipelineInterestsAdaptive() final;
 
   /**
    * @brief Signals when cwnd changes
@@ -116,14 +116,15 @@ public:
    * The callback function should be: void(Milliseconds age, double cwnd) where age is the
    * duration since pipeline starts, and cwnd is the new congestion window size (in segments).
    */
-  signal::Signal<PipelineInterestsAimd, Milliseconds, double> afterCwndChange;
+  signal::Signal<PipelineInterestsAdaptive, Milliseconds, double> afterCwndChange;
 
 private:
   /**
    * @brief fetch all the segments between 0 and lastSegment of the specified prefix
    *
-   * Starts the pipeline with an AIMD algorithm to control the window size. The pipeline will
-   * fetch every segment until the last segment is successfully received or an error occurs.
+   * Starts the pipeline with an adaptive window algorithm to control the window size.
+   * The pipeline will fetch every segment until the last segment is successfully received
+   * or an error occurs.
    */
   void
   doRun() final;
@@ -169,13 +170,13 @@ private:
   handleFail(uint64_t segNo, const std::string& reason);
 
   /**
-   * @brief increase congestion window size based on AIMD scheme
+   * @brief increase congestion window size
    */
   void
   increaseWindow();
 
   /**
-   * @brief decrease congestion window size based on AIMD scheme
+   * @brief decrease congestion window size
    */
   void
   decreaseWindow();
@@ -225,13 +226,10 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
 };
 
 std::ostream&
-operator<<(std::ostream& os, const PipelineInterestsAimdOptions& options);
+operator<<(std::ostream& os, const PipelineInterestsAdaptiveOptions& options);
 
-} // namespace aimd
-
-using aimd::PipelineInterestsAimd;
 
 } // namespace chunks
 } // namespace ndn
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_AIMD_HPP
+#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_ADAPTIVE_HPP

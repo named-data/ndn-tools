@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017,  Regents of the University of California,
+ * Copyright (c) 2016-2019,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -27,8 +27,8 @@
  * @author Chavoosh Ghasemi
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_WINDOW_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_WINDOW_HPP
+#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_HPP
+#define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_HPP
 
 #include "options.hpp"
 #include "pipeline-interests.hpp"
@@ -38,11 +38,11 @@ namespace chunks {
 
 class DataFetcher;
 
-class PipelineInterestsFixedWindowOptions : public Options
+class PipelineInterestsFixedOptions : public Options
 {
 public:
   explicit
-  PipelineInterestsFixedWindowOptions(const Options& options = Options())
+  PipelineInterestsFixedOptions(const Options& options = Options())
     : Options(options)
     , maxPipelineSize(1)
   {
@@ -62,22 +62,22 @@ public:
  * No guarantees are made as to the order in which segments are fetched or callbacks are invoked,
  * i.e. out-of-order delivery is possible.
  */
-class PipelineInterestsFixedWindow : public PipelineInterests
+class PipelineInterestsFixed : public PipelineInterests
 {
 public:
-  typedef PipelineInterestsFixedWindowOptions Options;
+  typedef PipelineInterestsFixedOptions Options;
 
 public:
   /**
-   * @brief create a PipelineInterestsFixedWindow service
+   * @brief create a PipelineInterestsFixed service
    *
    * Configures the pipelining service without specifying the retrieval namespace. After this
    * configuration the method run must be called to start the Pipeline.
    */
   explicit
-  PipelineInterestsFixedWindow(Face& face, const Options& options = Options());
+  PipelineInterestsFixed(Face& face, const Options& options = Options());
 
-  ~PipelineInterestsFixedWindow() final;
+  ~PipelineInterestsFixed() final;
 
 private:
   /**
@@ -120,4 +120,4 @@ private:
 } // namespace chunks
 } // namespace ndn
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_WINDOW_HPP
+#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_HPP

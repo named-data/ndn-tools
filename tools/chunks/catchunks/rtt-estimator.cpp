@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Arizona Board of Regents.
+ * Copyright (c) 2016-2019, Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -23,13 +23,12 @@
  * @author Chavoosh Ghasemi
  */
 
-#include "aimd-rtt-estimator.hpp"
+#include "rtt-estimator.hpp"
 
 #include <cmath>
 
 namespace ndn {
 namespace chunks {
-namespace aimd {
 
 RttEstimator::RttEstimator(const Options& options)
   : m_options(options)
@@ -93,6 +92,5 @@ operator<<(std::ostream& os, const RttEstimator::Options& options)
   return os;
 }
 
-} // namespace aimd
 } // namespace chunks
 } // namespace ndn

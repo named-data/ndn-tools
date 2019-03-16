@@ -23,22 +23,23 @@
  * @author Shuo Yang
  * @author Weiwei Liu
  * @author Chavoosh Ghasemi
+ * @author Klaus Schneider
  */
 
-#include "pipeline-interests-aimd.hpp"
+#include "pipeline-interests-adaptive.hpp"
 #include "data-fetcher.hpp"
 
 #include <cmath>
 #include <iomanip>
 
+
 namespace ndn {
 namespace chunks {
-namespace aimd {
 
-constexpr double PipelineInterestsAimd::MIN_SSTHRESH;
+constexpr double PipelineInterestsAdaptive::MIN_SSTHRESH;
 
-PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstimator,
-                                             const Options& options)
+PipelineInterestsAdaptive::PipelineInterestsAdaptive(Face& face, RttEstimator& rttEstimator,
+                                                     const Options& options)
   : PipelineInterests(face)
   , m_options(options)
   , m_rttEstimator(rttEstimator)
@@ -64,13 +65,13 @@ PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstima
   }
 }
 
-PipelineInterestsAimd::~PipelineInterestsAimd()
+PipelineInterestsAdaptive::~PipelineInterestsAdaptive()
 {
   cancel();
 }
 
 void
-PipelineInterestsAimd::doRun()
+PipelineInterestsAdaptive::doRun()
 {
   if (allSegmentsReceived()) {
     cancel();
@@ -87,14 +88,14 @@ PipelineInterestsAimd::doRun()
 }
 
 void
-PipelineInterestsAimd::doCancel()
+PipelineInterestsAdaptive::doCancel()
 {
   m_checkRtoEvent.cancel();
   m_segmentInfo.clear();
 }
 
 void
-PipelineInterestsAimd::checkRto()
+PipelineInterestsAdaptive::checkRto()
 {
   if (isStopping())
     return;
@@ -123,7 +124,7 @@ PipelineInterestsAimd::checkRto()
 }
 
 void
-PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
+PipelineInterestsAdaptive::sendInterest(uint64_t segNo, bool isRetransmission)
 {
   if (isStopping())
     return;
@@ -165,9 +166,9 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
 
   SegmentInfo& segInfo = m_segmentInfo[segNo];
   segInfo.interestHdl = m_face.expressInterest(interest,
-                                               bind(&PipelineInterestsAimd::handleData, this, _1, _2),
-                                               bind(&PipelineInterestsAimd::handleNack, this, _1, _2),
-                                               bind(&PipelineInterestsAimd::handleLifetimeExpiration, this, _1));
+                                               bind(&PipelineInterestsAdaptive::handleData, this, _1, _2),
+                                               bind(&PipelineInterestsAdaptive::handleNack, this, _1, _2),
+                                               bind(&PipelineInterestsAdaptive::handleLifetimeExpiration, this, _1));
   segInfo.timeSent = time::steady_clock::now();
   segInfo.rto = m_rttEstimator.getEstimatedRto();
 
@@ -185,7 +186,7 @@ PipelineInterestsAimd::sendInterest(uint64_t segNo, bool isRetransmission)
 }
 
 void
-PipelineInterestsAimd::schedulePackets()
+PipelineInterestsAdaptive::schedulePackets()
 {
   BOOST_ASSERT(m_nInFlight >= 0);
   auto availableWindowSize = static_cast<int64_t>(m_cwnd) - m_nInFlight;
@@ -209,7 +210,7 @@ PipelineInterestsAimd::schedulePackets()
 }
 
 void
-PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
+PipelineInterestsAdaptive::handleData(const Interest& interest, const Data& data)
 {
   if (isStopping())
     return;
@@ -305,7 +306,7 @@ PipelineInterestsAimd::handleData(const Interest& interest, const Data& data)
 }
 
 void
-PipelineInterestsAimd::handleNack(const Interest& interest, const lp::Nack& nack)
+PipelineInterestsAdaptive::handleNack(const Interest& interest, const lp::Nack& nack)
 {
   if (isStopping())
     return;
@@ -334,7 +335,7 @@ PipelineInterestsAimd::handleNack(const Interest& interest, const lp::Nack& nack
 }
 
 void
-PipelineInterestsAimd::handleLifetimeExpiration(const Interest& interest)
+PipelineInterestsAdaptive::handleLifetimeExpiration(const Interest& interest)
 {
   if (isStopping())
     return;
@@ -346,7 +347,7 @@ PipelineInterestsAimd::handleLifetimeExpiration(const Interest& interest)
 }
 
 void
-PipelineInterestsAimd::recordTimeout()
+PipelineInterestsAdaptive::recordTimeout()
 {
   if (m_options.disableCwa || m_highData > m_recPoint) {
     // react to only one timeout per RTT (conservative window adaptation)
@@ -364,7 +365,7 @@ PipelineInterestsAimd::recordTimeout()
 }
 
 void
-PipelineInterestsAimd::enqueueForRetransmission(uint64_t segNo)
+PipelineInterestsAdaptive::enqueueForRetransmission(uint64_t segNo)
 {
   BOOST_ASSERT(m_nInFlight > 0);
   m_nInFlight--;
@@ -373,7 +374,7 @@ PipelineInterestsAimd::enqueueForRetransmission(uint64_t segNo)
 }
 
 void
-PipelineInterestsAimd::handleFail(uint64_t segNo, const std::string& reason)
+PipelineInterestsAdaptive::handleFail(uint64_t segNo, const std::string& reason)
 {
   if (isStopping())
     return;
@@ -399,7 +400,7 @@ PipelineInterestsAimd::handleFail(uint64_t segNo, const std::string& reason)
 }
 
 void
-PipelineInterestsAimd::increaseWindow()
+PipelineInterestsAdaptive::increaseWindow()
 {
   if (m_cwnd < m_ssthresh) {
     m_cwnd += m_options.aiStep; // additive increase
@@ -412,7 +413,7 @@ PipelineInterestsAimd::increaseWindow()
 }
 
 void
-PipelineInterestsAimd::decreaseWindow()
+PipelineInterestsAdaptive::decreaseWindow()
 {
   // please refer to RFC 5681, Section 3.1 for the rationale behind it
   m_ssthresh = std::max(MIN_SSTHRESH, m_cwnd * m_options.mdCoef); // multiplicative decrease
@@ -422,7 +423,7 @@ PipelineInterestsAimd::decreaseWindow()
 }
 
 void
-PipelineInterestsAimd::cancelInFlightSegmentsGreaterThan(uint64_t segNo)
+PipelineInterestsAdaptive::cancelInFlightSegmentsGreaterThan(uint64_t segNo)
 {
   for (auto it = m_segmentInfo.begin(); it != m_segmentInfo.end();) {
     // cancel fetching all segments that follow
@@ -437,7 +438,7 @@ PipelineInterestsAimd::cancelInFlightSegmentsGreaterThan(uint64_t segNo)
 }
 
 void
-PipelineInterestsAimd::printSummary() const
+PipelineInterestsAdaptive::printSummary() const
 {
   PipelineInterests::printSummary();
   std::cerr << "Congestion marks: " << m_nCongMarks << " (caused " << m_nMarkDecr << " window decreases)\n"
@@ -477,9 +478,9 @@ operator<<(std::ostream& os, SegmentState state)
 }
 
 std::ostream&
-operator<<(std::ostream& os, const PipelineInterestsAimdOptions& options)
+operator<<(std::ostream& os, const PipelineInterestsAdaptiveOptions& options)
 {
-  os << "AIMD pipeline parameters:\n"
+  os << "Adaptive pipeline parameters:\n"
      << "\tInitial congestion window size = " << options.initCwnd << "\n"
      << "\tInitial slow start threshold = " << options.initSsthresh << "\n"
      << "\tAdditive increase step = " << options.aiStep << "\n"
@@ -493,6 +494,5 @@ operator<<(std::ostream& os, const PipelineInterestsAimdOptions& options)
   return os;
 }
 
-} // namespace aimd
 } // namespace chunks
 } // namespace ndn

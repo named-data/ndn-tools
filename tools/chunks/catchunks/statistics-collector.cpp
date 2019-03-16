@@ -1,7 +1,7 @@
-/**
- * Copyright (c) 2016,  Regents of the University of California,
- *                      Colorado State University,
- *                      University Pierre & Marie Curie, Sorbonne University.
+/*
+ * Copyright (c) 2016-2019,  Regents of the University of California,
+ *                           Colorado State University,
+ *                           University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -22,13 +22,12 @@
  * @author Weiwei Liu
  */
 
-#include "aimd-statistics-collector.hpp"
+#include "statistics-collector.hpp"
 
 namespace ndn {
 namespace chunks {
-namespace aimd {
 
-StatisticsCollector::StatisticsCollector(PipelineInterestsAimd& pipeline, RttEstimator& rttEstimator,
+StatisticsCollector::StatisticsCollector(PipelineInterestsAdaptive& pipeline, RttEstimator& rttEstimator,
                                          std::ostream& osCwnd, std::ostream& osRtt)
   : m_osCwnd(osCwnd)
   , m_osRtt(osRtt)
@@ -49,6 +48,5 @@ StatisticsCollector::StatisticsCollector(PipelineInterestsAimd& pipeline, RttEst
     });
 }
 
-} // namespace aimd
 } // namespace chunks
 } // namespace ndn

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018,  Regents of the University of California,
+ * Copyright (c) 2016-2019,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -24,13 +24,11 @@
  * @author Chavoosh Ghasemi
  */
 
-#include "tools/chunks/catchunks/aimd-rtt-estimator.hpp"
-
+#include "tools/chunks/catchunks/rtt-estimator.hpp"
 #include "tests/test-common.hpp"
 
 namespace ndn {
 namespace chunks {
-namespace aimd {
 namespace tests {
 
 class RttEstimatorFixture
@@ -61,7 +59,7 @@ protected:
 };
 
 BOOST_AUTO_TEST_SUITE(Chunks)
-BOOST_FIXTURE_TEST_SUITE(TestAimdRttEstimator, RttEstimatorFixture)
+BOOST_FIXTURE_TEST_SUITE(TestRttEstimator, RttEstimatorFixture)
 
 BOOST_AUTO_TEST_CASE(MinAvgMaxRtt)
 {
@@ -170,10 +168,9 @@ BOOST_AUTO_TEST_CASE(RtoBackoff)
   BOOST_CHECK_CLOSE(rttEstimator.m_rto.count(), 4000, 0.1);
 }
 
-BOOST_AUTO_TEST_SUITE_END() // TestAimdRttEstimator
+BOOST_AUTO_TEST_SUITE_END() // TestRttEstimator
 BOOST_AUTO_TEST_SUITE_END() // Chunks
 
 } // namespace tests
-} // namespace aimd
 } // namespace chunks
 } // namespace ndn
