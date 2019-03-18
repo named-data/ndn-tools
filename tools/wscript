@@ -19,8 +19,6 @@ def configure(conf):
     enabled_tools = set() # --enable-X
     disabled_tools = set() # --disable-X
 
-    Options.options.disable_pib = True
-
     for subdir in conf.path.ant_glob('*', dir=True, src=False):
         tool = subdir.path_from(conf.path)
         all_tools.add(tool)
