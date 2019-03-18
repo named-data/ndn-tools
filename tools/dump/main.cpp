@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018,  Regents of the University of California.
+ * Copyright (c) 2011-2019,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -16,23 +16,6 @@
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
-/*
- * Copyright (c) 2011-2014, Regents of the University of California,
- *
- * This file is part of ndndump, the packet capture and analysis tool for Named Data
- * Networking (NDN).
- *
- * ndndump is free software: you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- *
- * ndndump is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * ndndump, e.g., in COPYING file.  If not, see <http://www.gnu.org/licenses/>.
- **/
 
 #include "ndndump.hpp"
 #include "core/version.hpp"
@@ -157,7 +140,7 @@ main(int argc, char* argv[])
 } // namespace ndn
 
 int
-main(int argc, char** argv)
+main(int argc, char* argv[])
 {
   return ndn::dump::main(argc, argv);
 }

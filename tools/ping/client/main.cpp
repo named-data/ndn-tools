@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2014-2019,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -136,15 +136,15 @@ static void
 usage(const boost::program_options::options_description& options)
 {
   std::cout << "Usage: ndnping [options] ndn:/name/prefix\n"
-      "\n"
-      "Ping a NDN name prefix using Interests with name ndn:/name/prefix/ping/number.\n"
-      "The numbers in the Interests are randomly generated unless specified.\n"
-      "\n";
-  std::cout << options;
+               "\n"
+               "Ping a NDN name prefix using Interests with name ndn:/name/prefix/ping/number.\n"
+               "The numbers in the Interests are randomly generated unless specified.\n"
+               "\n"
+            << options;
   exit(2);
 }
 
-int
+static int
 main(int argc, char* argv[])
 {
   Options options;
@@ -269,7 +269,7 @@ main(int argc, char* argv[])
 } // namespace ndn
 
 int
-main(int argc, char** argv)
+main(int argc, char* argv[])
 {
   return ndn::ping::client::main(argc, argv);
 }

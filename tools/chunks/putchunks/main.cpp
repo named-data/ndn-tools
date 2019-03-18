@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2017, Regents of the University of California,
+ * Copyright (c) 2016-2019, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -47,7 +47,7 @@ usage(std::ostream& os, const std::string& programName, const po::options_descri
 }
 
 static int
-main(int argc, char** argv)
+main(int argc, char* argv[])
 {
   std::string programName = argv[0];
   std::string prefix;
@@ -150,7 +150,7 @@ main(int argc, char** argv)
 } // namespace ndn
 
 int
-main(int argc, char** argv)
+main(int argc, char* argv[])
 {
   return ndn::chunks::main(argc, argv);
 }

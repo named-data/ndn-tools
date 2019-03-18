@@ -46,7 +46,7 @@ namespace ndn {
 namespace chunks {
 
 static int
-main(int argc, char** argv)
+main(int argc, char* argv[])
 {
   std::string programName(argv[0]);
   Options options;
@@ -305,7 +305,7 @@ main(int argc, char** argv)
 } // namespace ndn
 
 int
-main(int argc, char** argv)
+main(int argc, char* argv[])
 {
   return ndn::chunks::main(argc, argv);
 }

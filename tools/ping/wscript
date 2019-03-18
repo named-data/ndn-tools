@@ -5,24 +5,24 @@ def build(bld):
 
     bld.objects(
         target='ping-client-objects',
-        source=bld.path.ant_glob('client/*.cpp', excl='client/ndn-ping.cpp'),
+        source=bld.path.ant_glob('client/*.cpp', excl='client/main.cpp'),
         use='core-objects')
 
     bld.program(
         target='../../bin/ndnping',
         name='ndnping',
-        source='client/ndn-ping.cpp',
+        source='client/main.cpp',
         use='ping-client-objects')
 
     bld.objects(
         target='ping-server-objects',
-        source=bld.path.ant_glob('server/*.cpp', excl='server/ndn-ping-server.cpp'),
+        source=bld.path.ant_glob('server/*.cpp', excl='server/main.cpp'),
         use='core-objects')
 
     bld.program(
         target='../../bin/ndnpingserver',
         name='ndnpingserver',
-        source='server/ndn-ping-server.cpp',
+        source='server/main.cpp',
         use='ping-server-objects')
 
     ## (for unit tests)

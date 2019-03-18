@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California.
+/*
+ * Copyright (c) 2014-2019,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -114,7 +114,7 @@ main(int argc, char* argv[])
 } // namespace ndn
 
 int
-main(int argc, char** argv)
+main(int argc, char* argv[])
 {
   return ndn::dissect::main(argc, argv);
 }

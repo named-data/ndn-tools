@@ -59,25 +59,29 @@ C++ code SHOULD conform to
 
 ### Namespace
 
-Types in each tool SHOULD be declared in a sub-namespace under `namespace ndn`.
+Types in each tool SHOULD be declared in a sub-namespace inside `namespace ndn`.
 For example, a tool in `tools/foo` directory has namespace `ndn::foo`.  
 This allows the tool to reference ndn-cxx types with unqualified name lookup.
 This also prevents name conflicts between ndn-cxx and tools.
 
-Types in `core/` SHOULD be declared directly under `namespace ndn`,
+Types in `core/` SHOULD be declared directly inside `namespace ndn`,
 or in a sub-namespace if desired.
 
-`using namespace` SHOULD NOT be used except within block scope.
+`using namespace` SHOULD NOT be used except in block scope.
 
 ### main Function
 
-The main function of a program SHOULD be declared within its sub-namespace.
-This allows it to reference types in ndn-cxx and the tool with unqualified name lookup.
+The `main` function of a program SHOULD be declared as a static function in
+the namespace of the corresponding tool. This allows referencing types in
+ndn-cxx and the tool via unqualified name lookup.
 
-Then, another main function in global namespace needs to be defined
-to call the main function in sub-namespace.
+Then, another (non-static) `main` function must be defined in the global
+namespace, and from there call the `main` function in the tool namespace.
 
-For example:
+These two functions SHOULD appear in a file named `main.cpp` in the tool's
+subdirectory.
+
+Example:
 
     namespace ndn {
     namespace foo {
@@ -92,8 +96,8 @@ For example:
       run();
     };
 
-    int
-    main(int argc, char** argv)
+    static int
+    main(int argc, char* argv[])
     {
       Face face;
       Bar program(face);
@@ -105,7 +109,7 @@ For example:
     } // namespace ndn
 
     int
-    main(int argc, char** argv)
+    main(int argc, char* argv[])
     {
       return ndn::foo::main(argc, argv);
     }
