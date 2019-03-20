@@ -59,6 +59,9 @@ public:
   bool ignoreCongMarks = false; ///< disable window decrease after congestion marks
 };
 
+std::ostream&
+operator<<(std::ostream& os, const PipelineInterestsAdaptiveOptions& options);
+
 /**
  * @brief indicates the state of the segment
  */
@@ -96,11 +99,11 @@ struct SegmentInfo
 class PipelineInterestsAdaptive : public PipelineInterests
 {
 public:
-  typedef PipelineInterestsAdaptiveOptions Options;
+  using Options = PipelineInterestsAdaptiveOptions;
 
 public:
   /**
-   * @brief create a PipelineInterestsAdaptive service
+   * @brief Constructor.
    *
    * Configures the pipelining service without specifying the retrieval namespace. After this
    * configuration the method run must be called to start the Pipeline.
@@ -108,19 +111,35 @@ public:
   PipelineInterestsAdaptive(Face& face, RttEstimator& rttEstimator,
                             const Options& options = Options());
 
-  ~PipelineInterestsAdaptive() final;
+  ~PipelineInterestsAdaptive() override;
 
   /**
-   * @brief Signals when cwnd changes
+   * @brief Signals when the congestion window changes.
    *
    * The callback function should be: void(Milliseconds age, double cwnd) where age is the
    * duration since pipeline starts, and cwnd is the new congestion window size (in segments).
    */
   signal::Signal<PipelineInterestsAdaptive, Milliseconds, double> afterCwndChange;
 
+protected:
+  DECLARE_SIGNAL_EMIT(afterCwndChange)
+
 private:
   /**
-   * @brief fetch all the segments between 0 and lastSegment of the specified prefix
+   * @brief Increase congestion window.
+   */
+  virtual void
+  increaseWindow() = 0;
+
+  /**
+   * @brief Decrease congestion window.
+   */
+  virtual void
+  decreaseWindow() = 0;
+
+private:
+  /**
+   * @brief Fetch all the segments between 0 and lastSegment of the specified prefix.
    *
    * Starts the pipeline with an adaptive window algorithm to control the window size.
    * The pipeline will fetch every segment until the last segment is successfully received
@@ -130,13 +149,13 @@ private:
   doRun() final;
 
   /**
-   * @brief stop all fetch operations
+   * @brief Stop all fetch operations.
    */
   void
   doCancel() final;
 
   /**
-   * @brief check RTO for all sent-but-not-acked segments.
+   * @brief Check RTO for all sent-but-not-acked segments.
    */
   void
   checkRto();
@@ -169,18 +188,6 @@ private:
   void
   handleFail(uint64_t segNo, const std::string& reason);
 
-  /**
-   * @brief increase congestion window size
-   */
-  void
-  increaseWindow();
-
-  /**
-   * @brief decrease congestion window size
-   */
-  void
-  decreaseWindow();
-
   void
   cancelInFlightSegmentsGreaterThan(uint64_t segNo);
 
@@ -188,9 +195,14 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   void
   printSummary() const final;
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
+PUBLIC_WITH_TESTS_ELSE_PROTECTED:
   static constexpr double MIN_SSTHRESH = 2.0;
   const Options m_options;
+
+  double m_cwnd; ///< current congestion window size (in segments)
+  double m_ssthresh; ///< current slow start threshold
+
+PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   RttEstimator& m_rttEstimator;
   Scheduler m_scheduler;
   scheduler::ScopedEventId m_checkRtoEvent;
@@ -210,9 +222,6 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   int64_t m_nCongMarks; ///< # of data packets with congestion mark
   int64_t m_nSent; ///< # of interest packets sent out (including retransmissions)
 
-  double m_cwnd; ///< current congestion window size (in segments)
-  double m_ssthresh; ///< current slow start threshold
-
   std::unordered_map<uint64_t, SegmentInfo> m_segmentInfo; ///< keeps all the internal information
                                                            ///< on sent but not acked segments
   std::unordered_map<uint64_t, int> m_retxCount; ///< maps segment number to its retransmission count;
@@ -224,10 +233,6 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   uint64_t m_failedSegNo;
   std::string m_failureReason;
 };
-
-std::ostream&
-operator<<(std::ostream& os, const PipelineInterestsAdaptiveOptions& options);
-
 
 } // namespace chunks
 } // namespace ndn

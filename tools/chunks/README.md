@@ -13,11 +13,11 @@
 
 ## Version discovery methods in ndncatchunks
 
-* `fixed`    : sends an interest attempting to find a data packet with the
+* `fixed`    : sends an Interest attempting to find a data packet with the
                specified prefix and version number. A version component must be present at the
                end of the user-specified NDN name.
 
-* `realtime` : sends discovery interests to fetch metadata of the solicited content from which
+* `realtime` : sends discovery Interests to fetch metadata of the solicited content from which
                the data version will be resolved.
                The version number of the solicited content is included in the name of returned
                metadata data packet.
@@ -32,14 +32,16 @@ The default discovery method is `realtime`.
 * `fixed`: maintains a fixed-size window of Interests in flight; the window size is configurable
            via a command line option and defaults to 1.
 
-* `aimd` : sends Interests using an additive-increase/multiplicative-decrease (AIMD) algorithm to
-           control the window size. By default, a Conservative Loss Adaptation algorithm is adopted
-           combining with the AIMD algorithm, that is, at most one window decrease will be
-           performed per round-trip-time. For details please refer to:
-  [A Practical Congestion Control Scheme for Named Data
-  Networking](https://www.researchgate.net/publication/306259672_A_Practical_Congestion_Control_Scheme_for_Named_Data_Networking)
+* `aimd` : adjusts the window size via additive-increase/multiplicative-decrease (AIMD).
+           By default, it uses a Conservative Window Adaptation, that is, the congestion window
+           will be decreased at most once per round-trip-time.
 
-The default Interest pipeline type is `aimd`.
+* `cubic`: adjusts the window size similar to the TCP CUBIC algorithm.
+           For details about both aimd and cubic please refer to:
+           [A Practical Congestion Control Scheme for Named Data
+           Networking](https://conferences2.sigcomm.org/acm-icn/2016/proceedings/p21-schneider.pdf)
+
+The default Interest pipeline type is `cubic`.
 
 ## Usage examples
 

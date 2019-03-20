@@ -33,7 +33,8 @@
 #include "discover-version-fixed.hpp"
 #include "discover-version-realtime.hpp"
 #include "options.hpp"
-#include "pipeline-interests-adaptive.hpp"
+#include "pipeline-interests-aimd.hpp"
+#include "pipeline-interests-cubic.hpp"
 #include "pipeline-interests-fixed.hpp"
 #include "rtt-estimator.hpp"
 #include "statistics-collector.hpp"
@@ -51,17 +52,18 @@ main(int argc, char* argv[])
   std::string programName(argv[0]);
   Options options;
   std::string discoverType("realtime");
-  std::string pipelineType("aimd");
+  std::string pipelineType("cubic");
   size_t maxPipelineSize(1);
   int64_t discoveryTimeoutMs(DEFAULT_INTEREST_LIFETIME.count());
   std::string uri;
 
   // congestion control parameters, CWA refers to conservative window adaptation,
   // i.e. only reduce window size at most once per RTT
-  bool disableCwa(false), resetCwndToInit(false), ignoreCongMarks(false);
-  double aiStep(1.0), mdCoef(0.5), alpha(0.125), beta(0.25),
-         minRto(200.0), maxRto(4000.0);
-  int initCwnd(1), initSsthresh(std::numeric_limits<int>::max()), k(4);
+  bool disableCwa(false), resetCwndToInit(false),
+       ignoreCongMarks(false), enableFastConv(false);
+  double aiStep(1.0), rtoAlpha(0.125), rtoBeta(0.25), minRto(200.0), maxRto(4000.0),
+         aimdBeta(0.5), cubicBeta(0.7);
+  int initCwnd(1), initSsthresh(std::numeric_limits<int>::max()), k(8);
   std::string cwndPath, rttPath;
 
   namespace po = boost::program_options;
@@ -71,7 +73,7 @@ main(int argc, char* argv[])
     ("discover-version,d", po::value<std::string>(&discoverType)->default_value(discoverType),
                             "version discovery algorithm to use; valid values are: 'fixed', 'realtime'")
     ("pipeline-type,p", po::value<std::string>(&pipelineType)->default_value(pipelineType),
-                         "type of Interest pipeline to use; valid values are: 'fixed', 'aimd'")
+                         "type of Interest pipeline to use; valid values are: 'fixed', 'aimd', 'cubic'")
     ("fresh,f",     po::bool_switch(&options.mustBeFresh), "only return fresh content")
     ("lifetime,l",  po::value<int64_t>()->default_value(options.interestLifetime.count()),
                     "lifetime of expressed Interests, in milliseconds")
@@ -93,30 +95,27 @@ main(int argc, char* argv[])
                         "size of the Interest pipeline")
     ;
 
-  po::options_description adaptivePipeDesc("Adaptive pipeline options (AIMD)");
+  po::options_description adaptivePipeDesc("Adaptive pipeline options (AIMD & CUBIC)");
   adaptivePipeDesc.add_options()
-    ("log-cwnd", po::value<std::string>(&cwndPath), "log file for cwnd statistics")
-    ("log-rtt", po::value<std::string>(&rttPath), "log file for rtt statistics")
-    ("disable-cwa", po::bool_switch(&disableCwa),
-                    "disable Conservative Window Adaptation, "
-                    "i.e. reduce window on each congestion event (timeout or congestion mark) "
-                    "instead of at most once per RTT")
     ("ignore-marks", po::bool_switch(&ignoreCongMarks),
-                     "ignore congestion marks, "
-                     "the default is to decrease the window after receiving a congestion mark")
+                     "do not decrease the window after receiving a congestion mark")
+    ("disable-cwa",  po::bool_switch(&disableCwa),
+                     "disable Conservative Window Adaptation, i.e., reduce the window on "
+                     "each timeout or congestion mark instead of at most once per RTT")
     ("reset-cwnd-to-init", po::bool_switch(&resetCwndToInit),
-                           "reset cwnd to initial value after loss/mark, default is "
-                           "resetting to ssthresh")
-    ("init-cwnd",       po::value<int>(&initCwnd)->default_value(initCwnd), "initial cwnd")
-    ("init-ssthresh",   po::value<int>(&initSsthresh),
-                        "initial slow start threshold (defaults to infinity)")
-    ("aistep",    po::value<double>(&aiStep)->default_value(aiStep),
+                           "after a timeout or congestion mark, reset the window "
+                           "to the initial value instead of resetting to ssthresh")
+    ("init-cwnd",     po::value<int>(&initCwnd)->default_value(initCwnd),
+                      "initial congestion window in segments")
+    ("init-ssthresh", po::value<int>(&initSsthresh),
+                      "initial slow start threshold in segments (defaults to infinity)")
+    ("aimd-step", po::value<double>(&aiStep)->default_value(aiStep),
                   "additive-increase step")
-    ("mdcoef",    po::value<double>(&mdCoef)->default_value(mdCoef),
-                  "multiplicative-decrease coefficient")
-    ("rto-alpha", po::value<double>(&alpha)->default_value(alpha),
+    ("aimd-beta", po::value<double>(&aimdBeta)->default_value(aimdBeta),
+                  "multiplicative decrease factor (AIMD)")
+    ("rto-alpha", po::value<double>(&rtoAlpha)->default_value(rtoAlpha),
                   "alpha value for rto calculation")
-    ("rto-beta",  po::value<double>(&beta)->default_value(beta),
+    ("rto-beta",  po::value<double>(&rtoBeta)->default_value(rtoBeta),
                   "beta value for rto calculation")
     ("rto-k",     po::value<int>(&k)->default_value(k),
                   "k value for rto calculation")
@@ -124,10 +123,23 @@ main(int argc, char* argv[])
                   "minimum rto value in milliseconds")
     ("max-rto",   po::value<double>(&maxRto)->default_value(maxRto),
                   "maximum rto value in milliseconds")
+    ("log-cwnd",  po::value<std::string>(&cwndPath), "log file for congestion window stats")
+    ("log-rtt",   po::value<std::string>(&rttPath), "log file for round-trip time stats")
+    ;
+
+  po::options_description cubicPipeDesc("CUBIC pipeline options");
+  cubicPipeDesc.add_options()
+    ("fast-conv",  po::bool_switch(&enableFastConv), "enable cubic fast convergence")
+    ("cubic-beta", po::value<double>(&cubicBeta),
+                   "window decrease factor for CUBIC (defaults to 0.7)")
     ;
 
   po::options_description visibleDesc;
-  visibleDesc.add(basicDesc).add(realDiscoveryDesc).add(fixedPipeDesc).add(adaptivePipeDesc);
+  visibleDesc.add(basicDesc)
+             .add(realDiscoveryDesc)
+             .add(fixedPipeDesc)
+             .add(adaptivePipeDesc)
+             .add(cubicPipeDesc);
 
   po::options_description hiddenDesc;
   hiddenDesc.add_options()
@@ -231,11 +243,11 @@ main(int argc, char* argv[])
       optionsPipeline.maxPipelineSize = maxPipelineSize;
       pipeline = make_unique<PipelineInterestsFixed>(face, optionsPipeline);
     }
-    else if (pipelineType == "aimd") {
+    else if (pipelineType == "aimd" || pipelineType == "cubic") {
       RttEstimator::Options optionsRttEst;
       optionsRttEst.isVerbose = options.isVerbose;
-      optionsRttEst.alpha = alpha;
-      optionsRttEst.beta = beta;
+      optionsRttEst.alpha = rtoAlpha;
+      optionsRttEst.beta = rtoBeta;
       optionsRttEst.k = k;
       optionsRttEst.minRto = Milliseconds(minRto);
       optionsRttEst.maxRto = Milliseconds(maxRto);
@@ -248,10 +260,19 @@ main(int argc, char* argv[])
       optionsPipeline.initCwnd = static_cast<double>(initCwnd);
       optionsPipeline.initSsthresh = static_cast<double>(initSsthresh);
       optionsPipeline.aiStep = aiStep;
-      optionsPipeline.mdCoef = mdCoef;
+      optionsPipeline.mdCoef = aimdBeta;
       optionsPipeline.ignoreCongMarks = ignoreCongMarks;
 
-      auto adaptivePipeline = make_unique<PipelineInterestsAdaptive>(face, *rttEstimator, optionsPipeline);
+      unique_ptr<PipelineInterestsAdaptive> adaptivePipeline;
+      if (pipelineType == "aimd") {
+        adaptivePipeline = make_unique<PipelineInterestsAimd>(face, *rttEstimator, optionsPipeline);
+      }
+      else {
+        PipelineInterestsCubic::Options optionsCubic(optionsPipeline);
+        optionsCubic.enableFastConv = enableFastConv;
+        optionsCubic.cubicBeta = cubicBeta;
+        adaptivePipeline = make_unique<PipelineInterestsCubic>(face, *rttEstimator, optionsCubic);
+      }
 
       if (!cwndPath.empty() || !rttPath.empty()) {
         if (!cwndPath.empty()) {

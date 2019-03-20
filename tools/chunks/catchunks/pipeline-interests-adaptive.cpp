@@ -32,7 +32,6 @@
 #include <cmath>
 #include <iomanip>
 
-
 namespace ndn {
 namespace chunks {
 
@@ -42,6 +41,8 @@ PipelineInterestsAdaptive::PipelineInterestsAdaptive(Face& face, RttEstimator& r
                                                      const Options& options)
   : PipelineInterests(face)
   , m_options(options)
+  , m_cwnd(m_options.initCwnd)
+  , m_ssthresh(m_options.initSsthresh)
   , m_rttEstimator(rttEstimator)
   , m_scheduler(m_face.getIoService())
   , m_highData(0)
@@ -55,14 +56,9 @@ PipelineInterestsAdaptive::PipelineInterestsAdaptive(Face& face, RttEstimator& r
   , m_nRetransmitted(0)
   , m_nCongMarks(0)
   , m_nSent(0)
-  , m_cwnd(m_options.initCwnd)
-  , m_ssthresh(m_options.initSsthresh)
   , m_hasFailure(false)
   , m_failedSegNo(0)
 {
-  if (m_options.isVerbose) {
-    std::cerr << m_options;
-  }
 }
 
 PipelineInterestsAdaptive::~PipelineInterestsAdaptive()
@@ -400,29 +396,6 @@ PipelineInterestsAdaptive::handleFail(uint64_t segNo, const std::string& reason)
 }
 
 void
-PipelineInterestsAdaptive::increaseWindow()
-{
-  if (m_cwnd < m_ssthresh) {
-    m_cwnd += m_options.aiStep; // additive increase
-  }
-  else {
-    m_cwnd += m_options.aiStep / std::floor(m_cwnd); // congestion avoidance
-  }
-
-  afterCwndChange(time::steady_clock::now() - getStartTime(), m_cwnd);
-}
-
-void
-PipelineInterestsAdaptive::decreaseWindow()
-{
-  // please refer to RFC 5681, Section 3.1 for the rationale behind it
-  m_ssthresh = std::max(MIN_SSTHRESH, m_cwnd * m_options.mdCoef); // multiplicative decrease
-  m_cwnd = m_options.resetCwndToInit ? m_options.initCwnd : m_ssthresh;
-
-  afterCwndChange(time::steady_clock::now() - getStartTime(), m_cwnd);
-}
-
-void
 PipelineInterestsAdaptive::cancelInFlightSegmentsGreaterThan(uint64_t segNo)
 {
   for (auto it = m_segmentInfo.begin(); it != m_segmentInfo.end();) {
@@ -488,9 +461,9 @@ operator<<(std::ostream& os, const PipelineInterestsAdaptiveOptions& options)
      << "\tRTO check interval = " << options.rtoCheckInterval << "\n"
      << "\tMax retries on timeout or Nack = " << (options.maxRetriesOnTimeoutOrNack == DataFetcher::MAX_RETRIES_INFINITE ?
                                                   "infinite" : to_string(options.maxRetriesOnTimeoutOrNack)) << "\n"
-     << "\tReaction to congestion marks " << (options.ignoreCongMarks ? "disabled" : "enabled") << "\n"
-     << "\tConservative window adaptation " << (options.disableCwa ? "disabled" : "enabled") << "\n"
-     << "\tResetting cwnd to " << (options.resetCwndToInit ? "initCwnd" : "ssthresh") << " upon loss event\n";
+     << "\tReact to congestion marks = " << (options.ignoreCongMarks ? "no" : "yes") << "\n"
+     << "\tConservative window adaptation = " << (options.disableCwa ? "no" : "yes") << "\n"
+     << "\tResetting window to " << (options.resetCwndToInit ? "initCwnd" : "ssthresh") << " upon loss event\n";
   return os;
 }
 

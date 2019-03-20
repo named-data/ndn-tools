@@ -25,7 +25,7 @@
  * @author Klaus Schneider
  */
 
-#include "tools/chunks/catchunks/pipeline-interests-adaptive.hpp"
+#include "tools/chunks/catchunks/pipeline-interests-aimd.hpp"
 #include "tools/chunks/catchunks/options.hpp"
 
 #include "pipeline-interests-fixture.hpp"
@@ -36,10 +36,10 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class PipelineInterestAdaptiveFixture : public PipelineInterestsFixture
+class PipelineInterestAimdFixture : public PipelineInterestsFixture
 {
 public:
-  PipelineInterestAdaptiveFixture()
+  PipelineInterestAimdFixture()
     : opt(makePipelineOptions())
     , rttEstimator(makeRttEstimatorOptions())
   {
@@ -49,7 +49,7 @@ public:
   void
   createPipeline()
   {
-    auto pline = make_unique<PipelineInterestsAdaptive>(face, rttEstimator, opt);
+    auto pline = make_unique<PipelineInterestsAimd>(face, rttEstimator, opt);
     pipeline = pline.get();
     setPipeline(std::move(pline));
   }
@@ -90,10 +90,10 @@ protected:
   static constexpr double MARGIN = 0.01;
 };
 
-constexpr double PipelineInterestAdaptiveFixture::MARGIN;
+constexpr double PipelineInterestAimdFixture::MARGIN;
 
 BOOST_AUTO_TEST_SUITE(Chunks)
-BOOST_FIXTURE_TEST_SUITE(TestPipelineInterestsAdaptive, PipelineInterestAdaptiveFixture)
+BOOST_FIXTURE_TEST_SUITE(TestPipelineInterestsAimd, PipelineInterestAimdFixture)
 
 BOOST_AUTO_TEST_CASE(SlowStart)
 {
@@ -608,7 +608,7 @@ BOOST_AUTO_TEST_CASE(StopsWhenFileSizeLessThanChunkSize)
 }
 
 
-BOOST_AUTO_TEST_SUITE_END() // TestPipelineInterestsAdaptive
+BOOST_AUTO_TEST_SUITE_END() // TestPipelineInterestsAimd
 BOOST_AUTO_TEST_SUITE_END() // Chunks
 
 } // namespace tests
