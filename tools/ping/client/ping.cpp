@@ -58,25 +58,23 @@ Ping::performPing()
 {
   BOOST_ASSERT((m_options.nPings < 0) || (m_nSent < m_options.nPings));
 
-  Name pingPacketName = makePingName(m_nextSeq);
-
-  Interest interest(pingPacketName);
+  Interest interest(makePingName(m_nextSeq));
   interest.setCanBePrefix(false);
   interest.setMustBeFresh(!m_options.shouldAllowStaleData);
   interest.setInterestLifetime(m_options.timeout);
 
   auto now = time::steady_clock::now();
   m_face.expressInterest(interest,
-                         bind(&Ping::onData, this, _1, _2, m_nextSeq, now),
-                         bind(&Ping::onNack, this, _1, _2, m_nextSeq, now),
-                         bind(&Ping::onTimeout, this, _1, m_nextSeq));
+                         bind(&Ping::onData, this, m_nextSeq, now),
+                         bind(&Ping::onNack, this, _2, m_nextSeq, now),
+                         bind(&Ping::onTimeout, this, m_nextSeq));
 
   ++m_nSent;
   ++m_nextSeq;
   ++m_nOutstanding;
 
   if ((m_options.nPings < 0) || (m_nSent < m_options.nPings)) {
-    m_nextPingEvent = m_scheduler.scheduleEvent(m_options.interval, bind(&Ping::performPing, this));
+    m_nextPingEvent = m_scheduler.schedule(m_options.interval, [this] { performPing(); });
   }
   else {
     finish();
@@ -84,36 +82,25 @@ Ping::performPing()
 }
 
 void
-Ping::onData(const Interest& interest,
-             const Data& data,
-             uint64_t seq,
-             const time::steady_clock::TimePoint& sendTime)
+Ping::onData(uint64_t seq, const time::steady_clock::TimePoint& sendTime)
 {
   time::nanoseconds rtt = time::steady_clock::now() - sendTime;
-
   afterData(seq, rtt);
-
   finish();
 }
 
 void
-Ping::onNack(const Interest& interest,
-             const lp::Nack& nack,
-             uint64_t seq,
-             const time::steady_clock::TimePoint& sendTime)
+Ping::onNack(const lp::Nack& nack, uint64_t seq, const time::steady_clock::TimePoint& sendTime)
 {
   time::nanoseconds rtt = time::steady_clock::now() - sendTime;
-
   afterNack(seq, rtt, nack.getHeader());
-
   finish();
 }
 
 void
-Ping::onTimeout(const Interest& interest, uint64_t seq)
+Ping::onTimeout(uint64_t seq)
 {
   afterTimeout(seq);
-
   finish();
 }
 
@@ -123,7 +110,6 @@ Ping::finish()
   if (--m_nOutstanding >= 0) {
     return;
   }
-
   afterFinish();
 }
 
@@ -135,8 +121,7 @@ Ping::makePingName(uint64_t seq) const
   if (!m_options.clientIdentifier.empty()) {
     name.append(m_options.clientIdentifier);
   }
-  name.append(std::to_string(seq));
-
+  name.append(to_string(seq));
   return name;
 }
 

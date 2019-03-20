@@ -82,7 +82,7 @@ PipelineInterestsAdaptive::doRun()
   }
 
   // schedule the event to check retransmission timer
-  m_checkRtoEvent = m_scheduler.scheduleEvent(m_options.rtoCheckInterval, [this] { checkRto(); });
+  m_checkRtoEvent = m_scheduler.schedule(m_options.rtoCheckInterval, [this] { checkRto(); });
 
   schedulePackets();
 }
@@ -120,7 +120,7 @@ PipelineInterestsAdaptive::checkRto()
   }
 
   // schedule the next check after predefined interval
-  m_checkRtoEvent = m_scheduler.scheduleEvent(m_options.rtoCheckInterval, [this] { checkRto(); });
+  m_checkRtoEvent = m_scheduler.schedule(m_options.rtoCheckInterval, [this] { checkRto(); });
 }
 
 void

@@ -121,16 +121,11 @@ private:
   /**
    * @brief Called when a Data packet is received in response to a ping
    *
-   * @param interest NDN interest
-   * @param data returned data
    * @param seq ping sequence number
    * @param sendTime time ping sent
    */
   void
-  onData(const Interest& interest,
-         const Data& data,
-         uint64_t seq,
-         const time::steady_clock::TimePoint& sendTime);
+  onData(uint64_t seq, const time::steady_clock::TimePoint& sendTime);
 
   /**
    * @brief Called when a Nack is received in response to a ping
@@ -141,9 +136,7 @@ private:
    * @param sendTime time ping sent
    */
   void
-  onNack(const Interest& interest,
-         const lp::Nack& nack,
-         uint64_t seq,
+  onNack(const lp::Nack& nack, uint64_t seq,
          const time::steady_clock::TimePoint& sendTime);
 
   /**
@@ -153,7 +146,7 @@ private:
    * @param seq ping sequence number
    */
   void
-  onTimeout(const Interest& interest, uint64_t seq);
+  onTimeout(uint64_t seq);
 
   /**
    * @brief Called after ping received or timed out

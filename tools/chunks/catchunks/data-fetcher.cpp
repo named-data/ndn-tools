@@ -126,13 +126,13 @@ DataFetcher::handleNack(const Interest& interest, const lp::Nack& nack,
       }
       case lp::NackReason::CONGESTION: {
         time::milliseconds backoffTime(static_cast<uint64_t>(std::pow(2, m_nCongestionRetries)));
-        if (backoffTime > MAX_CONGESTION_BACKOFF_TIME)
+        if (backoffTime > MAX_CONGESTION_BACKOFF_TIME) {
           backoffTime = MAX_CONGESTION_BACKOFF_TIME;
-        else
+        }
+        else {
           m_nCongestionRetries++;
-
-        m_scheduler.scheduleEvent(backoffTime, bind(&DataFetcher::expressInterest, this,
-                                                    newInterest, self));
+        }
+        m_scheduler.schedule(backoffTime, [=] { expressInterest(newInterest, self); });
         break;
       }
       default: {
