@@ -133,43 +133,6 @@ BOOST_AUTO_TEST_CASE(OutputDataUnordered)
   BOOST_CHECK(output.is_equal(testStrings[2]));
 }
 
-class DiscoverVersionDummy : public DiscoverVersion
-{
-public:
-  DiscoverVersionDummy(const Name& prefix, Face& face, const Options& options)
-    : Options(options)
-    , DiscoverVersion(prefix, face)
-    , isDiscoverRunning(false)
-    , m_prefix(prefix)
-  {
-  }
-
-  void
-  run() final
-  {
-    isDiscoverRunning = true;
-
-    auto interest = makeInterest(m_prefix, true);
-    expressInterest(*interest, 1, 1);
-  }
-
-private:
-  void
-  handleData(const Interest& interest, const Data& data) final
-  {
-    if (!data.getName().empty() && data.getName()[-1].isVersion())
-      this->emitSignal(onDiscoverySuccess, data.getName());
-    else
-      this->emitSignal(onDiscoveryFailure, "Invalid versioned name");
-  }
-
-public:
-  bool isDiscoverRunning;
-
-private:
-  Name m_prefix;
-};
-
 class PipelineInterestsDummy : public PipelineInterests
 {
 public:
@@ -201,17 +164,16 @@ BOOST_FIXTURE_TEST_CASE(RunBasic, UnitTestTimeFixture)
   util::DummyClientFace face(io);
   Consumer consumer(security::v2::getAcceptAllValidator());
 
-  Name prefix("/ndn/chunks/test");
-  auto discover = make_unique<DiscoverVersionDummy>(prefix, face, Options());
+  Name prefix = Name("/ndn/chunks/test").appendVersion(1);
+  auto discover = make_unique<DiscoverVersion>(prefix, face, Options());
   auto pipeline = make_unique<PipelineInterestsDummy>(face);
-  auto discoverPtr = discover.get();
   auto pipelinePtr = pipeline.get();
 
   consumer.run(std::move(discover), std::move(pipeline));
-  BOOST_CHECK_EQUAL(discoverPtr->isDiscoverRunning, true);
 
   this->advanceClocks(io, time::nanoseconds(1));
-  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+  // no discovery interest is issued
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 0);
 
   // this Data packet answers the discovery Interest, so it must end with a version number
   auto data = makeData(prefix.appendVersion(0));

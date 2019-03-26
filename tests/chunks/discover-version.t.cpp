@@ -23,54 +23,82 @@
  * @author Chavoosh Ghasemi
  */
 
-#include "tools/chunks/catchunks/discover-version-realtime.hpp"
+#include "tools/chunks/catchunks/discover-version.hpp"
 
-#include "discover-version-fixture.hpp"
+#include "tests/test-common.hpp"
 #include "tests/identity-management-fixture.hpp"
 
 #include <ndn-cxx/metadata-object.hpp>
-
+#include <ndn-cxx/util/dummy-client-face.hpp>
 
 namespace ndn {
 namespace chunks {
 namespace tests {
 
-class DiscoverVersionRealtimeFixture : public DiscoverVersionFixture,
-                                       public IdentityManagementFixture,
-                                       protected DiscoverVersionRealtimeOptions
+using namespace ndn::tests;
+
+class DiscoverVersionFixture : public UnitTestTimeFixture,
+                               public IdentityManagementFixture
 {
 public:
-  typedef DiscoverVersionRealtimeOptions Options;
-
-public:
-  explicit
-  DiscoverVersionRealtimeFixture(const Options& opt = makeOptionsRealtime())
-    : chunks::Options(opt)
-    , DiscoverVersionFixture(opt)
-    , Options(opt)
+  DiscoverVersionFixture()
+    : face(io)
+    , name("/ndn/chunks/test")
+    , isDiscoveryFinished(false)
+    , version(1449227841747)
   {
-    setDiscover(make_unique<DiscoverVersionRealtime>(Name(name), face, opt));
+    opt.interestLifetime = ndn::DEFAULT_INTEREST_LIFETIME;
+    opt.maxRetriesOnTimeoutOrNack = 15;
+    opt.isVerbose = false;
+  }
+
+  void
+  run(const Name& prefix)
+  {
+    BOOST_REQUIRE(!prefix.empty());
+    discover = make_unique<DiscoverVersion>(prefix, face, opt);
+    discover->onDiscoverySuccess.connect([this] (const Name& versionedName) {
+      isDiscoveryFinished = true;
+      BOOST_REQUIRE(!versionedName.empty() && versionedName[-1].isVersion());
+      discoveredVersion = versionedName[-1].toVersion();
+    });
+    discover->onDiscoveryFailure.connect([this] (const std::string& reason) {
+      isDiscoveryFinished = true;
+    });
+
+    discover->run();
+    advanceClocks(io, time::nanoseconds(1));
   }
 
 protected:
-  static Options
-  makeOptionsRealtime()
-  {
-    Options options;
-    options.isVerbose = false;
-    options.maxRetriesOnTimeoutOrNack = 15;
-    return options;
-  }
+  boost::asio::io_service io;
+  util::DummyClientFace face;
+  Name name;
+  unique_ptr<DiscoverVersion> discover;
+  optional<uint64_t> discoveredVersion;
+  bool isDiscoveryFinished;
+  uint64_t version;
+  Options opt;
 };
 
 BOOST_AUTO_TEST_SUITE(Chunks)
-BOOST_FIXTURE_TEST_SUITE(TestDiscoverVersionRealtime, DiscoverVersionRealtimeFixture)
+BOOST_FIXTURE_TEST_SUITE(TestDiscoverVersion, DiscoverVersionFixture)
 
-BOOST_AUTO_TEST_CASE(Success)
+BOOST_AUTO_TEST_CASE(VersionNumberIsProvided)
 {
-  // issue a discovery Interest to learn Data version
-  discover->run();
-  advanceClocks(io, time::nanoseconds(1), 1);
+  run(Name(name).appendVersion(version));
+
+  // no version discovery interest is expressed
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 0);
+
+  BOOST_CHECK_EQUAL(isDiscoveryFinished, true);
+  BOOST_CHECK_EQUAL(discoveredVersion.value(), version);
+}
+
+BOOST_AUTO_TEST_CASE(DiscoverySuccess)
+{
+  // express a discovery Interest to learn Data version
+  run(name);
 
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
 
@@ -79,22 +107,19 @@ BOOST_AUTO_TEST_CASE(Success)
   BOOST_CHECK_EQUAL(lastInterest.getName(), discoveryInterest.getName());
 
   // Send back a metadata packet with a valid versioned name
-  uint64_t version = 1449241767037;
-
   MetadataObject mobject;
   mobject.setVersionedName(Name(name).appendVersion(version));
   face.receive(mobject.makeData(lastInterest.getName(), m_keyChain));
-  advanceClocks(io, time::nanoseconds(1), 1);
+  advanceClocks(io, time::nanoseconds(1));
 
   BOOST_CHECK(isDiscoveryFinished);
-  BOOST_CHECK_EQUAL(discoveredVersion, version);
+  BOOST_CHECK_EQUAL(discoveredVersion.value(), version);
 }
 
-BOOST_AUTO_TEST_CASE(InvalidVersionedName)
+BOOST_AUTO_TEST_CASE(InvalidDiscoveredVersionedName)
 {
   // issue a discovery Interest to learn Data version
-  discover->run();
-  advanceClocks(io, time::nanoseconds(1), 1);
+  run(name);
 
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
 
@@ -105,14 +130,13 @@ BOOST_AUTO_TEST_CASE(InvalidVersionedName)
 
   // finish discovery process without a resolved version number
   BOOST_CHECK(isDiscoveryFinished);
-  BOOST_CHECK_EQUAL(discoveredVersion, 0);
+  BOOST_CHECK(!discoveredVersion.has_value());
 }
 
 BOOST_AUTO_TEST_CASE(InvalidMetadataPacket)
 {
   // issue a discovery Interest to learn Data version
-  discover->run();
-  advanceClocks(io, time::nanoseconds(1), 1);
+  run(name);
 
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
 
@@ -123,34 +147,58 @@ BOOST_AUTO_TEST_CASE(InvalidMetadataPacket)
 
   // finish discovery process without a resolved version number
   BOOST_CHECK(isDiscoveryFinished);
-  BOOST_CHECK_EQUAL(discoveredVersion, 0);
+  BOOST_CHECK(!discoveredVersion.has_value());
 }
 
-BOOST_AUTO_TEST_CASE(Timeout)
+BOOST_AUTO_TEST_CASE(Timeout1)
 {
   // issue a discovery Interest to learn Data version
-  discover->run();
-  advanceClocks(io, time::nanoseconds(1), 1);
+  run(name);
 
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
 
   // timeout discovery Interests
-  for (int retries = 0; retries < maxRetriesOnTimeoutOrNack; ++retries) {
-    advanceClocks(io, interestLifetime, 1);
+  for (int retries = 0; retries < opt.maxRetriesOnTimeoutOrNack; ++retries) {
+    advanceClocks(io, opt.interestLifetime);
 
     BOOST_CHECK_EQUAL(isDiscoveryFinished, false);
     BOOST_REQUIRE_EQUAL(face.sentInterests.size(), retries + 2);
   }
 
   // timeout the last sent Interest
-  advanceClocks(io, interestLifetime, 1);
+  advanceClocks(io, opt.interestLifetime);
 
   // finish discovery process without a resolved version number
   BOOST_CHECK(isDiscoveryFinished);
-  BOOST_CHECK_EQUAL(discoveredVersion, 0);
+  BOOST_CHECK(!discoveredVersion.has_value());
 }
 
-BOOST_AUTO_TEST_SUITE_END() // TestDiscoverVersionRealtime
+BOOST_AUTO_TEST_CASE(Timeout2)
+{
+  // issue a discovery Interest to learn Data version
+  run(name);
+
+  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+
+  // timeout discovery Interests
+  for (int retries = 0; retries < opt.maxRetriesOnTimeoutOrNack; ++retries) {
+    advanceClocks(io, opt.interestLifetime);
+
+    BOOST_CHECK_EQUAL(isDiscoveryFinished, false);
+    BOOST_REQUIRE_EQUAL(face.sentInterests.size(), retries + 2);
+  }
+
+  // satisfy the last Interest with a valid metadata packet
+  MetadataObject mobject;
+  mobject.setVersionedName(Name(name).appendVersion(version));
+  face.receive(mobject.makeData(face.sentInterests.back().getName(), m_keyChain));
+  advanceClocks(io, time::nanoseconds(1));
+
+  BOOST_CHECK(isDiscoveryFinished);
+  BOOST_CHECK_EQUAL(discoveredVersion.value(), version);
+}
+
+BOOST_AUTO_TEST_SUITE_END() // TestDiscoverVersion
 BOOST_AUTO_TEST_SUITE_END() // Chunks
 
 } // namespace tests

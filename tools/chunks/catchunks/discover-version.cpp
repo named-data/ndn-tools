@@ -23,42 +23,73 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Chavoosh Ghasemi
  */
 
 #include "discover-version.hpp"
 #include "data-fetcher.hpp"
 
+#include <ndn-cxx/metadata-object.hpp>
+
 namespace ndn {
 namespace chunks {
 
-DiscoverVersion::DiscoverVersion(const Name& prefix, Face& face)
-  : m_prefix(prefix)
+DiscoverVersion::DiscoverVersion(const Name& prefix, Face& face, const Options& options)
+  : chunks::Options(options)
+  , m_prefix(prefix)
   , m_face(face)
 {
 }
 
-DiscoverVersion::~DiscoverVersion() = default;
-
 void
-DiscoverVersion::expressInterest(const Interest& interest, int maxRetriesNack, int maxRetriesTimeout)
+DiscoverVersion::run()
 {
-  fetcher = DataFetcher::fetch(m_face, interest, maxRetriesNack, maxRetriesTimeout,
-                               bind(&DiscoverVersion::handleData, this, _1, _2),
-                               bind(&DiscoverVersion::handleNack, this, _1, _2),
-                               bind(&DiscoverVersion::handleTimeout, this, _1, _2),
-                               isVerbose);
+  if (!m_prefix.empty() && m_prefix[-1].isVersion()) {
+    onDiscoverySuccess(m_prefix);
+    return;
+  }
+
+  Interest interest = MetadataObject::makeDiscoveryInterest(m_prefix)
+                                      .setInterestLifetime(interestLifetime);
+
+  m_fetcher = DataFetcher::fetch(m_face, interest,
+                                 maxRetriesOnTimeoutOrNack, maxRetriesOnTimeoutOrNack,
+                                 bind(&DiscoverVersion::handleData, this, _1, _2),
+                                 [this] (const Interest& interest, const std::string& reason) {
+                                   onDiscoveryFailure(reason);
+                                 },
+                                 [this] (const Interest& interest, const std::string& reason) {
+                                   onDiscoveryFailure(reason);
+                                 },
+                                 isVerbose);
 }
 
 void
-DiscoverVersion::handleNack(const Interest& interest, const std::string& reason)
+DiscoverVersion::handleData(const Interest& interest, const Data& data)
 {
-  onDiscoveryFailure(reason);
-}
+  if (isVerbose)
+    std::cerr << "Data: " << data << std::endl;
 
-void
-DiscoverVersion::handleTimeout(const Interest& interest, const std::string& reason)
-{
-  onDiscoveryFailure(reason);
+  // make a metadata object from received metadata packet
+  MetadataObject mobject;
+  try {
+    mobject = MetadataObject(data);
+  }
+  catch (const tlv::Error& e) {
+    onDiscoveryFailure("Invalid metadata packet: "s + e.what());
+    return;
+  }
+
+  if (mobject.getVersionedName().empty() || !mobject.getVersionedName()[-1].isVersion()) {
+    onDiscoveryFailure(mobject.getVersionedName().toUri() + " is not a valid versioned name");
+    return;
+  }
+
+  if (isVerbose) {
+    std::cerr << "Discovered Data version: " << mobject.getVersionedName()[-1] << std::endl;
+  }
+
+  onDiscoverySuccess(mobject.getVersionedName());
 }
 
 } // namespace chunks

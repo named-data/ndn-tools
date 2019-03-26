@@ -30,8 +30,7 @@
  */
 
 #include "consumer.hpp"
-#include "discover-version-fixed.hpp"
-#include "discover-version-realtime.hpp"
+#include "discover-version.hpp"
 #include "options.hpp"
 #include "pipeline-interests-aimd.hpp"
 #include "pipeline-interests-cubic.hpp"
@@ -51,10 +50,8 @@ main(int argc, char* argv[])
 {
   std::string programName(argv[0]);
   Options options;
-  std::string discoverType("realtime");
   std::string pipelineType("cubic");
   size_t maxPipelineSize(1);
-  int64_t discoveryTimeoutMs(DEFAULT_INTEREST_LIFETIME.count());
   std::string uri;
 
   // congestion control parameters, CWA refers to conservative window adaptation,
@@ -70,8 +67,6 @@ main(int argc, char* argv[])
   po::options_description basicDesc("Basic Options");
   basicDesc.add_options()
     ("help,h",      "print this help message and exit")
-    ("discover-version,d", po::value<std::string>(&discoverType)->default_value(discoverType),
-                            "version discovery algorithm to use; valid values are: 'fixed', 'realtime'")
     ("pipeline-type,p", po::value<std::string>(&pipelineType)->default_value(pipelineType),
                          "type of Interest pipeline to use; valid values are: 'fixed', 'aimd', 'cubic'")
     ("fresh,f",     po::bool_switch(&options.mustBeFresh), "only return fresh content")
@@ -83,11 +78,6 @@ main(int argc, char* argv[])
     ("verbose,v",   po::bool_switch(&options.isVerbose), "turn on verbose output (per segment information")
     ("version,V",   "print program version and exit")
     ;
-
-  po::options_description realDiscoveryDesc("Realtime version discovery options");
-  realDiscoveryDesc.add_options()
-    ("discovery-timeout,t", po::value<int64_t>(&discoveryTimeoutMs)->default_value(discoveryTimeoutMs),
-                            "discovery timeout (in milliseconds)");
 
   po::options_description fixedPipeDesc("Fixed pipeline options");
   fixedPipeDesc.add_options()
@@ -136,7 +126,6 @@ main(int argc, char* argv[])
 
   po::options_description visibleDesc;
   visibleDesc.add(basicDesc)
-             .add(realDiscoveryDesc)
              .add(fixedPipeDesc)
              .add(adaptivePipeDesc)
              .add(cubicPipeDesc);
@@ -145,11 +134,16 @@ main(int argc, char* argv[])
   hiddenDesc.add_options()
     ("ndn-name,n", po::value<std::string>(&uri), "NDN name of the requested content");
 
+  po::options_description deprecatedDesc;
+  deprecatedDesc.add_options()
+    ("discover-version,d", po::value<std::string>(), "version discovery algorithm to use")
+    ("discovery-timeout,t", po::value<int64_t>(), "discovery timeout (in milliseconds)");
+
   po::positional_options_description p;
   p.add("ndn-name", -1);
 
   po::options_description optDesc;
-  optDesc.add(visibleDesc).add(hiddenDesc);
+  optDesc.add(visibleDesc).add(hiddenDesc).add(deprecatedDesc);
 
   po::variables_map vm;
   try {
@@ -171,6 +165,14 @@ main(int argc, char* argv[])
     return 0;
   }
 
+  if (vm.count("discover-version") > 0) {
+    std::cout << "WARNING: -d option is deprecated and will be removed in the near future" << std::endl;
+  }
+
+  if (vm.count("discovery-timeout") > 0) {
+    std::cout << "WARNING: -t option is deprecated and will be removed in the near future" << std::endl;
+  }
+
   if (vm.count("version") > 0) {
     std::cout << "ndncatchunks " << tools::VERSION << std::endl;
     return 0;
@@ -182,13 +184,6 @@ main(int argc, char* argv[])
     return 2;
   }
 
-  Name prefix(uri);
-  if (discoverType == "fixed" && (prefix.empty() || !prefix[-1].isVersion())) {
-    std::cerr << "ERROR: The specified name must contain a version component when using "
-                 "fixed version discovery" << std::endl;
-    return 2;
-  }
-
   if (maxPipelineSize < 1 || maxPipelineSize > 1024) {
     std::cerr << "ERROR: pipeline size must be between 1 and 1024" << std::endl;
     return 2;
@@ -196,11 +191,6 @@ main(int argc, char* argv[])
 
   if (options.maxRetriesOnTimeoutOrNack < -1 || options.maxRetriesOnTimeoutOrNack > 1024) {
     std::cerr << "ERROR: retries value must be between -1 and 1024" << std::endl;
-    return 2;
-  }
-
-  if (discoveryTimeoutMs < 0) {
-    std::cerr << "ERROR: timeout cannot be negative" << std::endl;
     return 2;
   }
 
@@ -218,19 +208,7 @@ main(int argc, char* argv[])
   try {
     Face face;
 
-    unique_ptr<DiscoverVersion> discover;
-    if (discoverType == "fixed") {
-      discover = make_unique<DiscoverVersionFixed>(prefix, face, options);
-    }
-    else if (discoverType == "realtime") {
-      DiscoverVersionRealtime::Options optionsRealtime(options);
-      optionsRealtime.discoveryTimeout = time::milliseconds(discoveryTimeoutMs);
-      discover = make_unique<DiscoverVersionRealtime>(prefix, face, optionsRealtime);
-    }
-    else {
-      std::cerr << "ERROR: discover version type not valid" << std::endl;
-      return 2;
-    }
+    auto discover = make_unique<DiscoverVersion>(Name(uri), face, options);
 
     unique_ptr<PipelineInterests> pipeline;
     unique_ptr<StatisticsCollector> statsCollector;

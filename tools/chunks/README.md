@@ -11,21 +11,14 @@
   discovering the latest version of the file, and writes the content of the retrieved file to
   the standard output.
 
-## Version discovery methods in ndncatchunks
+## Version discovery in ndncatchunks
 
-* `fixed`    : sends an Interest attempting to find a data packet with the
-               specified prefix and version number. A version component must be present at the
-               end of the user-specified NDN name.
-
-* `realtime` : sends discovery Interests to fetch metadata of the solicited content from which
-               the data version will be resolved.
-               The version number of the solicited content is included in the name of returned
-               metadata data packet.
-               For more information about the packet format and naming convention of interest and
-               data packets for realtime version discovery, please refer to:
+If a version component is present at the end of the user-specified NDN name, the provided version
+number will be used, without any version discovery process. Otherwise, discovery Interest(s) will
+be sent out to fetch metadata of the solicited content from which the Data version will be resolved.
+For more information about the packet format and naming convention of Interest and Data packets of
+version discovery in ndncatchunks, please refer to:
 [Realtime Data Retrieval (RDR) protocol wiki page](https://redmine.named-data.net/projects/ndn-tlv/wiki/RDR)
-
-The default discovery method is `realtime`.
 
 ## Interest pipeline types in ndncatchunks
 
@@ -50,40 +43,35 @@ The default Interest pipeline type is `cubic`.
 The following command will publish the text of the GPL-3 license under the `/localhost/demo/gpl3`
 prefix:
 
-    ndnputchunks ndn:/localhost/demo/gpl3 < /usr/share/common-licenses/GPL-3
+    ndnputchunks /localhost/demo/gpl3 < /usr/share/common-licenses/GPL-3
 
 To find the published version you have to start ndnputchunks with the `-p` command line option,
 for example:
 
-    ndnputchunks -p ndn:/localhost/demo/gpl3 < /usr/share/common-licenses/GPL-3
+    ndnputchunks -p /localhost/demo/gpl3 < /usr/share/common-licenses/GPL-3
 
 This command will print the published version to the standard output.
 
-To publish data with a specific version, you must append a version component to the end of the
+To publish Data with a specific version, you must append a version component to the end of the
 prefix. The version component must follow the aforementioned NDN naming conventions.
 For example, the following command will publish the version `%FD%00%00%01Qc%CF%17v` of the
 `/localhost/demo/gpl3` prefix:
 
-    ndnputchunks ndn:/localhost/demo/gpl3/%FD%00%00%01Qc%CF%17v < /usr/share/common-licenses/GPL-3
+    ndnputchunks /localhost/demo/gpl3/%FD%00%00%01Qc%CF%17v < /usr/share/common-licenses/GPL-3
 
 If the version component is not valid, a new well-formed version will be generated and appended
 to the supplied NDN name.
-
 
 ### Retrieval
 
 To retrieve the latest version of a published file, the following command can be used:
 
-    ndncatchunks ndn:/localhost/demo/gpl3
+    ndncatchunks /localhost/demo/gpl3
 
-This command will use the realtime method to discover the version number of the file.
+To fetch a specific version of a published file, you can specify the version number at the end of
+the name. For example, if the version is known to be `%FD%00%00%01Qc%CF%17v`, the following command
+will fetch that exact version of the file (without version discovery):
 
-To fetch a specific version of a published file, you can use the `fixed` version discovery method.
-In this case the version needs to be supplied as part of the name. For example, if the version
-is known to be `%FD%00%00%01Qc%CF%17v`, the following command will fetch that exact version of the
-file:
-
-    ndncatchunks -d fixed ndn:/localhost/demo/gpl3/%FD%00%00%01Qc%CF%17v
-
+    ndncatchunks /localhost/demo/gpl3/%FD%00%00%01Qc%CF%17v
 
 For more information, run the programs with `--help` as argument.

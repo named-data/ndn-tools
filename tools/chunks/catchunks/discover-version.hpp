@@ -23,6 +23,7 @@
  * @author Wentao Shang
  * @author Steve DiBenedetto
  * @author Andrea Tosatto
+ * @author Chavoosh Ghasemi
  */
 
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_DISCOVER_VERSION_HPP
@@ -53,43 +54,28 @@ public: // signals
   /**
    * @brief Signal emitted when a failure occurs.
    */
-  signal::Signal<DiscoverVersion, const std::string&> onDiscoveryFailure;
-
-  DECLARE_SIGNAL_EMIT(onDiscoverySuccess)
-  DECLARE_SIGNAL_EMIT(onDiscoveryFailure)
+  signal::Signal<DiscoverVersion, std::string> onDiscoveryFailure;
 
 public:
   /**
    * @brief create a DiscoverVersion service
    */
-  DiscoverVersion(const Name& prefix, Face& face);
-
-  virtual
-  ~DiscoverVersion();
+  DiscoverVersion(const Name& prefix, Face& face, const Options& options);
 
   /**
    * @brief identify the latest Data version published.
    */
-  virtual void
-  run() = 0;
-
-protected:
   void
-  expressInterest(const Interest& interest, int maxRetriesNack, int maxRetriesTimeout);
+  run();
 
-  virtual void
-  handleData(const Interest& interest, const Data& data) = 0;
+private:
+  void
+  handleData(const Interest& interest, const Data& data);
 
-  virtual void
-  handleNack(const Interest& interest, const std::string& reason);
-
-  virtual void
-  handleTimeout(const Interest& interest, const std::string& reason);
-
-protected:
+private:
   const Name m_prefix;
   Face& m_face;
-  shared_ptr<DataFetcher> fetcher;
+  shared_ptr<DataFetcher> m_fetcher;
 };
 
 } // namespace chunks
