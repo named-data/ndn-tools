@@ -5,3 +5,4 @@
   ndnping
   ndnpingserver
   ndnpoke
+  ndnputchunks

@@ -13,5 +13,6 @@ man_pages = [
     ('ndnping', 'ndnping', 'reachability testing client', None, 1),
     ('ndnpingserver', 'ndnpingserver', 'reachability testing server', None, 1),
     ('ndndump', 'ndndump', 'traffic analysis tool', None, 8),
+    ('ndnputchunks', 'ndnputchunks', 'producer program with content segmentation', None, 1),
     ('ndn-dissect', 'ndn-dissect', 'NDN packet format inspector', None, 1),
 ]

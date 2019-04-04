@@ -63,7 +63,7 @@ main(int argc, char* argv[])
                              "print Data version to the standard output")
     ("size,s",          po::value<size_t>(&opts.maxSegmentSize)->default_value(opts.maxSegmentSize),
                         "maximum chunk size, in bytes")
-    ("signing-info,S",  po::value<std::string>(&signingStr), "signing information")
+    ("signing-info,S",  po::value<std::string>(&signingStr), "see 'man ndnputchunks' for usage")
     ("quiet,q",         po::bool_switch(&opts.isQuiet), "turn off all non-error output")
     ("verbose,v",       po::bool_switch(&opts.isVerbose), "turn on verbose output (per Interest information)")
     ("version,V",       "print program version and exit")
