@@ -163,7 +163,7 @@ All packets are valid and do not contain unrecognized TLV elements.
 
 Expected results of the dissection:
 - Packet 1 is recognized as "Interest" type, and has `CanBePrefix: Yes`, `MustBeFresh: Yes`,
-  `HopLimit: 214`, as well as a "Parameters" field.
+  `HopLimit: 214`, as well as an "ApplicationParameters" field.
 - Packet 2 is recognized as "Interest" type, and has `Name: /2=A/7=B/C/252=D/256=E/65535=E/sha256digest=ee357c5791dcaa4494d9b301047b875d8833caa76dada3e95837bbc3eaf7b300`.
 - Packet 3 is recognized as "Data" type, and has `Name: /`.
 

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2013-2018, Regents of the University of California.
+ * Copyright (c) 2013-2019, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -36,15 +36,13 @@ static const std::map<uint32_t, const char*> TLV_DICT = {
   {tlv::Interest                     , "Interest"},
   {tlv::Data                         , "Data"},
   {tlv::Name                         , "Name"},
-  {tlv::GenericNameComponent         , "GenericNameComponent"},
-  {tlv::ImplicitSha256DigestComponent, "ImplicitSha256DigestComponent"},
   {tlv::CanBePrefix                  , "CanBePrefix"},
   {tlv::MustBeFresh                  , "MustBeFresh"},
   //{tlv::ForwardingHint               , "ForwardingHint"},
   {tlv::Nonce                        , "Nonce"},
   {tlv::InterestLifetime             , "InterestLifetime"},
   {tlv::HopLimit                     , "HopLimit"},
-  {tlv::Parameters                   , "Parameters"},
+  {tlv::ApplicationParameters        , "ApplicationParameters"},
   {tlv::MetaInfo                     , "MetaInfo"},
   {tlv::Content                      , "Content"},
   {tlv::SignatureInfo                , "SignatureInfo"},
@@ -55,6 +53,16 @@ static const std::map<uint32_t, const char*> TLV_DICT = {
   {tlv::SignatureType                , "SignatureType"},
   {tlv::KeyLocator                   , "KeyLocator"},
   {tlv::KeyDigest                    , "KeyDigest"},
+  // Name components
+  {tlv::GenericNameComponent           , "GenericNameComponent"},
+  {tlv::ImplicitSha256DigestComponent  , "ImplicitSha256DigestComponent"},
+  {tlv::ParametersSha256DigestComponent, "ParametersSha256DigestComponent"},
+  {tlv::KeywordNameComponent           , "KeywordNameComponent"},
+  //{tlv::SegmentNameComponent           , "SegmentNameComponent"},
+  //{tlv::ByteOffsetNameComponent        , "ByteOffsetNameComponent"},
+  //{tlv::VersionNameComponent           , "VersionNameComponent"},
+  //{tlv::TimestampNameComponent         , "TimestampNameComponent"},
+  //{tlv::SequenceNumNameComponent       , "SequenceNumNameComponent"},
   // Deprecated elements
   {tlv::Selectors                    , "Selectors"},
   {tlv::MinSuffixComponents          , "MinSuffixComponents"},

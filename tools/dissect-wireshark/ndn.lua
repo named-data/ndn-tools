@@ -1,4 +1,4 @@
--- Copyright (c) 2015-2018,  Regents of the University of California.
+-- Copyright (c) 2015-2019,  Regents of the University of California.
 --
 -- This file is part of ndn-tools (Named Data Networking Essential Tools).
 -- See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -177,7 +177,7 @@ end
 -----------------------------------------------------
 
 local NDN_DICT = {
-   -- Name and NameComponent
+   -- Name and name components
    [7]  = {name = "Name"                         , field = ProtoField.string("ndn.name", "Name")                                   , value = getUriFromName},
    [1]  = {name = "ImplicitSha256DigestComponent", field = ProtoField.string("ndn.implicitsha256", "ImplicitSha256DigestComponent"), value = getUriFromNameComponent},
    [8]  = {name = "GenericNameComponent"         , field = ProtoField.string("ndn.namecomponent", "NameComponent")                 , value = getUriFromNameComponent},
@@ -189,11 +189,11 @@ local NDN_DICT = {
    -- [30] = {name = "ForwardingHint"               , summary = true},
    -- ForwardingHint and LinkPreference have the same TLV-TYPE number, so we can't recognize both for now (see #4185).
    [31] = {name = "LinkDelegation"               , summary = true},
-   [30] = {name = "LinkPreference"               , field = ProtoField.uint64("ndn.link_preference", "LinkPreference", base.DEC)    , value = getNonNegativeInteger},
+   [30] = {name = "LinkPreference"               , field = ProtoField.uint64("ndn.linkpreference", "LinkPreference", base.DEC)     , value = getNonNegativeInteger},
    [10] = {name = "Nonce"                        , field = ProtoField.uint32("ndn.nonce", "Nonce", base.HEX)                       , value = getNonce},
    [12] = {name = "InterestLifetime"             , field = ProtoField.uint64("ndn.interestlifetime", "InterestLifetime", base.DEC) , value = getNonNegativeInteger},
    [34] = {name = "HopLimit"                     , field = ProtoField.uint64("ndn.hoplimit", "HopLimit", base.DEC)                 , value = getNonNegativeInteger},
-   [36] = {name = "Parameters"                   , field = ProtoField.string("ndn.parameters", "Parameters")},
+   [36] = {name = "ApplicationParameters"        , field = ProtoField.string("ndn.applicationparameters", "ApplicationParameters")},
 
    -- Data and its sub-elements in Packet Format v0.3
    [6]  = {name = "Data"                         , summary = true},
