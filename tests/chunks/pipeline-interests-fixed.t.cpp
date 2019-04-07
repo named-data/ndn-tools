@@ -89,8 +89,7 @@ BOOST_AUTO_TEST_CASE(FullPipeline)
       BOOST_REQUIRE_EQUAL(face.sentInterests.size(), opt.maxPipelineSize + i + 1);
       // check if the interest for the segment i is well formed
       const auto& sentInterest = face.sentInterests[i];
-      BOOST_CHECK_EQUAL(sentInterest.getExclude().size(), 0);
-      BOOST_CHECK_EQUAL(sentInterest.getMaxSuffixComponents(), 1);
+      BOOST_CHECK_EQUAL(sentInterest.getCanBePrefix(), false);
       BOOST_CHECK_EQUAL(sentInterest.getMustBeFresh(), opt.mustBeFresh);
       BOOST_CHECK_EQUAL(Name(name).isPrefixOf(sentInterest.getName()), true);
       BOOST_CHECK_EQUAL(getSegmentFromPacket(sentInterest), i);

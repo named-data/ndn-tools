@@ -155,10 +155,11 @@ PipelineInterestsAdaptive::sendInterest(uint64_t segNo, bool isRetransmission)
     }
   }
 
-  Interest interest(Name(m_prefix).appendSegment(segNo));
-  interest.setInterestLifetime(m_options.interestLifetime);
-  interest.setMustBeFresh(m_options.mustBeFresh);
-  interest.setMaxSuffixComponents(1);
+  auto interest = Interest()
+                  .setName(Name(m_prefix).appendSegment(segNo))
+                  .setCanBePrefix(false)
+                  .setMustBeFresh(m_options.mustBeFresh)
+                  .setInterestLifetime(m_options.interestLifetime);
 
   SegmentInfo& segInfo = m_segmentInfo[segNo];
   segInfo.interestHdl = m_face.expressInterest(interest,
@@ -211,7 +212,7 @@ PipelineInterestsAdaptive::handleData(const Interest& interest, const Data& data
   if (isStopping())
     return;
 
-  // Data name will not have extra components because MaxSuffixComponents is set to 1
+  // Interest was expressed with CanBePrefix=false
   BOOST_ASSERT(data.getName().equals(interest.getName()));
 
   if (!m_hasFinalBlockId && data.getFinalBlock()) {

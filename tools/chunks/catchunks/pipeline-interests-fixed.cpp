@@ -78,10 +78,11 @@ PipelineInterestsFixed::fetchNextSegment(std::size_t pipeNo)
   if (m_options.isVerbose)
     std::cerr << "Requesting segment #" << nextSegmentNo << std::endl;
 
-  Interest interest(Name(m_prefix).appendSegment(nextSegmentNo));
-  interest.setInterestLifetime(m_options.interestLifetime);
-  interest.setMustBeFresh(m_options.mustBeFresh);
-  interest.setMaxSuffixComponents(1);
+  auto interest = Interest()
+                  .setName(Name(m_prefix).appendSegment(nextSegmentNo))
+                  .setCanBePrefix(false)
+                  .setMustBeFresh(m_options.mustBeFresh)
+                  .setInterestLifetime(m_options.interestLifetime);
 
   auto fetcher = DataFetcher::fetch(m_face, interest,
                                     m_options.maxRetriesOnTimeoutOrNack,
@@ -114,6 +115,7 @@ PipelineInterestsFixed::handleData(const Interest& interest, const Data& data, s
   if (isStopping())
     return;
 
+  // Interest was expressed with CanBePrefix=false
   BOOST_ASSERT(data.getName().equals(interest.getName()));
 
   if (m_options.isVerbose)
