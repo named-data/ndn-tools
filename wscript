@@ -76,7 +76,17 @@ def build(bld):
 
     bld.recurse('tools')
     bld.recurse('tests')
-    bld.recurse('manpages')
+
+    if bld.env.SPHINX_BUILD:
+        bld(features='sphinx',
+            name='manpages',
+            builder='man',
+            config='manpages/conf.py',
+            outdir='manpages',
+            source=bld.path.ant_glob('manpages/*.rst'),
+            install_path='${MANDIR}',
+            version=VERSION_BASE,
+            release=VERSION)
 
 def version(ctx):
     # don't execute more than once
