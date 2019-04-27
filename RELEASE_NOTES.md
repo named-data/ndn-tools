@@ -1,5 +1,24 @@
-Release Notes
-=============
+# Release Notes
+
+## Version 0.6.4
+
+chunks:
+- Add metadata-based version discovery and remove iterative discovery (Issue #4556)
+- Remove manual selection of version discovery method via `-d` option (Issue #4832)
+- Implement CUBIC congestion window adaptation in ndncatchunks (Issue #4861)
+- Increase the default retransmission limit from 3 to 15 (Issue #4861)
+- Improve stats printed by ndncatchunks after transfer completes (Issue #4603)
+- Add manual page for ndnputchunks
+
+dissect & dissect-wireshark:
+- Follow packet specification changes to renumber the `Parameters` element and
+  rename it to `ApplicationParameters` (Issues #4658, #4780)
+
+dump:
+- Fix compilation on CentOS 7 (Issue #4852)
+
+pib:
+- Completely remove this obsolete and unmaintained tool (Issue #4205)
 
 ## Version 0.6.3
 
@@ -25,8 +44,11 @@ that use distribution-provided compilers and packages.
 
 The compilation now uses the C++14 standard.
 
+chunks:
+- Fix AIMD hanging with files smaller than the chunk size (Issue #4439)
+
 dissect-wireshark:
-- Show Name and FinalBlockId as URIs (Issue #3106)
+- Show `Name` and `FinalBlockId` as URIs (Issue #3106)
 - Improve NDNLPv2 support (Issue #4463)
 - Add support for dissecting PPP frames
 
@@ -37,21 +59,18 @@ dump:
 - Capture in promiscuous mode by default, add an option to disable it
 - Add `-t` option to suppress printing per-packet timestamp
 - Properly handle exceptions thrown by `lp::Packet::wireDecode()` (Issue #3943)
-- Add udp port 56363 to the default pcap filter
-- Enable stricter parsing of IP/TCP/UDP headers
+- Add UDP port 56363 to the default pcap filter
+- Stricter parsing of IP/TCP/UDP headers
 - Add IPv6 support
 - Code cleanup
 
 poke:
-- Use unsetInterestFilter on Face instead of shutdown (Issue #4642)
+- Use `Face::unsetInterestFilter` instead of `shutdown` (Issue #4642)
 - Improve unit testing (Issue #3740)
-
-chunks:
-- Fix AIMD hanging with files smaller than the chunk size (Issue #4439)
 
 ping:
 - Add `--quiet` option to ndnpingserver (Issue #4673)
-- Set `CanBePrefix=false` to ndn-ping (Issue #4581)
+- Set `CanBePrefix=false` in Interests sent by ndnping (Issue #4581)
 - Code cleanup
 
 ## Version 0.6.1
@@ -67,7 +86,7 @@ dissect-wireshark:
 - Recognize `CanBePrefix`, `HopLimit`, and `Parameters` TLV elements (Issue #4517)
 
 peek:
-- Drop Selectors support (Issue #4571)
+- Drop `Selectors` support (Issue #4571)
 - Add `-P/--prefix` option to set `CanBePrefix` in the Interest packet
 
 build scripts:
@@ -102,16 +121,14 @@ chunks:
 
 ## Version 0.4
 
-**NOTE**
-
-  As of version 0.4, NDN Essential Tools require a modern compiler (gcc >= 4.8.2, clang >= 3.4)
-  and a relatively new version of the Boost libraries (>= 1.54).  This means that the code no
-  longer compiles with the packaged version of gcc and Boost libraries on Ubuntu 12.04.
-  NDN Essential Tools can still be compiled on such systems, but require a separate
-  installation of a newer version of the compiler (e.g., clang-3.4) and dependencies.
+As of this version, NDN Essential Tools require a modern compiler (gcc >= 4.8.2, clang >= 3.4)
+and a relatively new version of the Boost libraries (>= 1.54).  This means that the code no
+longer compiles with the packaged version of gcc and Boost libraries on Ubuntu 12.04.
+NDN Essential Tools can still be compiled on such systems, but require a separate
+installation of a newer version of the compiler (e.g., clang-3.4) and dependencies.
 
 chunks:
-- Change default version discovery to `iterative`
+- Change default version discovery to iterative
 - Improve help text of `ndnputchunks`
 - Fix `DiscoverVersionIterative` build error
 - Modularize Interest pipeline implementation
@@ -163,7 +180,7 @@ build scripts:
 
 ## Version 0.2
 
-Code improvements and new tools:
+Code improvements and two new tools:
 
 - PIB service to manage the public information of keys and publish certificates
   (Issue 3018)
@@ -174,10 +191,9 @@ Code improvements and new tools:
 Initial release of NDN Essential Tools, featuring:
 
 - ndnpeek, ndnpoke: a pair of programs to request and make available for
-  retrieval of a single Data packet
-- ndnping, ndnpingserver: reachability testing tools for Named Data Networking
-- ndndump: a traffic analysis tool that captures Interest and Data packets on
-  the wire
+  retrieval a single Data packet.
+- ndnping, ndnpingserver: reachability testing tools for Named Data Networking.
+- ndndump: a traffic analysis tool that captures NDN packets on the wire.
 - ndn-dissect: an NDN packet format inspector. It reads zero or more NDN
   packets from either an input file or the standard input, and displays the
   Type-Length-Value (TLV) structure of those packets on the standard output.

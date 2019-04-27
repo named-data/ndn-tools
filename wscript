@@ -1,6 +1,6 @@
 # -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
-VERSION = '0.6.2'
+VERSION = '0.6.4'
 APPNAME = 'ndn-tools'
 GIT_TAG_PREFIX = 'ndn-tools-'
 
