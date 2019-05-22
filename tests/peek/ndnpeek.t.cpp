@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018,  Arizona Board of Regents.
+ * Copyright (c) 2014-2019,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -173,6 +173,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(NonDefault, OutputCheck, OutputChecks)
   initialize(options);
 
   auto data = makeData(Name(options.name).append("suffix"));
+  data->setFreshnessPeriod(1_s);
   std::string payload = "NdnPeekTest";
   data->setContent(reinterpret_cast<const uint8_t*>(payload.data()), payload.size());
 

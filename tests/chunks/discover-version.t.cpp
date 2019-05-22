@@ -142,6 +142,7 @@ BOOST_AUTO_TEST_CASE(InvalidMetadataPacket)
 
   // Send back an invalid metadata packet
   Data data(face.sentInterests.back().getName());
+  data.setFreshnessPeriod(1_s);
   data.setContentType(tlv::ContentType_Key);
   face.receive(signData(data));
 

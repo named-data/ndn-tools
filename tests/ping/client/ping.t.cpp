@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2016,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2014-2019,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -76,13 +76,17 @@ BOOST_FIXTURE_TEST_CASE(Basic, UnitTestTimeFixture)
   this->advanceClocks(io, time::milliseconds(1), 500);
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 4);
 
-  face.receive(*makeData("ndn:/test-prefix/ping/1000"));
+  auto data = makeData("/test-prefix/ping/1000");
+  data->setFreshnessPeriod(1_s);
+  face.receive(*data);
 
   lp::Nack nack(face.sentInterests[1]);
   nack.setReason(lp::NackReason::DUPLICATE);
   face.receive(nack);
 
-  face.receive(*makeData("ndn:/test-prefix/ping/1002"));
+  data = makeData("/test-prefix/ping/1002");
+  data->setFreshnessPeriod(1_s);
+  face.receive(*data);
 
   this->advanceClocks(io, time::milliseconds(100), 20);
 
