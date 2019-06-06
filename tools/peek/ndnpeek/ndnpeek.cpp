@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018,  Regents of the University of California,
+ * Copyright (c) 2014-2019,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -91,9 +91,9 @@ NdnPeek::onData(const Data& data)
   m_resultCode = ResultCode::DATA;
 
   if (m_options.isVerbose) {
-    std::cerr << "DATA, RTT: "
+    std::cerr << "DATA: " << data.getName() << "\nRTT: "
               << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_expressInterestTime).count()
-              << "ms" << std::endl;
+              << " ms" << std::endl;
   }
 
   if (m_options.wantPayloadOnly) {
@@ -113,9 +113,9 @@ NdnPeek::onNack(const lp::Nack& nack)
   lp::NackHeader header = nack.getHeader();
 
   if (m_options.isVerbose) {
-    std::cerr << "NACK, RTT: "
+    std::cerr << "NACK: " << header.getReason() << "\nRTT: "
               << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_expressInterestTime).count()
-              << "ms" << std::endl;
+              << " ms" << std::endl;
   }
 
   if (m_options.wantPayloadOnly) {
