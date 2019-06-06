@@ -93,7 +93,11 @@ NdnPeek::onData(const Data& data)
   if (m_options.isVerbose) {
     std::cerr << "DATA, RTT: "
               << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_expressInterestTime).count()
-              << "ms" << std::endl;
+              << "ms";
+    if (m_options.canBePrefix) {
+      std::cerr << ", Name: " << data.getName();
+    }
+    std::cerr << std::endl;
   }
 
   if (m_options.wantPayloadOnly) {
