@@ -26,7 +26,6 @@
 #define NDN_TOOLS_CHUNKS_CATCHUNKS_STATISTICS_COLLECTOR_HPP
 
 #include "pipeline-interests-adaptive.hpp"
-#include "rtt-estimator.hpp"
 
 namespace ndn {
 namespace chunks {

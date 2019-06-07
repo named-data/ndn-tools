@@ -78,8 +78,8 @@ private:
     rttOptions.alpha = 0.125;
     rttOptions.beta = 0.25;
     rttOptions.k = 4;
-    rttOptions.minRto = Milliseconds(200);
-    rttOptions.maxRto = Milliseconds(4000);
+    rttOptions.minRto = RttEstimator::MillisecondsDouble(200);
+    rttOptions.maxRto = RttEstimator::MillisecondsDouble(4000);
     return rttOptions;
   }
 

@@ -30,14 +30,17 @@
 #define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_ADAPTIVE_HPP
 
 #include "options.hpp"
-#include "rtt-estimator.hpp"
 #include "pipeline-interests.hpp"
+
+#include <ndn-cxx/util/rtt-estimator.hpp>
 
 #include <queue>
 #include <unordered_map>
 
 namespace ndn {
 namespace chunks {
+
+using util::RttEstimator;
 
 class PipelineInterestsAdaptiveOptions : public Options
 {
@@ -81,7 +84,7 @@ struct SegmentInfo
 {
   ScopedPendingInterestHandle interestHdl;
   time::steady_clock::TimePoint timeSent;
-  Milliseconds rto;
+  RttEstimator::MillisecondsDouble rto;
   SegmentState state;
 };
 
@@ -116,10 +119,10 @@ public:
   /**
    * @brief Signals when the congestion window changes.
    *
-   * The callback function should be: void(Milliseconds age, double cwnd) where age is the
-   * duration since pipeline starts, and cwnd is the new congestion window size (in segments).
+   * The callback function should be: `void(nanoseconds age, double cwnd)`, where `age` is the
+   * time since the pipeline started and `cwnd` is the new congestion window size (in segments).
    */
-  signal::Signal<PipelineInterestsAdaptive, Milliseconds, double> afterCwndChange;
+  signal::Signal<PipelineInterestsAdaptive, time::nanoseconds, double> afterCwndChange;
 
 protected:
   DECLARE_SIGNAL_EMIT(afterCwndChange)

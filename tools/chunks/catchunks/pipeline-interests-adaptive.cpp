@@ -101,8 +101,8 @@ PipelineInterestsAdaptive::checkRto()
   for (auto& entry : m_segmentInfo) {
     SegmentInfo& segInfo = entry.second;
     if (segInfo.state != SegmentState::InRetxQueue) { // skip segments already in the retx queue
-      Milliseconds timeElapsed = time::steady_clock::now() - segInfo.timeSent;
-      if (timeElapsed.count() > segInfo.rto.count()) { // timer expired?
+      auto timeElapsed = time::steady_clock::now() - segInfo.timeSent;
+      if (timeElapsed > segInfo.rto) { // timer expired?
         m_nTimeouts++;
         hasTimeout = true;
         enqueueForRetransmission(entry.first);
@@ -235,7 +235,7 @@ PipelineInterestsAdaptive::handleData(const Interest& interest, const Data& data
   }
 
   SegmentInfo& segInfo = segIt->second;
-  Milliseconds rtt = time::steady_clock::now() - segInfo.timeSent;
+  RttEstimator::MillisecondsDouble rtt = time::steady_clock::now() - segInfo.timeSent;
   if (m_options.isVerbose) {
     std::cerr << "Received segment #" << recvSegNo
               << ", rtt=" << rtt.count() << "ms"
@@ -285,7 +285,7 @@ PipelineInterestsAdaptive::handleData(const Interest& interest, const Data& data
       m_retxCount.count(recvSegNo) == 0) {
     auto nExpectedSamples = std::max<int64_t>((m_nInFlight + 1) >> 1, 1);
     BOOST_ASSERT(nExpectedSamples > 0);
-    m_rttEstimator.addMeasurement(recvSegNo, rtt, static_cast<size_t>(nExpectedSamples));
+    m_rttEstimator.addMeasurement(rtt, static_cast<size_t>(nExpectedSamples), recvSegNo);
   }
 
   // remove the entry associated with the received segment
@@ -422,15 +422,15 @@ PipelineInterestsAdaptive::printSummary() const
             << ", skipped: " << m_nSkippedRetx << "\n"
             << "RTT ";
 
-  if (m_rttEstimator.getMinRtt() == std::numeric_limits<double>::max() ||
-      m_rttEstimator.getMaxRtt() == std::numeric_limits<double>::min()) {
-     std::cerr << "stats unavailable\n";
-   }
-   else {
-     std::cerr << "min/avg/max = " << std::fixed << std::setprecision(3)
-                                   << m_rttEstimator.getMinRtt() << "/"
-                                   << m_rttEstimator.getAvgRtt() << "/"
-                                   << m_rttEstimator.getMaxRtt() << " ms\n";
+  if (m_rttEstimator.getMinRtt().count() == std::numeric_limits<double>::max() ||
+      m_rttEstimator.getMaxRtt().count() == std::numeric_limits<double>::min()) {
+    std::cerr << "stats unavailable\n";
+  }
+  else {
+    std::cerr << "min/avg/max = " << std::fixed << std::setprecision(3)
+              << m_rttEstimator.getMinRtt().count() << "/"
+              << m_rttEstimator.getAvgRtt().count() << "/"
+              << m_rttEstimator.getMaxRtt().count() << " ms\n";
   }
 }
 

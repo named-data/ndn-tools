@@ -27,7 +27,8 @@
 namespace ndn {
 namespace chunks {
 
-StatisticsCollector::StatisticsCollector(PipelineInterestsAdaptive& pipeline, RttEstimator& rttEstimator,
+StatisticsCollector::StatisticsCollector(PipelineInterestsAdaptive& pipeline,
+                                         RttEstimator& rttEstimator,
                                          std::ostream& osCwnd, std::ostream& osRtt)
   : m_osCwnd(osCwnd)
   , m_osRtt(osRtt)
@@ -35,16 +36,16 @@ StatisticsCollector::StatisticsCollector(PipelineInterestsAdaptive& pipeline, Rt
   m_osCwnd << "time\tcwndsize\n";
   m_osRtt  << "segment\trtt\trttvar\tsrtt\trto\n";
   pipeline.afterCwndChange.connect(
-    [this] (Milliseconds timeElapsed, double cwnd) {
-      m_osCwnd << timeElapsed.count() / 1000 << '\t' << cwnd << '\n';
+    [this] (time::nanoseconds timeElapsed, double cwnd) {
+      m_osCwnd << timeElapsed.count() / 1e9 << '\t' << cwnd << '\n';
     });
-  rttEstimator.afterRttMeasurement.connect(
-    [this] (const RttRtoSample& rttSample) {
-      m_osRtt << rttSample.segNo << '\t'
-              << rttSample.rtt.count() << '\t'
-              << rttSample.rttVar.count() << '\t'
-              << rttSample.sRtt.count() << '\t'
-              << rttSample.rto.count() << '\n';
+  rttEstimator.afterMeasurement.connect(
+    [this] (const RttEstimator::Sample& sample) {
+      m_osRtt << *sample.segNum << '\t'
+              << sample.rtt.count() << '\t'
+              << sample.rttVar.count() << '\t'
+              << sample.sRtt.count() << '\t'
+              << sample.rto.count() << '\n';
     });
 }
 

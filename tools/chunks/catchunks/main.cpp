@@ -35,7 +35,6 @@
 #include "pipeline-interests-aimd.hpp"
 #include "pipeline-interests-cubic.hpp"
 #include "pipeline-interests-fixed.hpp"
-#include "rtt-estimator.hpp"
 #include "statistics-collector.hpp"
 #include "core/version.hpp"
 
@@ -207,9 +206,7 @@ main(int argc, char* argv[])
 
   try {
     Face face;
-
     auto discover = make_unique<DiscoverVersion>(Name(uri), face, options);
-
     unique_ptr<PipelineInterests> pipeline;
     unique_ptr<StatisticsCollector> statsCollector;
     unique_ptr<RttEstimator> rttEstimator;
@@ -223,20 +220,29 @@ main(int argc, char* argv[])
     }
     else if (pipelineType == "aimd" || pipelineType == "cubic") {
       RttEstimator::Options optionsRttEst;
-      optionsRttEst.isVerbose = options.isVerbose;
       optionsRttEst.alpha = rtoAlpha;
       optionsRttEst.beta = rtoBeta;
       optionsRttEst.k = k;
-      optionsRttEst.minRto = Milliseconds(minRto);
-      optionsRttEst.maxRto = Milliseconds(maxRto);
-
+      optionsRttEst.minRto = RttEstimator::MillisecondsDouble(minRto);
+      optionsRttEst.maxRto = RttEstimator::MillisecondsDouble(maxRto);
       rttEstimator = make_unique<RttEstimator>(optionsRttEst);
+
+      if (options.isVerbose) {
+        std::cerr << "RTT estimator parameters:\n"
+                  << "\tAlpha = " << optionsRttEst.alpha << "\n"
+                  << "\tBeta = " << optionsRttEst.beta << "\n"
+                  << "\tK = " << optionsRttEst.k << "\n"
+                  << "\tInitial RTO = " << optionsRttEst.initialRto << "\n"
+                  << "\tMin RTO = " << optionsRttEst.minRto << "\n"
+                  << "\tMax RTO = " << optionsRttEst.maxRto << "\n"
+                  << "\tBackoff multiplier = " << optionsRttEst.rtoBackoffMultiplier << "\n";
+      }
 
       PipelineInterestsAdaptive::Options optionsPipeline(options);
       optionsPipeline.disableCwa = disableCwa;
       optionsPipeline.resetCwndToInit = resetCwndToInit;
-      optionsPipeline.initCwnd = static_cast<double>(initCwnd);
-      optionsPipeline.initSsthresh = static_cast<double>(initSsthresh);
+      optionsPipeline.initCwnd = initCwnd;
+      optionsPipeline.initSsthresh = initSsthresh;
       optionsPipeline.aiStep = aiStep;
       optionsPipeline.mdCoef = aimdBeta;
       optionsPipeline.ignoreCongMarks = ignoreCongMarks;
