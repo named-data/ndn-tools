@@ -37,42 +37,35 @@ namespace peek {
 namespace po = boost::program_options;
 
 static void
-usage(std::ostream& os, const po::options_description& options)
+usage(std::ostream& os, const std::string& program, const po::options_description& options)
 {
-  os << "Usage: ndnpeek [options] ndn:/name\n"
-        "\n"
-        "Fetch one data item matching the name prefix and write it to standard output.\n"
-        "\n"
+  os << "Usage: " << program << " [options] ndn:/name\n"
+     << "\n"
+     << "Fetch one data item matching the specified name and write it to the standard output.\n"
      << options;
 }
 
 static int
 main(int argc, char* argv[])
 {
+  std::string progName(argv[0]);
   PeekOptions options;
 
   po::options_description genericOptDesc("Generic options");
   genericOptDesc.add_options()
-    ("help,h", "print help and exit")
-    ("payload,p", po::bool_switch(&options.wantPayloadOnly),
-        "print payload only, instead of full packet")
-    ("timeout,w", po::value<int>(),
-        "set timeout (in milliseconds)")
-    ("verbose,v", po::bool_switch(&options.isVerbose),
-        "turn on verbose output")
+    ("help,h",    "print help and exit")
+    ("payload,p", po::bool_switch(&options.wantPayloadOnly), "print payload only, instead of full packet")
+    ("timeout,w", po::value<int>(), "set timeout (in milliseconds)")
+    ("verbose,v", po::bool_switch(&options.isVerbose), "turn on verbose output")
     ("version,V", "print version and exit")
   ;
 
   po::options_description interestOptDesc("Interest construction");
   interestOptDesc.add_options()
-    ("prefix,P", po::bool_switch(&options.canBePrefix),
-        "set CanBePrefix")
-    ("fresh,f", po::bool_switch(&options.mustBeFresh),
-        "set MustBeFresh")
-    ("link-file", po::value<std::string>(),
-        "set ForwardingHint from a file")
-    ("lifetime,l", po::value<int>(),
-        "set InterestLifetime (in milliseconds)")
+    ("prefix,P",   po::bool_switch(&options.canBePrefix), "set CanBePrefix")
+    ("fresh,f",    po::bool_switch(&options.mustBeFresh), "set MustBeFresh")
+    ("link-file",  po::value<std::string>(), "set ForwardingHint from a file")
+    ("lifetime,l", po::value<int>(), "set InterestLifetime (in milliseconds)")
   ;
 
   po::options_description visibleOptDesc;
@@ -99,7 +92,7 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("help") > 0) {
-    usage(std::cout, visibleOptDesc);
+    usage(std::cout, progName, visibleOptDesc);
     return 0;
   }
 
@@ -108,12 +101,17 @@ main(int argc, char* argv[])
     return 0;
   }
 
-  if (vm.count("name") > 0) {
+  if (vm.count("name") == 0) {
+    std::cerr << "ERROR: missing name\n\n";
+    usage(std::cerr, progName, visibleOptDesc);
+    return 2;
+  }
+
+  try {
     options.name = vm["name"].as<std::string>();
   }
-  else {
-    std::cerr << "ERROR: Interest name is missing" << std::endl;
-    usage(std::cerr, visibleOptDesc);
+  catch (const Name::Error& e) {
+    std::cerr << "ERROR: invalid name: " << e.what() << std::endl;
     return 2;
   }
 
@@ -122,19 +120,17 @@ main(int argc, char* argv[])
       options.interestLifetime = time::milliseconds(vm["lifetime"].as<int>());
     }
     else {
-      std::cerr << "ERROR: InterestLifetime must be a non-negative integer" << std::endl;
-      usage(std::cerr, visibleOptDesc);
+      std::cerr << "ERROR: lifetime cannot be negative" << std::endl;
       return 2;
     }
   }
 
   if (vm.count("timeout") > 0) {
-    if (vm["timeout"].as<int>() > 0) {
+    if (vm["timeout"].as<int>() >= 0) {
       options.timeout = time::milliseconds(vm["timeout"].as<int>());
     }
     else {
-      std::cerr << "ERROR: Timeout must be a positive integer" << std::endl;
-      usage(std::cerr, visibleOptDesc);
+      std::cerr << "ERROR: timeout cannot be negative" << std::endl;
       return 2;
     }
   }
@@ -142,29 +138,24 @@ main(int argc, char* argv[])
   if (vm.count("link-file") > 0) {
     options.link = io::load<Link>(vm["link-file"].as<std::string>());
     if (options.link == nullptr) {
-      std::cerr << "ERROR: Cannot read Link object from the specified file" << std::endl;
-      usage(std::cerr, visibleOptDesc);
+      std::cerr << "ERROR: cannot read Link object from the specified file" << std::endl;
       return 2;
     }
   }
 
-  Face face;
-  NdnPeek program(face, options);
-
   try {
+    Face face;
+    NdnPeek program(face, options);
+
     program.start();
-    face.processEvents(program.getTimeout());
+    face.processEvents();
+
+    return static_cast<int>(program.getResultCode());
   }
   catch (const std::exception& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
   }
-
-  ResultCode result = program.getResultCode();
-  if (result == ResultCode::TIMEOUT && options.isVerbose) {
-    std::cerr << "TIMEOUT" << std::endl;
-  }
-  return static_cast<int>(result);
 }
 
 } // namespace peek

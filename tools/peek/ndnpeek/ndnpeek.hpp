@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018,  Regents of the University of California,
+ * Copyright (c) 2014-2019,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -30,7 +30,9 @@
 #define NDN_TOOLS_NDNPEEK_NDNPEEK_HPP
 
 #include "core/common.hpp"
+
 #include <ndn-cxx/link.hpp>
+#include <ndn-cxx/util/scheduler.hpp>
 
 namespace ndn {
 namespace peek {
@@ -41,23 +43,23 @@ namespace peek {
 struct PeekOptions
 {
   // Interest construction options
-  std::string name;
+  Name name;
   bool canBePrefix = false;
   bool mustBeFresh = false;
   shared_ptr<Link> link;
-  time::milliseconds interestLifetime = -1_ms;
+  optional<time::milliseconds> interestLifetime;
 
   // output behavior options
   bool isVerbose = false;
-  time::milliseconds timeout = -1_ms;
   bool wantPayloadOnly = false;
+  optional<time::milliseconds> timeout;
 };
 
 enum class ResultCode {
-  NONE = -1,
+  UNKNOWN = 1,
   DATA = 0,
   NACK = 4,
-  TIMEOUT = 3
+  TIMEOUT = 3,
 };
 
 class NdnPeek : boost::noncopyable
@@ -66,16 +68,13 @@ public:
   NdnPeek(Face& face, const PeekOptions& options);
 
   /**
-   * @return the timeout
-   */
-  time::milliseconds
-  getTimeout() const;
-
-  /**
-   * @return the result of Peek execution
+   * @return the result of NdnPeek execution
    */
   ResultCode
-  getResultCode() const;
+  getResultCode() const
+  {
+    return m_resultCode;
+  }
 
   /**
    * @brief express the Interest
@@ -100,12 +99,20 @@ private:
   void
   onNack(const lp::Nack& nack);
 
+  /**
+   * @brief called when the Interest times out
+   */
+  void
+  onTimeout();
+
 private:
-  Face& m_face;
   const PeekOptions& m_options;
-  time::steady_clock::TimePoint m_expressInterestTime;
-  time::milliseconds m_timeout;
-  ResultCode m_resultCode;
+  Face& m_face;
+  Scheduler m_scheduler;
+  time::steady_clock::TimePoint m_sendTime;
+  ScopedPendingInterestHandle m_pendingInterest;
+  scheduler::ScopedEventId m_timeoutEvent;
+  ResultCode m_resultCode = ResultCode::UNKNOWN;
 };
 
 } // namespace peek

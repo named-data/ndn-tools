@@ -32,37 +32,28 @@ namespace ndn {
 namespace peek {
 
 NdnPeek::NdnPeek(Face& face, const PeekOptions& options)
-  : m_face(face)
-  , m_options(options)
-  , m_timeout(options.timeout)
-  , m_resultCode(ResultCode::TIMEOUT)
+  : m_options(options)
+  , m_face(face)
+  , m_scheduler(m_face.getIoService())
 {
-  if (m_timeout < 0_ms) {
-    m_timeout = m_options.interestLifetime < 0_ms ?
-                DEFAULT_INTEREST_LIFETIME : m_options.interestLifetime;
-  }
-}
-
-time::milliseconds
-NdnPeek::getTimeout() const
-{
-  return m_timeout;
-}
-
-ResultCode
-NdnPeek::getResultCode() const
-{
-  return m_resultCode;
 }
 
 void
 NdnPeek::start()
 {
-  m_face.expressInterest(createInterest(),
-                         bind(&NdnPeek::onData, this, _2),
-                         bind(&NdnPeek::onNack, this, _2),
-                         nullptr);
-  m_expressInterestTime = time::steady_clock::now();
+  m_pendingInterest = m_face.expressInterest(createInterest(),
+                                             [this] (auto&&, const auto& data) { this->onData(data); },
+                                             [this] (auto&&, const auto& nack) { this->onNack(nack); },
+                                             [this] (auto&&) { this->onTimeout(); });
+
+  if (m_options.timeout) {
+    m_timeoutEvent = m_scheduler.schedule(*m_options.timeout, [this] {
+      m_pendingInterest.cancel();
+      onTimeout();
+    });
+  }
+
+  m_sendTime = time::steady_clock::now();
 }
 
 Interest
@@ -71,11 +62,11 @@ NdnPeek::createInterest() const
   Interest interest(m_options.name);
   interest.setCanBePrefix(m_options.canBePrefix);
   interest.setMustBeFresh(m_options.mustBeFresh);
-  if (m_options.link != nullptr) {
+  if (m_options.link) {
     interest.setForwardingHint(m_options.link->getDelegationList());
   }
-  if (m_options.interestLifetime >= 0_ms) {
-    interest.setInterestLifetime(m_options.interestLifetime);
+  if (m_options.interestLifetime) {
+    interest.setInterestLifetime(*m_options.interestLifetime);
   }
 
   if (m_options.isVerbose) {
@@ -89,10 +80,11 @@ void
 NdnPeek::onData(const Data& data)
 {
   m_resultCode = ResultCode::DATA;
+  m_timeoutEvent.cancel();
 
   if (m_options.isVerbose) {
     std::cerr << "DATA: " << data.getName() << "\nRTT: "
-              << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_expressInterestTime).count()
+              << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_sendTime).count()
               << " ms" << std::endl;
   }
 
@@ -110,11 +102,12 @@ void
 NdnPeek::onNack(const lp::Nack& nack)
 {
   m_resultCode = ResultCode::NACK;
-  lp::NackHeader header = nack.getHeader();
+  m_timeoutEvent.cancel();
 
+  lp::NackHeader header = nack.getHeader();
   if (m_options.isVerbose) {
     std::cerr << "NACK: " << header.getReason() << "\nRTT: "
-              << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_expressInterestTime).count()
+              << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_sendTime).count()
               << " ms" << std::endl;
   }
 
@@ -124,6 +117,17 @@ NdnPeek::onNack(const lp::Nack& nack)
   else {
     const Block& block = header.wireEncode();
     std::cout.write(reinterpret_cast<const char*>(block.wire()), block.size());
+  }
+}
+
+void
+NdnPeek::onTimeout()
+{
+  m_resultCode = ResultCode::TIMEOUT;
+  m_timeoutEvent.cancel();
+
+  if (m_options.isVerbose) {
+    std::cerr << "TIMEOUT" << std::endl;
   }
 }
 
