@@ -42,10 +42,10 @@ StatisticsCollector::StatisticsCollector(PipelineInterestsAdaptive& pipeline,
   rttEstimator.afterMeasurement.connect(
     [this] (const RttEstimator::Sample& sample) {
       m_osRtt << *sample.segNum << '\t'
-              << sample.rtt.count() << '\t'
-              << sample.rttVar.count() << '\t'
-              << sample.sRtt.count() << '\t'
-              << sample.rto.count() << '\n';
+              << sample.rtt.count() / 1e6 << '\t'
+              << sample.rttVar.count() / 1e6 << '\t'
+              << sample.sRtt.count() / 1e6 << '\t'
+              << sample.rto.count() / 1e6 << '\n';
     });
 }
 

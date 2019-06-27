@@ -53,13 +53,12 @@ main(int argc, char* argv[])
   size_t maxPipelineSize(1);
   std::string uri;
 
-  // congestion control parameters, CWA refers to conservative window adaptation,
-  // i.e. only reduce window size at most once per RTT
+  // congestion control parameters
   bool disableCwa(false), resetCwndToInit(false),
        ignoreCongMarks(false), enableFastConv(false);
-  double aiStep(1.0), rtoAlpha(0.125), rtoBeta(0.25), minRto(200.0), maxRto(4000.0),
-         aimdBeta(0.5), cubicBeta(0.7);
   int initCwnd(1), initSsthresh(std::numeric_limits<int>::max()), k(8);
+  double aiStep(1.0), rtoAlpha(0.125), rtoBeta(0.25), aimdBeta(0.5), cubicBeta(0.7);
+  int64_t minRto(200), maxRto(60000);
   std::string cwndPath, rttPath;
 
   namespace po = boost::program_options;
@@ -67,7 +66,7 @@ main(int argc, char* argv[])
   basicDesc.add_options()
     ("help,h",      "print this help message and exit")
     ("pipeline-type,p", po::value<std::string>(&pipelineType)->default_value(pipelineType),
-                         "type of Interest pipeline to use; valid values are: 'fixed', 'aimd', 'cubic'")
+                        "type of Interest pipeline to use; valid values are: 'fixed', 'aimd', 'cubic'")
     ("fresh,f",     po::bool_switch(&options.mustBeFresh), "only return fresh content")
     ("lifetime,l",  po::value<int64_t>()->default_value(options.interestLifetime.count()),
                     "lifetime of expressed Interests, in milliseconds")
@@ -103,15 +102,15 @@ main(int argc, char* argv[])
     ("aimd-beta", po::value<double>(&aimdBeta)->default_value(aimdBeta),
                   "multiplicative decrease factor (AIMD)")
     ("rto-alpha", po::value<double>(&rtoAlpha)->default_value(rtoAlpha),
-                  "alpha value for rto calculation")
+                  "alpha value for RTO calculation")
     ("rto-beta",  po::value<double>(&rtoBeta)->default_value(rtoBeta),
-                  "beta value for rto calculation")
+                  "beta value for RTO calculation")
     ("rto-k",     po::value<int>(&k)->default_value(k),
-                  "k value for rto calculation")
-    ("min-rto",   po::value<double>(&minRto)->default_value(minRto),
-                  "minimum rto value in milliseconds")
-    ("max-rto",   po::value<double>(&maxRto)->default_value(maxRto),
-                  "maximum rto value in milliseconds")
+                  "k value for RTO calculation")
+    ("min-rto",   po::value<int64_t>(&minRto)->default_value(minRto),
+                  "minimum RTO value in milliseconds")
+    ("max-rto",   po::value<int64_t>(&maxRto)->default_value(maxRto),
+                  "maximum RTO value in milliseconds")
     ("log-cwnd",  po::value<std::string>(&cwndPath), "log file for congestion window stats")
     ("log-rtt",   po::value<std::string>(&rttPath), "log file for round-trip time stats")
     ;
@@ -165,11 +164,11 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("discover-version") > 0) {
-    std::cout << "WARNING: -d option is deprecated and will be removed in the near future" << std::endl;
+    std::cerr << "WARNING: -d option is deprecated and will be removed in the near future" << std::endl;
   }
 
   if (vm.count("discovery-timeout") > 0) {
-    std::cout << "WARNING: -t option is deprecated and will be removed in the near future" << std::endl;
+    std::cerr << "WARNING: -t option is deprecated and will be removed in the near future" << std::endl;
   }
 
   if (vm.count("version") > 0) {
@@ -223,18 +222,21 @@ main(int argc, char* argv[])
       optionsRttEst.alpha = rtoAlpha;
       optionsRttEst.beta = rtoBeta;
       optionsRttEst.k = k;
-      optionsRttEst.minRto = RttEstimator::MillisecondsDouble(minRto);
-      optionsRttEst.maxRto = RttEstimator::MillisecondsDouble(maxRto);
+      optionsRttEst.initialRto = 1_s;
+      optionsRttEst.minRto = time::milliseconds(minRto);
+      optionsRttEst.maxRto = time::milliseconds(maxRto);
+      optionsRttEst.rtoBackoffMultiplier = 2;
       rttEstimator = make_unique<RttEstimator>(optionsRttEst);
 
       if (options.isVerbose) {
+        using namespace ndn::time;
         std::cerr << "RTT estimator parameters:\n"
                   << "\tAlpha = " << optionsRttEst.alpha << "\n"
                   << "\tBeta = " << optionsRttEst.beta << "\n"
                   << "\tK = " << optionsRttEst.k << "\n"
-                  << "\tInitial RTO = " << optionsRttEst.initialRto << "\n"
-                  << "\tMin RTO = " << optionsRttEst.minRto << "\n"
-                  << "\tMax RTO = " << optionsRttEst.maxRto << "\n"
+                  << "\tInitial RTO = " << duration_cast<milliseconds>(optionsRttEst.initialRto) << "\n"
+                  << "\tMin RTO = " << duration_cast<milliseconds>(optionsRttEst.minRto) << "\n"
+                  << "\tMax RTO = " << duration_cast<milliseconds>(optionsRttEst.maxRto) << "\n"
                   << "\tBackoff multiplier = " << optionsRttEst.rtoBackoffMultiplier << "\n";
       }
 

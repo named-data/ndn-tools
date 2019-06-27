@@ -84,7 +84,7 @@ struct SegmentInfo
 {
   ScopedPendingInterestHandle interestHdl;
   time::steady_clock::TimePoint timeSent;
-  RttEstimator::MillisecondsDouble rto;
+  time::nanoseconds rto;
   SegmentState state;
 };
 

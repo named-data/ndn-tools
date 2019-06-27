@@ -235,11 +235,11 @@ PipelineInterestsAdaptive::handleData(const Interest& interest, const Data& data
   }
 
   SegmentInfo& segInfo = segIt->second;
-  RttEstimator::MillisecondsDouble rtt = time::steady_clock::now() - segInfo.timeSent;
+  time::nanoseconds rtt = time::steady_clock::now() - segInfo.timeSent;
   if (m_options.isVerbose) {
     std::cerr << "Received segment #" << recvSegNo
-              << ", rtt=" << rtt.count() << "ms"
-              << ", rto=" << segInfo.rto.count() << "ms" << std::endl;
+              << ", rtt=" << rtt.count() / 1e6 << "ms"
+              << ", rto=" << segInfo.rto.count() / 1e6 << "ms" << std::endl;
   }
 
   if (m_highData < recvSegNo) {
@@ -418,19 +418,19 @@ PipelineInterestsAdaptive::printSummary() const
   std::cerr << "Congestion marks: " << m_nCongMarks << " (caused " << m_nMarkDecr << " window decreases)\n"
             << "Timeouts: " << m_nTimeouts << " (caused " << m_nLossDecr << " window decreases)\n"
             << "Retransmitted segments: " << m_nRetransmitted
-            << " (" << (m_nSent == 0 ? 0 : (static_cast<double>(m_nRetransmitted) / m_nSent * 100.0))  << "%)"
+            << " (" << (m_nSent == 0 ? 0 : (m_nRetransmitted * 100.0 / m_nSent)) << "%)"
             << ", skipped: " << m_nSkippedRetx << "\n"
             << "RTT ";
 
-  if (m_rttEstimator.getMinRtt().count() == std::numeric_limits<double>::max() ||
-      m_rttEstimator.getMaxRtt().count() == std::numeric_limits<double>::min()) {
+  if (m_rttEstimator.getMinRtt() == time::nanoseconds::max() ||
+      m_rttEstimator.getMaxRtt() == time::nanoseconds::min()) {
     std::cerr << "stats unavailable\n";
   }
   else {
     std::cerr << "min/avg/max = " << std::fixed << std::setprecision(3)
-              << m_rttEstimator.getMinRtt().count() << "/"
-              << m_rttEstimator.getAvgRtt().count() << "/"
-              << m_rttEstimator.getMaxRtt().count() << " ms\n";
+              << m_rttEstimator.getMinRtt().count() / 1e6 << "/"
+              << m_rttEstimator.getAvgRtt().count() / 1e6 << "/"
+              << m_rttEstimator.getMaxRtt().count() / 1e6 << " ms\n";
   }
 }
 

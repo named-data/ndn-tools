@@ -78,8 +78,10 @@ private:
     rttOptions.alpha = 0.125;
     rttOptions.beta = 0.25;
     rttOptions.k = 4;
-    rttOptions.minRto = RttEstimator::MillisecondsDouble(200);
-    rttOptions.maxRto = RttEstimator::MillisecondsDouble(4000);
+    rttOptions.initialRto = 1_s;
+    rttOptions.minRto = 200_ms;
+    rttOptions.maxRto = 4_s;
+    rttOptions.rtoBackoffMultiplier = 2;
     return rttOptions;
   }
 
@@ -87,7 +89,7 @@ protected:
   PipelineInterestsAdaptive::Options opt;
   RttEstimator rttEstimator;
   PipelineInterestsAdaptive* pipeline;
-  static constexpr double MARGIN = 0.01;
+  static constexpr double MARGIN = 0.001;
 };
 
 constexpr double PipelineInterestAimdFixture::MARGIN;

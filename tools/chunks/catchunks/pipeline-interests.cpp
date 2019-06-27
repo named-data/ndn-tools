@@ -133,13 +133,13 @@ void
 PipelineInterests::printSummary() const
 {
   using namespace ndn::time;
-  duration<double, milliseconds::period> timeElapsed = steady_clock::now() - getStartTime();
-  double throughput = (8 * m_receivedSize * 1000) / timeElapsed.count();
+  duration<double, seconds::period> timeElapsed = steady_clock::now() - getStartTime();
+  double throughput = 8 * m_receivedSize / timeElapsed.count();
 
   std::cerr << "\n\nAll segments have been received.\n"
             << "Time elapsed: " << timeElapsed << "\n"
             << "Segments received: " << m_nReceived << "\n"
-            << "Total size: " << static_cast<double>(m_receivedSize) / 1000 << "kB" << "\n"
+            << "Transferred size: " << m_receivedSize / 1e3 << " kB" << "\n"
             << "Goodput: " << formatThroughput(throughput) << "\n";
 }
 
