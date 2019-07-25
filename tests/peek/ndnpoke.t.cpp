@@ -195,7 +195,7 @@ BOOST_AUTO_TEST_CASE(Timeout)
 
   this->advanceClocks(io, 1_s, 4);
 
-  BOOST_CHECK(poke->getResult() == NdnPoke::Result::UNKNOWN);
+  BOOST_CHECK(poke->getResult() == NdnPoke::Result::TIMEOUT);
   BOOST_CHECK_EQUAL(face.sentData.size(), 0);
 
   // Check for prefix unregistration

@@ -61,6 +61,7 @@ NdnPoke::start()
     },
     [this] (auto&&) {
       m_timeoutEvent = m_scheduler.schedule(m_options.timeout, [this] {
+        m_result = Result::TIMEOUT;
         m_registeredPrefix.cancel();
       });
     },

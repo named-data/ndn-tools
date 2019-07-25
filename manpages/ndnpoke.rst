@@ -50,6 +50,8 @@ Exit Status
 
 2: Malformed command line
 
+3: No Interests received before the timeout
+
 5: Prefix registration failed
 
 Example
