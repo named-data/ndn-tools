@@ -48,7 +48,7 @@ struct PokeOptions
 
   // program behavior options
   bool wantForceData = false;
-  time::milliseconds timeout = 10_s;
+  optional<time::milliseconds> timeout;
 };
 
 class NdnPoke : boost::noncopyable

@@ -60,10 +60,12 @@ NdnPoke::start()
       m_registeredPrefix.cancel();
     },
     [this] (auto&&) {
-      m_timeoutEvent = m_scheduler.schedule(m_options.timeout, [this] {
-        m_result = Result::TIMEOUT;
-        m_registeredPrefix.cancel();
-      });
+      if (m_options.timeout) {
+        m_timeoutEvent = m_scheduler.schedule(*m_options.timeout, [this] {
+          m_result = Result::TIMEOUT;
+          m_registeredPrefix.cancel();
+        });
+      }
     },
     [this] (auto&&, const auto& reason) {
       m_result = Result::PREFIX_REG_FAIL;
