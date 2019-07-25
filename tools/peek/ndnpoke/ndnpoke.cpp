@@ -48,7 +48,7 @@ NdnPoke::start()
 
   if (m_options.wantForceData) {
     m_face.put(*data);
-    m_didSendData = true;
+    m_result = Result::DATA_SENT;
     return;
   }
 
@@ -56,7 +56,7 @@ NdnPoke::start()
     [this, data] (auto&&...) {
       m_timeoutEvent.cancel();
       m_face.put(*data);
-      m_didSendData = true;
+      m_result = Result::DATA_SENT;
       m_registeredPrefix.cancel();
     },
     [this] (auto&&) {
@@ -64,7 +64,8 @@ NdnPoke::start()
         m_registeredPrefix.cancel();
       });
     },
-    [] (auto&&, const auto& reason) {
+    [this] (auto&&, const auto& reason) {
+      m_result = Result::PREFIX_REG_FAIL;
       std::cerr << "Prefix registration failure (" << reason << ")\n";
     });
 }

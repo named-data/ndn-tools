@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Default, OutputCheck, OutputChecks)
   BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint().empty(), true);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), DEFAULT_INTEREST_LIFETIME);
   BOOST_CHECK_EQUAL(face.sentInterests.back().hasApplicationParameters(), false);
-  BOOST_CHECK(peek->getResultCode() == ResultCode::DATA);
+  BOOST_CHECK(peek->getResult() == NdnPeek::Result::DATA);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(NonDefault, OutputCheck, OutputChecks)
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(NonDefault, OutputCheck, OutputChecks)
   BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint().empty(), true);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), 200_ms);
   BOOST_CHECK_EQUAL(face.sentInterests.back().hasApplicationParameters(), false);
-  BOOST_CHECK(peek->getResultCode() == ResultCode::DATA);
+  BOOST_CHECK(peek->getResult() == NdnPeek::Result::DATA);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ReceiveNackWithReason, OutputCheck, OutputChecks)
@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ReceiveNackWithReason, OutputCheck, OutputChecks)
 
   OutputCheck::checkOutput(output, nack);
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
-  BOOST_CHECK(peek->getResultCode() == ResultCode::NACK);
+  BOOST_CHECK(peek->getResult() == NdnPeek::Result::NACK);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ReceiveNackWithoutReason, OutputCheck, OutputChecks)
@@ -224,7 +224,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ReceiveNackWithoutReason, OutputCheck, OutputCheck
 
   OutputCheck::checkOutput(output, nack);
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
-  BOOST_CHECK(peek->getResultCode() == ResultCode::NACK);
+  BOOST_CHECK(peek->getResult() == NdnPeek::Result::NACK);
 }
 
 BOOST_AUTO_TEST_CASE(NoTimeout)
@@ -240,12 +240,12 @@ BOOST_AUTO_TEST_CASE(NoTimeout)
   this->advanceClocks(io, 100_ms, 9);
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
   BOOST_CHECK_EQUAL(face.getNPendingInterests(), 1);
-  BOOST_CHECK(peek->getResultCode() == ResultCode::UNKNOWN);
+  BOOST_CHECK(peek->getResult() == NdnPeek::Result::UNKNOWN);
 
   this->advanceClocks(io, 100_ms, 2);
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
   BOOST_CHECK_EQUAL(face.getNPendingInterests(), 0);
-  BOOST_CHECK(peek->getResultCode() == ResultCode::TIMEOUT);
+  BOOST_CHECK(peek->getResult() == NdnPeek::Result::TIMEOUT);
 }
 
 BOOST_AUTO_TEST_CASE(TimeoutLessThanLifetime)
@@ -262,7 +262,7 @@ BOOST_AUTO_TEST_CASE(TimeoutLessThanLifetime)
 
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
   BOOST_CHECK_EQUAL(face.getNPendingInterests(), 0);
-  BOOST_CHECK(peek->getResultCode() == ResultCode::TIMEOUT);
+  BOOST_CHECK(peek->getResult() == NdnPeek::Result::TIMEOUT);
 }
 
 BOOST_AUTO_TEST_CASE(TimeoutGreaterThanLifetime)
@@ -279,7 +279,7 @@ BOOST_AUTO_TEST_CASE(TimeoutGreaterThanLifetime)
 
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
   BOOST_CHECK_EQUAL(face.getNPendingInterests(), 0);
-  BOOST_CHECK(peek->getResultCode() == ResultCode::TIMEOUT);
+  BOOST_CHECK(peek->getResult() == NdnPeek::Result::TIMEOUT);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestNdnPeek

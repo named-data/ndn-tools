@@ -36,6 +36,7 @@ namespace tests {
 
 using namespace ndn::tests;
 
+template<bool WANT_PREFIX_REG_REPLY = true>
 class NdnPokeFixture : public IdentityManagementTimeFixture
 {
 protected:
@@ -60,13 +61,13 @@ protected:
 
 protected:
   boost::asio::io_service io;
-  ndn::util::DummyClientFace face{io, m_keyChain, {true, true}};
+  ndn::util::DummyClientFace face{io, m_keyChain, {true, WANT_PREFIX_REG_REPLY}};
   std::stringstream payload{"Hello, world!\n"};
   unique_ptr<NdnPoke> poke;
 };
 
 BOOST_AUTO_TEST_SUITE(Peek)
-BOOST_FIXTURE_TEST_SUITE(TestNdnPoke, NdnPokeFixture)
+BOOST_FIXTURE_TEST_SUITE(TestNdnPoke, NdnPokeFixture<>)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
@@ -83,7 +84,7 @@ BOOST_AUTO_TEST_CASE(Basic)
   this->advanceClocks(io, 1_ms, 10);
   io.run();
 
-  BOOST_CHECK(poke->didSendData());
+  BOOST_CHECK(poke->getResult() == NdnPoke::Result::DATA_SENT);
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
   BOOST_CHECK_EQUAL(face.sentData.back().getName(), "/poke/test");
   BOOST_CHECK(!face.sentData.back().getFinalBlock());
@@ -110,7 +111,7 @@ BOOST_AUTO_TEST_CASE(FreshnessPeriod)
   this->advanceClocks(io, 1_ms, 10);
   io.run();
 
-  BOOST_CHECK(poke->didSendData());
+  BOOST_CHECK(poke->getResult() == NdnPoke::Result::DATA_SENT);
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
   BOOST_CHECK_EQUAL(face.sentData.back().getName(), "/poke/test");
   BOOST_CHECK(!face.sentData.back().getFinalBlock());
@@ -132,7 +133,7 @@ BOOST_AUTO_TEST_CASE(FinalBlockId)
   this->advanceClocks(io, 1_ms, 10);
   io.run();
 
-  BOOST_CHECK(poke->didSendData());
+  BOOST_CHECK(poke->getResult() == NdnPoke::Result::DATA_SENT);
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
   BOOST_CHECK_EQUAL(face.sentData.back().getName(), options.name);
   BOOST_REQUIRE(face.sentData.back().getFinalBlock());
@@ -154,7 +155,7 @@ BOOST_AUTO_TEST_CASE(DigestSha256)
   this->advanceClocks(io, 1_ms, 10);
   io.run();
 
-  BOOST_CHECK(poke->didSendData());
+  BOOST_CHECK(poke->getResult() == NdnPoke::Result::DATA_SENT);
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
   BOOST_CHECK_EQUAL(face.sentData.back().getName(), "/poke/test");
   BOOST_CHECK(!face.sentData.back().getFinalBlock());
@@ -171,7 +172,7 @@ BOOST_AUTO_TEST_CASE(ForceData)
   poke->start();
   this->advanceClocks(io, 1_ms, 10);
 
-  BOOST_CHECK(poke->didSendData());
+  BOOST_CHECK(poke->getResult() == NdnPoke::Result::DATA_SENT);
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
   BOOST_CHECK_EQUAL(face.sentData.back().getName(), "/poke/test");
   BOOST_CHECK(!face.sentData.back().getFinalBlock());
@@ -194,12 +195,29 @@ BOOST_AUTO_TEST_CASE(Timeout)
 
   this->advanceClocks(io, 1_s, 4);
 
-  BOOST_CHECK(!poke->didSendData());
+  BOOST_CHECK(poke->getResult() == NdnPoke::Result::UNKNOWN);
   BOOST_CHECK_EQUAL(face.sentData.size(), 0);
 
   // Check for prefix unregistration
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 2); // One for registration, one for unregistration
   BOOST_CHECK_EQUAL(face.sentInterests.back().getName().getPrefix(4), "/localhost/nfd/rib/unregister");
+}
+
+BOOST_FIXTURE_TEST_CASE(PrefixRegTimeout, NdnPokeFixture<false>)
+{
+  initialize();
+
+  poke->start();
+  this->advanceClocks(io, 1_ms, 10);
+
+  // Check for prefix registration
+  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+  BOOST_CHECK_EQUAL(face.sentInterests.front().getName().getPrefix(4), "/localhost/nfd/rib/register");
+
+  this->advanceClocks(io, 1_s, 10);
+
+  BOOST_CHECK(poke->getResult() == NdnPoke::Result::PREFIX_REG_FAIL);
+  BOOST_CHECK_EQUAL(face.sentData.size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(OversizedPacket)
@@ -213,8 +231,8 @@ BOOST_AUTO_TEST_CASE(OversizedPacket)
   face.receive(*makeInterest("/poke/test"));
   BOOST_CHECK_THROW(face.processEvents(), Face::OversizedPacketError);
 
-  // No point in checking didSendData() here. The exception is thrown from processEvents(),
-  // not from put(), so didSendData() is still set to true even though no packets are sent.
+  // No point in checking getResult() here. The exception is thrown from processEvents(),
+  // not from put(), so the result is still DATA_SENT even though no packets were sent.
   BOOST_CHECK_EQUAL(face.sentData.size(), 0);
 }
 

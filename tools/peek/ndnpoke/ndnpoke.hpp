@@ -56,14 +56,26 @@ class NdnPoke : boost::noncopyable
 public:
   NdnPoke(Face& face, KeyChain& keyChain, std::istream& input, const PokeOptions& options);
 
+  enum class Result {
+    DATA_SENT = 0,
+    UNKNOWN = 1,
+    // 2 is reserved for "malformed command line"
+    TIMEOUT = 3,
+    // 4 is reserved for "nack"
+    PREFIX_REG_FAIL = 5,
+  };
+
+  /**
+   * @return the result of NdnPoke execution
+   */
+  Result
+  getResult() const
+  {
+    return m_result;
+  }
+
   void
   start();
-
-  bool
-  didSendData() const
-  {
-    return m_didSendData;
-  }
 
 private:
   shared_ptr<Data>
@@ -77,7 +89,7 @@ private:
   Scheduler m_scheduler;
   ScopedRegisteredPrefixHandle m_registeredPrefix;
   scheduler::ScopedEventId m_timeoutEvent;
-  bool m_didSendData = false;
+  Result m_result = Result::UNKNOWN;
 };
 
 } // namespace peek

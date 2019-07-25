@@ -150,7 +150,7 @@ main(int argc, char* argv[])
     program.start();
     face.processEvents();
 
-    return static_cast<int>(program.getResultCode());
+    return static_cast<int>(program.getResult());
   }
   catch (const std::exception& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;

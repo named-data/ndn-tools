@@ -55,25 +55,26 @@ struct PeekOptions
   optional<time::milliseconds> timeout;
 };
 
-enum class ResultCode {
-  UNKNOWN = 1,
-  DATA = 0,
-  NACK = 4,
-  TIMEOUT = 3,
-};
-
 class NdnPeek : boost::noncopyable
 {
 public:
   NdnPeek(Face& face, const PeekOptions& options);
 
+  enum class Result {
+    DATA = 0,
+    UNKNOWN = 1,
+    // 2 is reserved for "malformed command line"
+    TIMEOUT = 3,
+    NACK = 4,
+  };
+
   /**
    * @return the result of NdnPeek execution
    */
-  ResultCode
-  getResultCode() const
+  Result
+  getResult() const
   {
-    return m_resultCode;
+    return m_result;
   }
 
   /**
@@ -112,7 +113,7 @@ private:
   time::steady_clock::TimePoint m_sendTime;
   ScopedPendingInterestHandle m_pendingInterest;
   scheduler::ScopedEventId m_timeoutEvent;
-  ResultCode m_resultCode = ResultCode::UNKNOWN;
+  Result m_result = Result::UNKNOWN;
 };
 
 } // namespace peek

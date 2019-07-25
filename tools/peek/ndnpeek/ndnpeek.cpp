@@ -79,7 +79,7 @@ NdnPeek::createInterest() const
 void
 NdnPeek::onData(const Data& data)
 {
-  m_resultCode = ResultCode::DATA;
+  m_result = Result::DATA;
   m_timeoutEvent.cancel();
 
   if (m_options.isVerbose) {
@@ -101,7 +101,7 @@ NdnPeek::onData(const Data& data)
 void
 NdnPeek::onNack(const lp::Nack& nack)
 {
-  m_resultCode = ResultCode::NACK;
+  m_result = Result::NACK;
   m_timeoutEvent.cancel();
 
   lp::NackHeader header = nack.getHeader();
@@ -123,7 +123,7 @@ NdnPeek::onNack(const lp::Nack& nack)
 void
 NdnPeek::onTimeout()
 {
-  m_resultCode = ResultCode::TIMEOUT;
+  m_result = Result::TIMEOUT;
   m_timeoutEvent.cancel();
 
   if (m_options.isVerbose) {
