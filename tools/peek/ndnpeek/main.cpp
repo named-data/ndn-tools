@@ -39,7 +39,7 @@ namespace po = boost::program_options;
 static void
 usage(std::ostream& os, const std::string& program, const po::options_description& options)
 {
-  os << "Usage: " << program << " [options] ndn:/name\n"
+  os << "Usage: " << program << " [options] /name\n"
      << "\n"
      << "Fetch one data item matching the specified name and write it to the standard output.\n"
      << options;

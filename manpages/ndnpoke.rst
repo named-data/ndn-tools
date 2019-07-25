@@ -1,54 +1,59 @@
 ndnpoke
 =======
 
-Usage
------
+Synopsis
+--------
 
-::
-
-    ndnpoke [-h] [-f] [-D] [-i identity] [-F] [-x freshness] [-w timeout] name
+**ndnpoke** [-h] [-f] [-F] [-x *freshness*] [-i *identity*\|\ -D] [-w *timeout*] [-V] *name*
 
 Description
 -----------
 
-``ndnpoke`` is a simple producer program that reads payload from stdin and publishes it
-as a single NDN Data packet.  The Data packet is published either as a response to the
-incoming Interest for the given ``name``, or forcefully pushed to the local NDN
-forwarder's cache if ``-f`` flag is specified.
-
-The program terminates with return code 0 if Data is sent and with return code 1 when
-timeout occurs.
+:program:`ndnpoke` is a simple producer program that reads a payload from the standard
+input and publishes it as a single Data packet. The Data packet is either sent as a
+response to an incoming Interest matching *name*, or immediately pushed to the local
+NDN forwarder as "unsolicited Data" if the **-f** flag is specified.
 
 Options
 -------
 
-``-h``
-  Print usage and exit.
+``-h, --help``
+  Print help and exit.
 
-``-f``
-  If specified, send Data without waiting for Interest.
+``-f, --force``
+  Send the Data packet without waiting for an incoming Interest.
 
-``-D``
-  If specified, use ``DigestSha256`` signature instead of default ``SignatureSha256WithRsa``.
+``-F, --final``
+  Set the ``FinalBlockId`` to the last component of *name*.
 
-``-i``
-  Use ``identity`` to sign the created Data packet.
+``-x, --freshness <freshness>``
+  Set ``freshness`` (in milliseconds) as the ``FreshnessPeriod``.
 
-``-F``
-  Set ``FinalBlockId`` to the last component of specified name.
+``-i, --identity <identity>``
+  Use ``identity`` to sign the Data packet.
 
-``-x``
-  Set ``FreshnessPeriod`` in milliseconds.
+``-D, --digest``
+  Use ``DigestSha256`` signature type instead of the default ``SignatureSha256WithRsa``.
 
-``-w``
-  Wait at most ``timeout`` milliseconds for the incoming Interest.  If no Interest arrives
-  within the ``timeout``, the Data packet will not be published.
+``-w, --timeout <timeout>``
+  Quit the program after ``timeout`` milliseconds, even if no Interest has been received.
 
+``-V, --version``
+  Print version and exit.
 
-Examples
---------
+Exit Status
+-----------
 
-Create Data packet with content ``hello`` with the name ``ndn:/app/video`` and wait at
-most 3 seconds for the incoming Interest for it::
+0: Success
 
-    echo "Hello" | build/bin/ndnpoke -w 3000 ndn:/app/video
+1: An unspecified error occurred
+
+2: Malformed command line
+
+Example
+-------
+
+Create a Data packet with content ``hello`` and name ``/app/video`` and wait at
+most 3 seconds for a matching Interest to arrive::
+
+    echo "hello" | ndnpoke -w 3000 /app/video

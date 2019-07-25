@@ -30,6 +30,8 @@
 
 #include "core/common.hpp"
 
+#include <ndn-cxx/util/scheduler.hpp>
+
 namespace ndn {
 namespace peek {
 
@@ -38,45 +40,44 @@ namespace peek {
  */
 struct PokeOptions
 {
-  Name prefixName;
-  bool wantForceData = false;
+  // Data construction options
+  Name name;
+  optional<time::milliseconds> freshnessPeriod;
+  bool wantFinalBlockId = false;
   security::SigningInfo signingInfo;
-  bool wantLastAsFinalBlockId = false;
-  optional<time::milliseconds> freshnessPeriod = {};
+
+  // program behavior options
+  bool wantForceData = false;
+  time::milliseconds timeout = 10_s;
 };
 
 class NdnPoke : boost::noncopyable
 {
 public:
-  NdnPoke(Face& face, KeyChain& keyChain, std::istream& inStream, const PokeOptions& options);
+  NdnPoke(Face& face, KeyChain& keyChain, std::istream& input, const PokeOptions& options);
 
   void
   start();
 
   bool
-  wasDataSent() const
+  didSendData() const
   {
-    return m_wasDataSent;
+    return m_didSendData;
   }
 
 private:
   shared_ptr<Data>
-  createDataPacket();
-
-  void
-  onInterest(const Name& name, const Interest& interest, const shared_ptr<Data>& data);
-
-  void
-  onRegisterFailed(const Name& prefix, const std::string& reason);
+  createData() const;
 
 private:
+  const PokeOptions m_options;
   Face& m_face;
   KeyChain& m_keyChain;
-  std::istream& m_inStream;
-  const PokeOptions& m_options;
-
-  RegisteredPrefixHandle m_registeredPrefix;
-  bool m_wasDataSent;
+  std::istream& m_input;
+  Scheduler m_scheduler;
+  ScopedRegisteredPrefixHandle m_registeredPrefix;
+  scheduler::ScopedEventId m_timeoutEvent;
+  bool m_didSendData = false;
 };
 
 } // namespace peek

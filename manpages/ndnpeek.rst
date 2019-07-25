@@ -63,4 +63,4 @@ Example
 
 Send Interest for ``/app1/video`` and print the received payload only::
 
-    ndnpeek -p ndn:/app1/video
+    ndnpeek -p /app1/video

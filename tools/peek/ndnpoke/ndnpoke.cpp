@@ -27,79 +27,66 @@
 
 #include "ndnpoke.hpp"
 
-#include <ndn-cxx/security/signing-helpers.hpp>
-
-#include <sstream>
+#include <ndn-cxx/encoding/buffer-stream.hpp>
 
 namespace ndn {
 namespace peek {
 
-NdnPoke::NdnPoke(Face& face, KeyChain& keyChain, std::istream& inStream, const PokeOptions& options)
-  : m_face(face)
+NdnPoke::NdnPoke(Face& face, KeyChain& keyChain, std::istream& input, const PokeOptions& options)
+  : m_options(options)
+  , m_face(face)
   , m_keyChain(keyChain)
-  , m_inStream(inStream)
-  , m_options(options)
-  , m_wasDataSent(false)
+  , m_input(input)
+  , m_scheduler(m_face.getIoService())
 {
 }
 
 void
 NdnPoke::start()
 {
-  shared_ptr<Data> dataPacket = createDataPacket();
+  auto data = createData();
+
   if (m_options.wantForceData) {
-    m_face.put(*dataPacket);
-    m_wasDataSent = true;
+    m_face.put(*data);
+    m_didSendData = true;
+    return;
   }
-  else {
-    m_registeredPrefix = m_face.setInterestFilter(m_options.prefixName,
-                                                  bind(&NdnPoke::onInterest, this, _1, _2, dataPacket),
-                                                  nullptr,
-                                                  bind(&NdnPoke::onRegisterFailed, this, _1, _2));
-  }
+
+  m_registeredPrefix = m_face.setInterestFilter(m_options.name,
+    [this, data] (auto&&...) {
+      m_timeoutEvent.cancel();
+      m_face.put(*data);
+      m_didSendData = true;
+      m_registeredPrefix.cancel();
+    },
+    [this] (auto&&) {
+      m_timeoutEvent = m_scheduler.schedule(m_options.timeout, [this] {
+        m_registeredPrefix.cancel();
+      });
+    },
+    [] (auto&&, const auto& reason) {
+      std::cerr << "Prefix registration failure (" << reason << ")\n";
+    });
 }
 
 shared_ptr<Data>
-NdnPoke::createDataPacket()
+NdnPoke::createData() const
 {
-  auto dataPacket = make_shared<Data>(m_options.prefixName);
-
-  std::stringstream payloadStream;
-  payloadStream << m_inStream.rdbuf();
-  std::string payload = payloadStream.str();
-  dataPacket->setContent(reinterpret_cast<const uint8_t*>(payload.c_str()), payload.length());
-
+  auto data = make_shared<Data>(m_options.name);
   if (m_options.freshnessPeriod) {
-    dataPacket->setFreshnessPeriod(*m_options.freshnessPeriod);
+    data->setFreshnessPeriod(*m_options.freshnessPeriod);
+  }
+  if (m_options.wantFinalBlockId) {
+    data->setFinalBlock(m_options.name.at(-1));
   }
 
-  if (m_options.wantLastAsFinalBlockId) {
-    dataPacket->setFinalBlock(m_options.prefixName.get(-1));
-  }
+  OBufferStream os;
+  os << m_input.rdbuf();
+  data->setContent(os.buf());
 
-  m_keyChain.sign(*dataPacket, m_options.signingInfo);
+  m_keyChain.sign(*data, m_options.signingInfo);
 
-  return dataPacket;
-}
-
-void
-NdnPoke::onInterest(const Name& name, const Interest& interest, const shared_ptr<Data>& data)
-{
-  try {
-    m_face.put(*data);
-    m_wasDataSent = true;
-  }
-  catch (const Face::OversizedPacketError& e) {
-    std::cerr << "Data exceeded maximum packet size" << std::endl;
-  }
-
-  m_registeredPrefix.cancel();
-}
-
-void
-NdnPoke::onRegisterFailed(const Name& prefix, const std::string& reason)
-{
-  std::cerr << "Prefix Registration Failure. Reason = " << reason << std::endl;
+  return data;
 }
 
 } // namespace peek

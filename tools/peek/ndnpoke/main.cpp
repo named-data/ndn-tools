@@ -28,47 +28,40 @@
 #include "ndnpoke.hpp"
 #include "core/version.hpp"
 
-#include <ndn-cxx/util/io.hpp>
-
-#include <sstream>
-
 namespace ndn {
 namespace peek {
 
 namespace po = boost::program_options;
 
 static void
-usage(std::ostream& os, const po::options_description& options)
+usage(std::ostream& os, const std::string& program, const po::options_description& options)
 {
-  os << "Usage: ndnpoke [options] ndn:/name\n"
-        "\n"
-        "Reads payload from stdin and sends it to the local NDN forwarder as a single Data packet\n"
-        "\n"
+  os << "Usage: " << program << " [options] /name\n"
+     << "\n"
+     << "Reads a payload from the standard input and sends it as a single Data packet.\n"
      << options;
 }
 
 static int
 main(int argc, char* argv[])
 {
+  std::string progName(argv[0]);
   PokeOptions options;
-  bool wantDigestSha256;
+  bool wantDigestSha256 = false;
 
   po::options_description visibleOptDesc;
   visibleOptDesc.add_options()
-    ("help,h", "print help and exit")
-    ("version,V", "print version and exit")
-    ("force,f", po::bool_switch(&options.wantForceData),
-        "for, send Data without waiting for Interest")
-    ("digest,D", po::bool_switch(&wantDigestSha256),
-        "use DigestSha256 signing method instead of SignatureSha256WithRsa")
-    ("identity,i", po::value<std::string>(),
-        "set identity to be used for signing")
-    ("final,F", po::bool_switch(&options.wantLastAsFinalBlockId),
-        "set FinalBlockId to the last component of Name")
-    ("freshness,x", po::value<int>(),
-        "set FreshnessPeriod in milliseconds")
-    ("timeout,w", po::value<int>(),
-        "set Timeout in milliseconds")
+    ("help,h",      "print help and exit")
+    ("force,f",     po::bool_switch(&options.wantForceData),
+                    "send the Data packet without waiting for an incoming Interest")
+    ("final,F",     po::bool_switch(&options.wantFinalBlockId),
+                    "set FinalBlockId to the last component of the Data name")
+    ("freshness,x", po::value<int>(), "set FreshnessPeriod (in milliseconds)")
+    ("identity,i",  po::value<std::string>(), "use the specified identity for signing")
+    ("digest,D",    po::bool_switch(&wantDigestSha256),
+                    "use DigestSha256 signing method instead of SignatureSha256WithRsa")
+    ("timeout,w",   po::value<int>(), "set timeout (in milliseconds)")
+    ("version,V",   "print version and exit")
   ;
 
   po::options_description hiddenOptDesc;
@@ -91,11 +84,8 @@ main(int argc, char* argv[])
     return 2;
   }
 
-  // We store timeout here, instead of PokeOptions, because processEvents is called outside the NdnPoke class
-  time::milliseconds timeout = 10_s;
-
   if (vm.count("help") > 0) {
-    usage(std::cout, visibleOptDesc);
+    usage(std::cout, progName, visibleOptDesc);
     return 0;
   }
 
@@ -104,78 +94,75 @@ main(int argc, char* argv[])
     return 0;
   }
 
-  if (vm.count("name") > 0) {
-    options.prefixName = vm["name"].as<std::string>();
-  }
-  else {
-    std::cerr << "ERROR: Data name is missing" << std::endl;
-    usage(std::cerr, visibleOptDesc);
+  if (vm.count("name") == 0) {
+    std::cerr << "ERROR: missing name\n\n";
+    usage(std::cerr, progName, visibleOptDesc);
     return 2;
+  }
+
+  try {
+    options.name = vm["name"].as<std::string>();
+  }
+  catch (const Name::Error& e) {
+    std::cerr << "ERROR: invalid name: " << e.what() << std::endl;
+    return 2;
+  }
+
+  if (options.name.empty()) {
+    std::cerr << "ERROR: name cannot have zero components" << std::endl;
+    return 2;
+  }
+
+  if (vm.count("freshness") > 0) {
+    if (vm["freshness"].as<int>() < 0) {
+      std::cerr << "ERROR: freshness cannot be negative" << std::endl;
+      return 2;
+    }
+    options.freshnessPeriod = time::milliseconds(vm["freshness"].as<int>());
+  }
+
+  if (vm.count("identity") > 0) {
+    if (wantDigestSha256) {
+      std::cerr << "ERROR: conflicting '--digest' and '--identity' options specified" << std::endl;
+      return 2;
+    }
+    try {
+      options.signingInfo.setSigningIdentity(vm["identity"].as<std::string>());
+    }
+    catch (const Name::Error& e) {
+      std::cerr << "ERROR: invalid identity name: " << e.what() << std::endl;
+      return 2;
+    }
   }
 
   if (wantDigestSha256) {
     options.signingInfo.setSha256Signing();
   }
 
-  if (vm.count("identity") > 0) {
-    if (wantDigestSha256) {
-      std::cerr << "ERROR: Signing identity cannot be specified when using DigestSha256 signing method" << std::endl;
-      usage(std::cerr, visibleOptDesc);
-      return 2;
-    }
-    options.signingInfo.setSigningIdentity(vm["identity"].as<std::string>());
-  }
-
-  if (vm.count("final") > 0) {
-    if (!options.prefixName.empty()) {
-      options.wantLastAsFinalBlockId = true;
-    }
-    else {
-      std::cerr << "The provided Name must have 1 or more components to be used with FinalBlockId option" << std::endl;
-      usage(std::cerr, visibleOptDesc);
-      return 1;
-    }
-  }
-
-  if (vm.count("freshness") > 0) {
-    if (vm["freshness"].as<int>() >= 0) {
-      options.freshnessPeriod = time::milliseconds(vm["freshness"].as<int>());
-    }
-    else {
-      std::cerr << "ERROR: FreshnessPeriod must be a non-negative integer" << std::endl;
-      usage(std::cerr, visibleOptDesc);
-      return 2;
-    }
-  }
-
   if (vm.count("timeout") > 0) {
-    if (vm["timeout"].as<int>() > 0) {
-      timeout = time::milliseconds(vm["timeout"].as<int>());
-    }
-    else {
-      std::cerr << "ERROR: Timeout must a positive integer" << std::endl;
-      usage(std::cerr, visibleOptDesc);
+    if (options.wantForceData) {
+      std::cerr << "ERROR: conflicting '--force' and '--timeout' options specified" << std::endl;
       return 2;
     }
+    if (vm["timeout"].as<int>() < 0) {
+      std::cerr << "ERROR: timeout cannot be negative" << std::endl;
+      return 2;
+    }
+    options.timeout = time::milliseconds(vm["timeout"].as<int>());
   }
 
-  boost::asio::io_service io;
-  Face face(io);
-  KeyChain keyChain;
-  NdnPoke program(face, keyChain, std::cin, options);
   try {
+    Face face;
+    KeyChain keyChain;
+    NdnPoke program(face, keyChain, std::cin, options);
+
     program.start();
-    face.processEvents(timeout);
+    face.processEvents();
+
+    return program.didSendData() ? 0 : 1;
   }
   catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << "\n" << std::endl;
-    return 1;
-  }
-
-  if (program.wasDataSent()) {
-    return 0;
-  }
-  else {
+    std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
   }
 }
