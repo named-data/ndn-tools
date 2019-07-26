@@ -23,6 +23,7 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
+ * @author Davide Pesavento <davidepesa@gmail.com>
  */
 
 #ifndef NDN_TOOLS_NDNPOKE_NDNPOKE_HPP
@@ -42,13 +43,13 @@ struct PokeOptions
 {
   // Data construction options
   Name name;
-  optional<time::milliseconds> freshnessPeriod;
+  time::milliseconds freshnessPeriod = DEFAULT_FRESHNESS_PERIOD;
   bool wantFinalBlockId = false;
   security::SigningInfo signingInfo;
 
   // program behavior options
   bool isVerbose = false;
-  bool wantForceData = false;
+  bool wantUnsolicited = false;
   optional<time::milliseconds> timeout;
 };
 

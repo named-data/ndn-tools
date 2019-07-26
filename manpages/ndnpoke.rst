@@ -4,7 +4,7 @@ ndnpoke
 Synopsis
 --------
 
-**ndnpoke** [-h] [-f] [-F] [-x *freshness*] [-i *identity*\|\ -D] [-w *timeout*] [-v] [-V] *name*
+**ndnpoke** [-h] [-u] [-F] [-x *freshness*] [-i *identity*\|\ -D] [-w *timeout*] [-v] [-V] *name*
 
 Description
 -----------
@@ -12,7 +12,7 @@ Description
 :program:`ndnpoke` is a simple producer program that reads a payload from the standard
 input and publishes it as a single Data packet. The Data packet is either sent as a
 response to an incoming Interest matching *name*, or immediately pushed to the local
-NDN forwarder as "unsolicited Data" if the **-f** flag is specified.
+NDN forwarder as "unsolicited Data" if the **-u** flag is specified.
 
 Options
 -------
@@ -20,7 +20,7 @@ Options
 ``-h, --help``
   Print help and exit.
 
-``-f, --force``
+``-u, --unsolicited``
   Send the Data packet without waiting for an incoming Interest.
 
 ``-F, --final``

@@ -23,6 +23,7 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
+ * @author Davide Pesavento <davidepesa@gmail.com>
  */
 
 #include "ndnpoke.hpp"
@@ -46,7 +47,7 @@ NdnPoke::start()
 {
   auto data = createData();
 
-  if (m_options.wantForceData) {
+  if (m_options.wantUnsolicited) {
     return sendData(*data);
   }
 
@@ -60,9 +61,7 @@ shared_ptr<Data>
 NdnPoke::createData() const
 {
   auto data = make_shared<Data>(m_options.name);
-  if (m_options.freshnessPeriod) {
-    data->setFreshnessPeriod(*m_options.freshnessPeriod);
-  }
+  data->setFreshnessPeriod(m_options.freshnessPeriod);
   if (m_options.wantFinalBlockId) {
     data->setFinalBlock(m_options.name.at(-1));
   }

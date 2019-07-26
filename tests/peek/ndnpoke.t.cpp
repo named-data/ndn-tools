@@ -180,10 +180,10 @@ BOOST_AUTO_TEST_CASE(DigestSha256)
   BOOST_CHECK_EQUAL(face.sentData.back().getSignature().getType(), tlv::DigestSha256);
 }
 
-BOOST_AUTO_TEST_CASE(ForceData)
+BOOST_AUTO_TEST_CASE(Unsolicited)
 {
   auto options = makeDefaultOptions();
-  options.wantForceData = true;
+  options.wantUnsolicited = true;
   initialize(options);
 
   poke->start();

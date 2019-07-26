@@ -23,6 +23,7 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
+ * @author Davide Pesavento <davidepesa@gmail.com>
  */
 
 #include "ndnpoke.hpp"
@@ -49,28 +50,41 @@ main(int argc, char* argv[])
   PokeOptions options;
   bool wantDigestSha256 = false;
 
-  po::options_description visibleOptDesc;
-  visibleOptDesc.add_options()
-    ("help,h",      "print help and exit")
-    ("force,f",     po::bool_switch(&options.wantForceData),
-                    "send the Data packet without waiting for an incoming Interest")
+  po::options_description genericOptDesc("Generic options");
+  genericOptDesc.add_options()
+    ("help,h",        "print help and exit")
+    ("unsolicited,u", po::bool_switch(&options.wantUnsolicited),
+                      "send the Data packet without waiting for an incoming Interest")
+    ("timeout,w",     po::value<time::milliseconds::rep>(), "set timeout (in milliseconds)")
+    ("verbose,v",     po::bool_switch(&options.isVerbose), "turn on verbose output")
+    ("version,V",     "print version and exit")
+  ;
+
+  po::options_description dataOptDesc("Data construction");
+  dataOptDesc.add_options()
     ("final,F",     po::bool_switch(&options.wantFinalBlockId),
                     "set FinalBlockId to the last component of the Data name")
-    ("freshness,x", po::value<int>(), "set FreshnessPeriod (in milliseconds)")
+    ("freshness,x", po::value<time::milliseconds::rep>()->default_value(options.freshnessPeriod.count()),
+                    "set FreshnessPeriod (in milliseconds)")
     ("identity,i",  po::value<std::string>(), "use the specified identity for signing")
     ("digest,D",    po::bool_switch(&wantDigestSha256),
                     "use DigestSha256 signing method instead of SignatureSha256WithRsa")
-    ("timeout,w",   po::value<int>(), "set timeout (in milliseconds)")
-    ("verbose,v",   po::bool_switch(&options.isVerbose), "turn on verbose output")
-    ("version,V",   "print version and exit")
   ;
+
+  po::options_description visibleOptDesc;
+  visibleOptDesc.add(genericOptDesc).add(dataOptDesc);
 
   po::options_description hiddenOptDesc;
   hiddenOptDesc.add_options()
     ("name", po::value<std::string>(), "Data name");
 
+  po::options_description deprecatedOptDesc;
+  deprecatedOptDesc.add_options()
+    ("force,f", po::bool_switch())
+  ;
+
   po::options_description optDesc;
-  optDesc.add(visibleOptDesc).add(hiddenOptDesc);
+  optDesc.add(visibleOptDesc).add(hiddenOptDesc).add(deprecatedOptDesc);
 
   po::positional_options_description optPos;
   optPos.add("name", -1);
@@ -83,6 +97,12 @@ main(int argc, char* argv[])
   catch (const po::error& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 2;
+  }
+
+  if (vm["force"].as<bool>()) {
+    std::cerr << "WARNING: option '-f/--force' is deprecated and will be removed "
+                 "in the near future. Use '-u/--unsolicited' instead." << std::endl;
+    options.wantUnsolicited = true;
   }
 
   if (vm.count("help") > 0) {
@@ -115,11 +135,12 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("freshness") > 0) {
-    if (vm["freshness"].as<int>() < 0) {
+    auto freshness = vm["freshness"].as<time::milliseconds::rep>();
+    if (freshness < 0) {
       std::cerr << "ERROR: freshness cannot be negative" << std::endl;
       return 2;
     }
-    options.freshnessPeriod = time::milliseconds(vm["freshness"].as<int>());
+    options.freshnessPeriod = time::milliseconds(freshness);
   }
 
   if (vm.count("identity") > 0) {
@@ -141,15 +162,16 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("timeout") > 0) {
-    if (options.wantForceData) {
-      std::cerr << "ERROR: conflicting '--force' and '--timeout' options specified" << std::endl;
+    if (options.wantUnsolicited) {
+      std::cerr << "ERROR: conflicting '--unsolicited' and '--timeout' options specified" << std::endl;
       return 2;
     }
-    if (vm["timeout"].as<int>() < 0) {
+    auto timeout = vm["timeout"].as<time::milliseconds::rep>();
+    if (timeout < 0) {
       std::cerr << "ERROR: timeout cannot be negative" << std::endl;
       return 2;
     }
-    options.timeout = time::milliseconds(vm["timeout"].as<int>());
+    options.timeout = time::milliseconds(timeout);
   }
 
   try {
