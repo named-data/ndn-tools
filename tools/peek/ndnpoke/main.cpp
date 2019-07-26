@@ -61,6 +61,7 @@ main(int argc, char* argv[])
     ("digest,D",    po::bool_switch(&wantDigestSha256),
                     "use DigestSha256 signing method instead of SignatureSha256WithRsa")
     ("timeout,w",   po::value<int>(), "set timeout (in milliseconds)")
+    ("verbose,v",   po::bool_switch(&options.isVerbose), "turn on verbose output")
     ("version,V",   "print version and exit")
   ;
 

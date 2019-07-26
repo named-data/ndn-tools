@@ -47,6 +47,7 @@ struct PokeOptions
   security::SigningInfo signingInfo;
 
   // program behavior options
+  bool isVerbose = false;
   bool wantForceData = false;
   optional<time::milliseconds> timeout;
 };
@@ -80,6 +81,18 @@ public:
 private:
   shared_ptr<Data>
   createData() const;
+
+  void
+  sendData(const Data& data);
+
+  void
+  onInterest(const Interest& interest, const Data& data);
+
+  void
+  onRegSuccess();
+
+  void
+  onRegFailure(const std::string& reason);
 
 private:
   const PokeOptions m_options;

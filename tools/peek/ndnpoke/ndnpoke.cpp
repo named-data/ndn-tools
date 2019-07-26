@@ -47,30 +47,13 @@ NdnPoke::start()
   auto data = createData();
 
   if (m_options.wantForceData) {
-    m_face.put(*data);
-    m_result = Result::DATA_SENT;
-    return;
+    return sendData(*data);
   }
 
   m_registeredPrefix = m_face.setInterestFilter(m_options.name,
-    [this, data] (auto&&...) {
-      m_timeoutEvent.cancel();
-      m_face.put(*data);
-      m_result = Result::DATA_SENT;
-      m_registeredPrefix.cancel();
-    },
-    [this] (auto&&) {
-      if (m_options.timeout) {
-        m_timeoutEvent = m_scheduler.schedule(*m_options.timeout, [this] {
-          m_result = Result::TIMEOUT;
-          m_registeredPrefix.cancel();
-        });
-      }
-    },
-    [this] (auto&&, const auto& reason) {
-      m_result = Result::PREFIX_REG_FAIL;
-      std::cerr << "Prefix registration failure (" << reason << ")\n";
-    });
+    [this, data] (auto&&, const auto& interest) { this->onInterest(interest, *data); },
+    [this] (auto&&) { this->onRegSuccess(); },
+    [this] (auto&&, const auto& reason) { this->onRegFailure(reason); });
 }
 
 shared_ptr<Data>
@@ -91,6 +74,55 @@ NdnPoke::createData() const
   m_keyChain.sign(*data, m_options.signingInfo);
 
   return data;
+}
+
+void
+NdnPoke::sendData(const Data& data)
+{
+  m_face.put(data);
+  m_result = Result::DATA_SENT;
+
+  if (m_options.isVerbose) {
+    std::cerr << "DATA: " << data;
+  }
+}
+
+void
+NdnPoke::onInterest(const Interest& interest, const Data& data)
+{
+  if (m_options.isVerbose) {
+    std::cerr << "INTEREST: " << interest << std::endl;
+  }
+
+  m_timeoutEvent.cancel();
+  m_registeredPrefix.cancel();
+  sendData(data);
+}
+
+void
+NdnPoke::onRegSuccess()
+{
+  if (m_options.isVerbose) {
+    std::cerr << "Prefix registration successful" << std::endl;
+  }
+
+  if (m_options.timeout) {
+    m_timeoutEvent = m_scheduler.schedule(*m_options.timeout, [this] {
+      m_result = Result::TIMEOUT;
+      m_registeredPrefix.cancel();
+
+      if (m_options.isVerbose) {
+        std::cerr << "TIMEOUT" << std::endl;
+      }
+    });
+  }
+}
+
+void
+NdnPoke::onRegFailure(const std::string& reason)
+{
+  m_result = Result::PREFIX_REG_FAIL;
+  std::cerr << "Prefix registration failure (" << reason << ")" << std::endl;
 }
 
 } // namespace peek

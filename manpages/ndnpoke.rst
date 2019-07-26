@@ -4,7 +4,7 @@ ndnpoke
 Synopsis
 --------
 
-**ndnpoke** [-h] [-f] [-F] [-x *freshness*] [-i *identity*\|\ -D] [-w *timeout*] [-V] *name*
+**ndnpoke** [-h] [-f] [-F] [-x *freshness*] [-i *identity*\|\ -D] [-w *timeout*] [-v] [-V] *name*
 
 Description
 -----------
@@ -37,6 +37,9 @@ Options
 
 ``-w, --timeout <timeout>``
   Quit the program after ``timeout`` milliseconds, even if no Interest has been received.
+
+``-v, --verbose``
+  Turn on verbose output.
 
 ``-V, --version``
   Print version and exit.
