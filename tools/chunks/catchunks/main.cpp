@@ -132,16 +132,11 @@ main(int argc, char* argv[])
   hiddenDesc.add_options()
     ("ndn-name,n", po::value<std::string>(&uri), "NDN name of the requested content");
 
-  po::options_description deprecatedDesc;
-  deprecatedDesc.add_options()
-    ("discover-version,d", po::value<std::string>(), "version discovery algorithm to use")
-    ("discovery-timeout,t", po::value<int64_t>(), "discovery timeout (in milliseconds)");
+  po::options_description optDesc;
+  optDesc.add(visibleDesc).add(hiddenDesc);
 
   po::positional_options_description p;
   p.add("ndn-name", -1);
-
-  po::options_description optDesc;
-  optDesc.add(visibleDesc).add(hiddenDesc).add(deprecatedDesc);
 
   po::variables_map vm;
   try {
@@ -161,14 +156,6 @@ main(int argc, char* argv[])
     std::cout << "Usage: " << programName << " [options] ndn:/name" << std::endl;
     std::cout << visibleDesc;
     return 0;
-  }
-
-  if (vm.count("discover-version") > 0) {
-    std::cerr << "WARNING: -d option is deprecated and will be removed in the near future" << std::endl;
-  }
-
-  if (vm.count("discovery-timeout") > 0) {
-    std::cerr << "WARNING: -t option is deprecated and will be removed in the near future" << std::endl;
   }
 
   if (vm.count("version") > 0) {
