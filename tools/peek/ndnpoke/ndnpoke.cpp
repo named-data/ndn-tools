@@ -94,9 +94,14 @@ NdnPoke::onInterest(const Interest& interest, const Data& data)
     std::cerr << "INTEREST: " << interest << std::endl;
   }
 
-  m_timeoutEvent.cancel();
-  m_registeredPrefix.cancel();
-  sendData(data);
+  if (interest.matchesData(data)) {
+    m_timeoutEvent.cancel();
+    m_registeredPrefix.cancel();
+    sendData(data);
+  }
+  else if (m_options.isVerbose) {
+    std::cerr << "Interest cannot be satisfied" << std::endl;
+  }
 }
 
 void

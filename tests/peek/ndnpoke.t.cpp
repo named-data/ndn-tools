@@ -82,7 +82,6 @@ BOOST_AUTO_TEST_CASE(Basic)
 
   face.receive(*makeInterest("/poke/test"));
   this->advanceClocks(io, 1_ms, 10);
-  io.run();
 
   BOOST_CHECK(poke->getResult() == NdnPoke::Result::DATA_SENT);
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
@@ -98,6 +97,27 @@ BOOST_AUTO_TEST_CASE(Basic)
   BOOST_CHECK_EQUAL(face.sentInterests.back().getName().getPrefix(4), "/localhost/nfd/rib/unregister");
 }
 
+BOOST_AUTO_TEST_CASE(NoMatch)
+{
+  initialize();
+
+  poke->start();
+  this->advanceClocks(io, 1_ms, 10);
+
+  face.receive(*makeInterest("/poke/test/foo"));
+  this->advanceClocks(io, 1_ms, 10);
+
+  BOOST_CHECK(poke->getResult() == NdnPoke::Result::UNKNOWN);
+  BOOST_CHECK_EQUAL(face.sentData.size(), 0);
+
+  face.receive(*makeInterest("/poke/test"));
+  this->advanceClocks(io, 1_ms, 10);
+
+  BOOST_CHECK(poke->getResult() == NdnPoke::Result::DATA_SENT);
+  BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
+  BOOST_CHECK_EQUAL(face.sentData.back().getName(), "/poke/test");
+}
+
 BOOST_AUTO_TEST_CASE(FreshnessPeriod)
 {
   auto options = makeDefaultOptions();
@@ -109,7 +129,6 @@ BOOST_AUTO_TEST_CASE(FreshnessPeriod)
 
   face.receive(*makeInterest("/poke/test"));
   this->advanceClocks(io, 1_ms, 10);
-  io.run();
 
   BOOST_CHECK(poke->getResult() == NdnPoke::Result::DATA_SENT);
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
@@ -131,7 +150,6 @@ BOOST_AUTO_TEST_CASE(FinalBlockId)
 
   face.receive(*makeInterest(options.name));
   this->advanceClocks(io, 1_ms, 10);
-  io.run();
 
   BOOST_CHECK(poke->getResult() == NdnPoke::Result::DATA_SENT);
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
@@ -153,7 +171,6 @@ BOOST_AUTO_TEST_CASE(DigestSha256)
 
   face.receive(*makeInterest("/poke/test"));
   this->advanceClocks(io, 1_ms, 10);
-  io.run();
 
   BOOST_CHECK(poke->getResult() == NdnPoke::Result::DATA_SENT);
   BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
