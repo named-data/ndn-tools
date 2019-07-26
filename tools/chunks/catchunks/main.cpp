@@ -58,7 +58,7 @@ main(int argc, char* argv[])
        ignoreCongMarks(false), enableFastConv(false);
   int initCwnd(1), initSsthresh(std::numeric_limits<int>::max()), k(8);
   double aiStep(1.0), rtoAlpha(0.125), rtoBeta(0.25), aimdBeta(0.5), cubicBeta(0.7);
-  int64_t minRto(200), maxRto(60000);
+  time::milliseconds::rep minRto(200), maxRto(60000);
   std::string cwndPath, rttPath;
 
   namespace po = boost::program_options;
@@ -68,7 +68,7 @@ main(int argc, char* argv[])
     ("pipeline-type,p", po::value<std::string>(&pipelineType)->default_value(pipelineType),
                         "type of Interest pipeline to use; valid values are: 'fixed', 'aimd', 'cubic'")
     ("fresh,f",     po::bool_switch(&options.mustBeFresh), "only return fresh content")
-    ("lifetime,l",  po::value<int64_t>()->default_value(options.interestLifetime.count()),
+    ("lifetime,l",  po::value<time::milliseconds::rep>()->default_value(options.interestLifetime.count()),
                     "lifetime of expressed Interests, in milliseconds")
     ("retries,r",   po::value<int>(&options.maxRetriesOnTimeoutOrNack)->default_value(options.maxRetriesOnTimeoutOrNack),
                     "maximum number of retries in case of Nack or timeout (-1 = no limit)")
@@ -107,10 +107,10 @@ main(int argc, char* argv[])
                   "beta value for RTO calculation")
     ("rto-k",     po::value<int>(&k)->default_value(k),
                   "k value for RTO calculation")
-    ("min-rto",   po::value<int64_t>(&minRto)->default_value(minRto),
-                  "minimum RTO value in milliseconds")
-    ("max-rto",   po::value<int64_t>(&maxRto)->default_value(maxRto),
-                  "maximum RTO value in milliseconds")
+    ("min-rto",   po::value<time::milliseconds::rep>(&minRto)->default_value(minRto),
+                  "minimum RTO value, in milliseconds")
+    ("max-rto",   po::value<time::milliseconds::rep>(&maxRto)->default_value(maxRto),
+                  "maximum RTO value, in milliseconds")
     ("log-cwnd",  po::value<std::string>(&cwndPath), "log file for congestion window stats")
     ("log-rtt",   po::value<std::string>(&rttPath), "log file for round-trip time stats")
     ;
@@ -179,11 +179,11 @@ main(int argc, char* argv[])
     return 2;
   }
 
-  if (vm["lifetime"].as<int64_t>() < 0) {
+  options.interestLifetime = time::milliseconds(vm["lifetime"].as<time::milliseconds::rep>());
+  if (options.interestLifetime < 0_ms) {
     std::cerr << "ERROR: lifetime cannot be negative" << std::endl;
     return 2;
   }
-  options.interestLifetime = time::milliseconds(vm["lifetime"].as<int64_t>());
 
   if (options.isQuiet && options.isVerbose) {
     std::cerr << "ERROR: cannot be quiet and verbose at the same time" << std::endl;

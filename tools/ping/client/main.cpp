@@ -160,37 +160,35 @@ main(int argc, char* argv[])
 
   namespace po = boost::program_options;
 
-  po::options_description visibleOptDesc("Allowed options");
+  po::options_description visibleOptDesc("Options");
   visibleOptDesc.add_options()
-    ("help,h", "print this message and exit")
-    ("version,V", "display version and exit")
-    ("interval,i", po::value<int>(),
-                   ("set ping interval in milliseconds (default " +
-                   std::to_string(getDefaultPingInterval().count()) + " ms - minimum " +
-                   std::to_string(getMinimumPingInterval().count()) + " ms)").c_str())
-    ("timeout,o", po::value<int>(),
-                  ("set ping timeout in milliseconds (default " +
-                  std::to_string(getDefaultPingTimeoutThreshold().count()) + " ms)").c_str())
-    ("count,c", po::value<int>(&options.nPings), "set total number of pings")
-    ("start,n", po::value<uint64_t>(&options.startSeq),
-                "set the starting seq number, the number is incremented by 1 after each Interest")
+    ("help,h",      "print this message and exit")
+    ("version,V",   "display version and exit")
+    ("interval,i",  po::value<time::milliseconds::rep>()->default_value(getDefaultPingInterval().count()),
+                    "ping interval, in milliseconds")
+    ("timeout,o",   po::value<time::milliseconds::rep>()->default_value(getDefaultPingTimeoutThreshold().count()),
+                    "ping timeout, in milliseconds")
+    ("count,c",     po::value<int>(&options.nPings), "number of pings to send (default = no limit)")
+    ("start,n",     po::value<uint64_t>(&options.startSeq),
+                    "set the starting sequence number, the number is incremented by 1 after each Interest")
     ("identifier,p", po::value<std::string>(&identifier),
-                     "add identifier to the Interest names before the numbers to avoid conflict")
-    ("cache,a", "allows routers to return stale Data from cache")
+                     "add identifier to the Interest names before the sequence numbers to avoid conflicts")
+    ("cache,a",     "allow routers to return stale Data from cache")
     ("timestamp,t", "print timestamp with messages")
   ;
-  po::options_description hiddenOptDesc("Hidden options");
+
+  po::options_description hiddenOptDesc;
   hiddenOptDesc.add_options()
     ("prefix", po::value<std::string>(), "prefix to send pings to")
   ;
 
-  po::options_description optDesc("Allowed options");
+  po::options_description optDesc;
   optDesc.add(visibleOptDesc).add(hiddenOptDesc);
 
-  try {
-    po::positional_options_description optPos;
-    optPos.add("prefix", -1);
+  po::positional_options_description optPos;
+  optPos.add("prefix", -1);
 
+  try {
     po::variables_map optVm;
     po::store(po::command_line_parser(argc, argv).options(optDesc).positional(optPos).run(), optVm);
     po::notify(optVm);
@@ -212,19 +210,14 @@ main(int argc, char* argv[])
       usage(visibleOptDesc);
     }
 
-    if (optVm.count("interval") > 0) {
-      options.interval = time::milliseconds(optVm["interval"].as<int>());
-
-      if (options.interval.count() < getMinimumPingInterval().count()) {
-        std::cerr << "ERROR: Specified ping interval is less than the minimum " <<
-                     getMinimumPingInterval() << std::endl;
-        usage(visibleOptDesc);
-      }
+    options.interval = time::milliseconds(optVm["interval"].as<time::milliseconds::rep>());
+    if (options.interval < getMinimumPingInterval()) {
+      std::cerr << "ERROR: Specified ping interval is less than the minimum " <<
+                   getMinimumPingInterval() << std::endl;
+      usage(visibleOptDesc);
     }
 
-    if (optVm.count("timeout") > 0) {
-      options.timeout = time::milliseconds(optVm["timeout"].as<int>());
-    }
+    options.timeout = time::milliseconds(optVm["timeout"].as<time::milliseconds::rep>());
 
     if (optVm.count("count") > 0) {
       if (options.nPings <= 0) {

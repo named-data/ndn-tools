@@ -54,8 +54,9 @@ main(int argc, char* argv[])
   po::options_description genericOptDesc("Generic options");
   genericOptDesc.add_options()
     ("help,h",    "print help and exit")
-    ("payload,p", po::bool_switch(&options.wantPayloadOnly), "print payload only, instead of full packet")
-    ("timeout,w", po::value<int>(), "set timeout (in milliseconds)")
+    ("payload,p", po::bool_switch(&options.wantPayloadOnly),
+                  "print payload only, instead of full packet")
+    ("timeout,w", po::value<time::milliseconds::rep>(), "execution timeout, in milliseconds")
     ("verbose,v", po::bool_switch(&options.isVerbose), "turn on verbose output")
     ("version,V", "print version and exit")
   ;
@@ -65,7 +66,8 @@ main(int argc, char* argv[])
     ("prefix,P",   po::bool_switch(&options.canBePrefix), "set CanBePrefix")
     ("fresh,f",    po::bool_switch(&options.mustBeFresh), "set MustBeFresh")
     ("link-file",  po::value<std::string>(), "set ForwardingHint from a file")
-    ("lifetime,l", po::value<int>(), "set InterestLifetime (in milliseconds)")
+    ("lifetime,l", po::value<time::milliseconds::rep>()->default_value(options.interestLifetime.count()),
+                   "set InterestLifetime, in milliseconds")
   ;
 
   po::options_description visibleOptDesc;
@@ -115,21 +117,15 @@ main(int argc, char* argv[])
     return 2;
   }
 
-  if (vm.count("lifetime") > 0) {
-    if (vm["lifetime"].as<int>() >= 0) {
-      options.interestLifetime = time::milliseconds(vm["lifetime"].as<int>());
-    }
-    else {
-      std::cerr << "ERROR: lifetime cannot be negative" << std::endl;
-      return 2;
-    }
+  options.interestLifetime = time::milliseconds(vm["lifetime"].as<time::milliseconds::rep>());
+  if (options.interestLifetime < 0_ms) {
+    std::cerr << "ERROR: lifetime cannot be negative" << std::endl;
+    return 2;
   }
 
   if (vm.count("timeout") > 0) {
-    if (vm["timeout"].as<int>() >= 0) {
-      options.timeout = time::milliseconds(vm["timeout"].as<int>());
-    }
-    else {
+    options.timeout = time::milliseconds(vm["timeout"].as<time::milliseconds::rep>());
+    if (*options.timeout < 0_ms) {
       std::cerr << "ERROR: timeout cannot be negative" << std::endl;
       return 2;
     }

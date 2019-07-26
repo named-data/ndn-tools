@@ -109,7 +109,7 @@ main(int argc, char* argv[])
   }
 
   opts.freshnessPeriod = time::milliseconds(vm["freshness"].as<time::milliseconds::rep>());
-  if (opts.freshnessPeriod < time::milliseconds::zero()) {
+  if (opts.freshnessPeriod < 0_ms) {
     std::cerr << "ERROR: FreshnessPeriod cannot be negative" << std::endl;
     return 2;
   }

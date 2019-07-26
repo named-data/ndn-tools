@@ -47,9 +47,9 @@ struct PeekOptions
   bool canBePrefix = false;
   bool mustBeFresh = false;
   shared_ptr<Link> link;
-  optional<time::milliseconds> interestLifetime;
+  time::milliseconds interestLifetime = DEFAULT_INTEREST_LIFETIME;
 
-  // output behavior options
+  // program behavior options
   bool isVerbose = false;
   bool wantPayloadOnly = false;
   optional<time::milliseconds> timeout;

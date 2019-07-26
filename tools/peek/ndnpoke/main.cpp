@@ -55,7 +55,7 @@ main(int argc, char* argv[])
     ("help,h",        "print help and exit")
     ("unsolicited,u", po::bool_switch(&options.wantUnsolicited),
                       "send the Data packet without waiting for an incoming Interest")
-    ("timeout,w",     po::value<time::milliseconds::rep>(), "set timeout (in milliseconds)")
+    ("timeout,w",     po::value<time::milliseconds::rep>(), "execution timeout, in milliseconds")
     ("verbose,v",     po::bool_switch(&options.isVerbose), "turn on verbose output")
     ("version,V",     "print version and exit")
   ;
@@ -65,7 +65,7 @@ main(int argc, char* argv[])
     ("final,F",     po::bool_switch(&options.wantFinalBlockId),
                     "set FinalBlockId to the last component of the Data name")
     ("freshness,x", po::value<time::milliseconds::rep>()->default_value(options.freshnessPeriod.count()),
-                    "set FreshnessPeriod (in milliseconds)")
+                    "set FreshnessPeriod, in milliseconds")
     ("identity,i",  po::value<std::string>(), "use the specified identity for signing")
     ("digest,D",    po::bool_switch(&wantDigestSha256),
                     "use DigestSha256 signing method instead of SignatureSha256WithRsa")
@@ -134,13 +134,10 @@ main(int argc, char* argv[])
     return 2;
   }
 
-  if (vm.count("freshness") > 0) {
-    auto freshness = vm["freshness"].as<time::milliseconds::rep>();
-    if (freshness < 0) {
-      std::cerr << "ERROR: freshness cannot be negative" << std::endl;
-      return 2;
-    }
-    options.freshnessPeriod = time::milliseconds(freshness);
+  options.freshnessPeriod = time::milliseconds(vm["freshness"].as<time::milliseconds::rep>());
+  if (options.freshnessPeriod < 0_ms) {
+    std::cerr << "ERROR: freshness cannot be negative" << std::endl;
+    return 2;
   }
 
   if (vm.count("identity") > 0) {
@@ -166,12 +163,11 @@ main(int argc, char* argv[])
       std::cerr << "ERROR: conflicting '--unsolicited' and '--timeout' options specified" << std::endl;
       return 2;
     }
-    auto timeout = vm["timeout"].as<time::milliseconds::rep>();
-    if (timeout < 0) {
+    options.timeout = time::milliseconds(vm["timeout"].as<time::milliseconds::rep>());
+    if (*options.timeout < 0_ms) {
       std::cerr << "ERROR: timeout cannot be negative" << std::endl;
       return 2;
     }
-    options.timeout = time::milliseconds(timeout);
   }
 
   try {

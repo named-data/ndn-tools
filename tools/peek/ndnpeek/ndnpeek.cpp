@@ -62,11 +62,9 @@ NdnPeek::createInterest() const
   Interest interest(m_options.name);
   interest.setCanBePrefix(m_options.canBePrefix);
   interest.setMustBeFresh(m_options.mustBeFresh);
+  interest.setInterestLifetime(m_options.interestLifetime);
   if (m_options.link) {
     interest.setForwardingHint(m_options.link->getDelegationList());
-  }
-  if (m_options.interestLifetime) {
-    interest.setInterestLifetime(*m_options.interestLifetime);
   }
 
   if (m_options.isVerbose) {
