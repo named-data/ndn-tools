@@ -105,10 +105,10 @@ main(int argc, char* argv[])
   po::options_description visibleDesc("Options");
   visibleDesc.add_options()
     ("help,h",      "print this help message and exit")
-    ("freshness,x", po::value<time::milliseconds::rep>()->default_value(options.freshnessPeriod.count()),
+    ("freshness,f", po::value<time::milliseconds::rep>()->default_value(options.freshnessPeriod.count()),
                     "FreshnessPeriod of the ping response, in milliseconds")
     ("satisfy,p",   po::value(&nMaxPings)->default_value(nMaxPings),
-                    "maximum number of pings to be satisfied (0=infinite)")
+                    "maximum number of pings to satisfy (0 = no limit)")
     ("size,s",      po::value(&payloadSize)->default_value(payloadSize),
                     "size of response payload")
     ("timestamp,t", po::bool_switch(&options.wantTimestamp),
@@ -122,11 +122,16 @@ main(int argc, char* argv[])
   hiddenDesc.add_options()
     ("prefix", po::value<std::string>(&prefix));
 
-  po::positional_options_description posDesc;
-  posDesc.add("prefix", -1);
+  po::options_description deprecatedDesc;
+  deprecatedDesc.add_options()
+    ("_deprecated_freshness_,x", po::value<time::milliseconds::rep>())
+    ;
 
   po::options_description optDesc;
-  optDesc.add(visibleDesc).add(hiddenDesc);
+  optDesc.add(visibleDesc).add(hiddenDesc).add(deprecatedDesc);
+
+  po::positional_options_description posDesc;
+  posDesc.add("prefix", -1);
 
   po::variables_map vm;
   try {
@@ -142,6 +147,11 @@ main(int argc, char* argv[])
     std::cerr << "ERROR: " << e.what() << "\n\n";
     usage(std::cerr, argv[0], visibleDesc);
     return 2;
+  }
+
+  if (vm.count("_deprecated_freshness_") > 0) {
+    std::cerr << "WARNING: short option '-x' is deprecated and will be removed in the near "
+                 "future. Please use '-f' or the long form '--freshness'." << std::endl;
   }
 
   if (vm.count("help") > 0) {
@@ -162,6 +172,9 @@ main(int argc, char* argv[])
   options.prefix = prefix;
 
   options.freshnessPeriod = time::milliseconds(vm["freshness"].as<time::milliseconds::rep>());
+  if (vm.count("_deprecated_freshness_") > 0) {
+    options.freshnessPeriod = time::milliseconds(vm["_deprecated_freshness_"].as<time::milliseconds::rep>());
+  }
   if (options.freshnessPeriod < 0_ms) {
     std::cerr << "ERROR: FreshnessPeriod cannot be negative" << std::endl;
     return 2;
