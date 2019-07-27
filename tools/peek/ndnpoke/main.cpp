@@ -48,6 +48,7 @@ main(int argc, char* argv[])
 {
   std::string progName(argv[0]);
   PokeOptions options;
+  std::string signingStr;
   bool wantDigestSha256 = false;
 
   po::options_description genericOptDesc("Generic options");
@@ -66,9 +67,7 @@ main(int argc, char* argv[])
                     "set FinalBlockId to the last component of the Data name")
     ("freshness,x", po::value<time::milliseconds::rep>()->default_value(options.freshnessPeriod.count()),
                     "set FreshnessPeriod, in milliseconds")
-    ("identity,i",  po::value<std::string>(), "use the specified identity for signing")
-    ("digest,D",    po::bool_switch(&wantDigestSha256),
-                    "use DigestSha256 signing method instead of SignatureSha256WithRsa")
+    ("signing-info,S",  po::value<std::string>(&signingStr), "see 'man ndnpoke' for usage")
   ;
 
   po::options_description visibleOptDesc;
@@ -80,7 +79,9 @@ main(int argc, char* argv[])
 
   po::options_description deprecatedOptDesc;
   deprecatedOptDesc.add_options()
-    ("force,f", po::bool_switch())
+    ("force,f",     po::bool_switch())
+    ("identity,i",  po::value<std::string>())
+    ("digest,D",    po::bool_switch(&wantDigestSha256))
   ;
 
   po::options_description optDesc;
@@ -103,6 +104,10 @@ main(int argc, char* argv[])
     std::cerr << "WARNING: option '-f/--force' is deprecated and will be removed "
                  "in the near future. Use '-u/--unsolicited' instead." << std::endl;
     options.wantUnsolicited = true;
+  }
+  if (wantDigestSha256 || vm.count("identity") > 0) {
+    std::cerr << "WARNING: options '-i/--identity' and '-D/--digest' are deprecated and will be "
+                 "removed in the near future. Use '-S/--signing-info' instead." << std::endl;
   }
 
   if (vm.count("help") > 0) {
@@ -156,6 +161,14 @@ main(int argc, char* argv[])
 
   if (wantDigestSha256) {
     options.signingInfo.setSha256Signing();
+  }
+
+  try {
+    options.signingInfo = security::SigningInfo(signingStr);
+  }
+  catch (const std::invalid_argument& e) {
+    std::cerr << "ERROR: " << e.what() << std::endl;
+    return 2;
   }
 
   if (vm.count("timeout") > 0) {

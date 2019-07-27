@@ -4,9 +4,7 @@ ndnputchunks
 Synopsis
 --------
 
-::
-
-    ndnputchunks [options] ndn:/name
+**ndnputchunks** [options] *name*
 
 Description
 -----------
@@ -38,11 +36,16 @@ Options
 
 .. option:: -S, --signing-info STRING
 
-    Signing information. Can be set to "id:/localhost/identity/digest-sha256" in order to speed up signing.
-    However, keep in mind that this only a hash function and not a real signature.
-    Other options are found in the `ndn-cxx documentation for SigningInfo`_.
+    Specify the parameters used to sign the Data packet. If omitted, the default key of
+    the default identity is used. The general syntax is ``<scheme>:<name>``. The most
+    common supported combinations are as follows:
 
-    .. _ndn-cxx documentation for SigningInfo: https://named-data.net/doc/ndn-cxx/0.6.5/doxygen/d8/dc8/classndn_1_1security_1_1SigningInfo.html#afc960f9f5da5536b958403dc7b701826
+    * Sign with the default certificate of the default key of an identity: ``id:/<my-identity>``.
+    * Sign with the default certificate of a specific key: ``key:/<my-identity>/ksk-1``.
+    * Sign with a specific certificate: ``cert:/<my-identity>/KEY/ksk-1/ID-CERT/%FD%01``.
+    * Sign with a SHA-256 digest: ``id:/localhost/identity/digest-sha256``. Note that this
+      is only a hash function, not a real signature, but it can significantly speed up
+      packet signing operations.
 
 .. option:: -q, --quiet
 
@@ -56,9 +59,8 @@ Options
 
     Print program version and exit.
 
-
-Examples
---------
+Example
+-------
 
 The following command will publish the text of the GPL-3 license under the `/localhost/demo/gpl3`
 prefix::
@@ -81,9 +83,3 @@ For example, the following command will publish the version `%FD%00%00%01Qc%CF%1
 
 If the version component is not valid, a new well-formed version will be generated and appended
 to the supplied NDN name.
-
-
-Notes
------
-
-.. target-notes::

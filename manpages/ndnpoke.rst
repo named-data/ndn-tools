@@ -4,7 +4,7 @@ ndnpoke
 Synopsis
 --------
 
-**ndnpoke** [-h] [-u] [-F] [-x *freshness*] [-i *identity*\|\ -D] [-w *timeout*] [-v] [-V] *name*
+**ndnpoke** [-h] [-u] [-F] [-x *freshness*] [-S *info*] [-w *timeout*] [-v] [-V] *name*
 
 Description
 -----------
@@ -29,11 +29,17 @@ Options
 ``-x, --freshness <freshness>``
   Set ``freshness`` (in milliseconds) as the ``FreshnessPeriod``.
 
-``-i, --identity <identity>``
-  Use ``identity`` to sign the Data packet.
+``-S, --signing-info <info>``
+  Specify the parameters used to sign the Data packet. If omitted, the default key of
+  the default identity is used. The general syntax is ``<scheme>:<name>``. The most
+  common supported combinations are as follows:
 
-``-D, --digest``
-  Use ``DigestSha256`` signature type instead of the default ``SignatureSha256WithRsa``.
+  * Sign with the default certificate of the default key of an identity: ``id:/<my-identity>``.
+  * Sign with the default certificate of a specific key: ``key:/<my-identity>/ksk-1``.
+  * Sign with a specific certificate: ``cert:/<my-identity>/KEY/ksk-1/ID-CERT/%FD%01``.
+  * Sign with a SHA-256 digest: ``id:/localhost/identity/digest-sha256``. Note that this
+    is only a hash function, not a real signature, but it can significantly speed up
+    packet signing operations.
 
 ``-w, --timeout <timeout>``
   Quit the program after ``timeout`` milliseconds, even if no Interest has been received.
