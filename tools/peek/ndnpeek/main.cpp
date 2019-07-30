@@ -31,6 +31,10 @@
 
 #include <ndn-cxx/util/io.hpp>
 
+#include <cerrno>
+#include <cstring>
+#include <fstream>
+
 namespace ndn {
 namespace peek {
 
@@ -43,6 +47,17 @@ usage(std::ostream& os, const std::string& program, const po::options_descriptio
      << "\n"
      << "Fetch one data item matching the specified name and write it to the standard output.\n"
      << options;
+}
+
+static std::ifstream
+openBinaryFile(const std::string& filename)
+{
+  std::ifstream file(filename, std::ios::binary);
+  if (!file) {
+    std::cerr << "ERROR: cannot open '" << filename << "' for reading: "
+              << std::strerror(errno) << std::endl;
+  }
+  return file;
 }
 
 static int
@@ -65,7 +80,7 @@ main(int argc, char* argv[])
   interestOptDesc.add_options()
     ("prefix,P",   po::bool_switch(&options.canBePrefix), "set CanBePrefix")
     ("fresh,f",    po::bool_switch(&options.mustBeFresh), "set MustBeFresh")
-    ("link-file",  po::value<std::string>(), "set ForwardingHint from a file")
+    ("link-file",  po::value<std::string>(), "set ForwardingHint from a raw binary file")
     ("lifetime,l", po::value<time::milliseconds::rep>()->default_value(options.interestLifetime.count()),
                    "set InterestLifetime, in milliseconds")
   ;
@@ -117,12 +132,6 @@ main(int argc, char* argv[])
     return 2;
   }
 
-  options.interestLifetime = time::milliseconds(vm["lifetime"].as<time::milliseconds::rep>());
-  if (options.interestLifetime < 0_ms) {
-    std::cerr << "ERROR: lifetime cannot be negative" << std::endl;
-    return 2;
-  }
-
   if (vm.count("timeout") > 0) {
     options.timeout = time::milliseconds(vm["timeout"].as<time::milliseconds::rep>());
     if (*options.timeout < 0_ms) {
@@ -132,11 +141,22 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("link-file") > 0) {
-    options.link = io::load<Link>(vm["link-file"].as<std::string>());
-    if (options.link == nullptr) {
-      std::cerr << "ERROR: cannot read Link object from the specified file" << std::endl;
+    auto filename = vm["link-file"].as<std::string>();
+    std::ifstream linkFile = openBinaryFile(filename);
+    if (!linkFile) {
       return 2;
     }
+    options.link = io::load<Link>(linkFile, io::NO_ENCODING);
+    if (!options.link) {
+      std::cerr << "ERROR: cannot parse a valid Link object from file '" << filename << "'" << std::endl;
+      return 2;
+    }
+  }
+
+  options.interestLifetime = time::milliseconds(vm["lifetime"].as<time::milliseconds::rep>());
+  if (options.interestLifetime < 0_ms) {
+    std::cerr << "ERROR: lifetime cannot be negative" << std::endl;
+    return 2;
   }
 
   try {
