@@ -50,11 +50,19 @@ private:
   std::streambuf* m_originalBuf;
 };
 
+static PeekOptions
+makeDefaultOptions()
+{
+  PeekOptions opt;
+  opt.name = "/peek/test";
+  return opt;
+}
+
 class NdnPeekFixture : public UnitTestTimeFixture
 {
 protected:
   void
-  initialize(const PeekOptions& opts)
+  initialize(const PeekOptions& opts = makeDefaultOptions())
   {
     peek = make_unique<NdnPeek>(face, opts);
   }
@@ -65,15 +73,6 @@ protected:
   output_test_stream output;
   unique_ptr<NdnPeek> peek;
 };
-
-static PeekOptions
-makeDefaultOptions()
-{
-  PeekOptions opt;
-  opt.name = "ndn:/peek/test";
-  opt.timeout = 200_ms;
-  return opt;
-}
 
 class OutputFull
 {
@@ -227,6 +226,24 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ReceiveNackWithoutReason, OutputCheck, OutputCheck
   BOOST_CHECK(peek->getResult() == NdnPeek::Result::NACK);
 }
 
+BOOST_AUTO_TEST_CASE(ApplicationParameters)
+{
+  auto options = makeDefaultOptions();
+  options.applicationParameters = make_shared<Buffer>("hello", 5);
+  initialize(options);
+
+  peek->start();
+  this->advanceClocks(io, 25_ms, 4);
+
+  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getCanBePrefix(), false);
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), false);
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint().empty(), true);
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), DEFAULT_INTEREST_LIFETIME);
+  BOOST_CHECK_EQUAL(face.sentInterests.back().hasApplicationParameters(), true);
+  BOOST_CHECK_EQUAL(face.sentInterests.back().getApplicationParameters(), "2405 68656C6C6F"_block);
+}
+
 BOOST_AUTO_TEST_CASE(NoTimeout)
 {
   auto options = makeDefaultOptions();
@@ -280,6 +297,18 @@ BOOST_AUTO_TEST_CASE(TimeoutGreaterThanLifetime)
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 1);
   BOOST_CHECK_EQUAL(face.getNPendingInterests(), 0);
   BOOST_CHECK(peek->getResult() == NdnPeek::Result::TIMEOUT);
+}
+
+BOOST_AUTO_TEST_CASE(OversizedPacket)
+{
+  auto options = makeDefaultOptions();
+  options.applicationParameters = make_shared<Buffer>(MAX_NDN_PACKET_SIZE);
+  initialize(options);
+
+  peek->start();
+  BOOST_CHECK_THROW(this->advanceClocks(io, 1_ms, 10), Face::OversizedPacketError);
+
+  BOOST_CHECK_EQUAL(face.sentInterests.size(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestNdnPeek

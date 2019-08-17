@@ -4,7 +4,7 @@ ndnpeek
 Synopsis
 --------
 
-**ndnpeek** [-h] [-P] [-f] [-l *lifetime*] [-p] [-w *timeout*] [-v] [-V] *name*
+**ndnpeek** [-h] [-P] [-f] [-l *lifetime*] [-A *parameters*] [-p] [-w *timeout*] [-v] [-V] *name*
 
 Description
 -----------
@@ -32,6 +32,12 @@ Options
 
 ``-l, --lifetime <lifetime>``
   Set ``lifetime`` (in milliseconds) as the ``InterestLifetime``.
+
+``-A, --app-params <parameters>``
+  Set the Interest's ``ApplicationParameters`` from a base64-encoded string.
+
+``--app-params-file <file>``
+  Set the Interest's ``ApplicationParameters`` from the specified file.
 
 ``-p, --payload``
   If specified, print the received payload only, not the full packet.
@@ -61,6 +67,12 @@ Exit Status
 Example
 -------
 
-Send Interest for ``/app1/video`` and print the received payload only::
+Send an Interest for ``/app1/video`` and print the received payload only::
 
     ndnpeek -p /app1/video
+
+Send an Interest for ``/app2/foo``, requesting fresh content, with an InterestLifetime
+of 8 seconds, and with the ApplicationParameters containing the ASCII string "hello";
+print the performed operations verbosely but discard the received Data packet::
+
+    ndnpeek -vf -l 8000 -A "aGVsbG8=" /app2/foo >/dev/null

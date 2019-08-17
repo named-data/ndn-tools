@@ -24,6 +24,7 @@
  *
  * @author Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
  * @author Zhuo Li <zhuoli@email.arizona.edu>
+ * @author Davide Pesavento <davidepesa@gmail.com>
  */
 
 #include "ndnpeek.hpp"
@@ -83,6 +84,8 @@ main(int argc, char* argv[])
     ("link-file",  po::value<std::string>(), "set ForwardingHint from a raw binary file")
     ("lifetime,l", po::value<time::milliseconds::rep>()->default_value(options.interestLifetime.count()),
                    "set InterestLifetime, in milliseconds")
+    ("app-params,A",    po::value<std::string>(), "set ApplicationParameters from a base64-encoded string")
+    ("app-params-file", po::value<std::string>(), "set ApplicationParameters from a file")
   ;
 
   po::options_description visibleOptDesc;
@@ -157,6 +160,37 @@ main(int argc, char* argv[])
   if (options.interestLifetime < 0_ms) {
     std::cerr << "ERROR: lifetime cannot be negative" << std::endl;
     return 2;
+  }
+
+  if (vm.count("app-params") > 0) {
+    if (vm.count("app-params-file") > 0) {
+      std::cerr << "ERROR: cannot specify both '--app-params' and '--app-params-file'" << std::endl;
+      return 2;
+    }
+    std::istringstream is(vm["app-params"].as<std::string>());
+    try {
+      options.applicationParameters = io::loadBuffer(is, io::BASE64);
+    }
+    catch (const io::Error& e) {
+      std::cerr << "ERROR: invalid ApplicationParameters string: " << e.what() << std::endl;
+      return 2;
+    }
+  }
+
+  if (vm.count("app-params-file") > 0) {
+    auto filename = vm["app-params-file"].as<std::string>();
+    std::ifstream paramsFile = openBinaryFile(filename);
+    if (!paramsFile) {
+      return 2;
+    }
+    try {
+      options.applicationParameters = io::loadBuffer(paramsFile, io::NO_ENCODING);
+    }
+    catch (const io::Error& e) {
+      std::cerr << "ERROR: cannot read ApplicationParameters from file '" << filename
+                << "': " << e.what() << std::endl;
+      return 2;
+    }
   }
 
   try {

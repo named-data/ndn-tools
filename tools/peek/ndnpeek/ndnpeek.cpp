@@ -24,6 +24,7 @@
  *
  * @author Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
  * @author Zhuo Li <zhuoli@email.arizona.edu>
+ * @author Davide Pesavento <davidepesa@gmail.com>
  */
 
 #include "ndnpeek.hpp"
@@ -65,6 +66,9 @@ NdnPeek::createInterest() const
   interest.setInterestLifetime(m_options.interestLifetime);
   if (m_options.link) {
     interest.setForwardingHint(m_options.link->getDelegationList());
+  }
+  if (m_options.applicationParameters) {
+    interest.setApplicationParameters(m_options.applicationParameters);
   }
 
   if (m_options.isVerbose) {

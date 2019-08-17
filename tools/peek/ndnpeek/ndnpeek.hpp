@@ -24,6 +24,7 @@
  *
  * @author Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
  * @author Zhuo Li <zhuoli@email.arizona.edu>
+ * @author Davide Pesavento <davidepesa@gmail.com>
  */
 
 #ifndef NDN_TOOLS_NDNPEEK_NDNPEEK_HPP
@@ -48,6 +49,7 @@ struct PeekOptions
   bool mustBeFresh = false;
   shared_ptr<Link> link;
   time::milliseconds interestLifetime = DEFAULT_INTEREST_LIFETIME;
+  shared_ptr<Buffer> applicationParameters;
 
   // program behavior options
   bool isVerbose = false;
@@ -107,7 +109,7 @@ private:
   onTimeout();
 
 private:
-  const PeekOptions& m_options;
+  const PeekOptions m_options;
   Face& m_face;
   Scheduler m_scheduler;
   time::steady_clock::TimePoint m_sendTime;
