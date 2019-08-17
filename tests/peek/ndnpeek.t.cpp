@@ -154,7 +154,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Default, OutputCheck, OutputChecks)
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), false);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint().empty(), true);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), DEFAULT_INTEREST_LIFETIME);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().hasApplicationParameters(), false);
+  BOOST_CHECK(face.sentInterests.back().getHopLimit() == nullopt);
+  BOOST_CHECK(!face.sentInterests.back().hasApplicationParameters());
   BOOST_CHECK(peek->getResult() == NdnPeek::Result::DATA);
 }
 
@@ -164,6 +165,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(NonDefault, OutputCheck, OutputChecks)
   options.canBePrefix = true;
   options.mustBeFresh = true;
   options.interestLifetime = 200_ms;
+  options.hopLimit = 64;
   initialize(options);
 
   auto data = makeData(Name(options.name).append("suffix"));
@@ -184,7 +186,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(NonDefault, OutputCheck, OutputChecks)
   BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), true);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint().empty(), true);
   BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), 200_ms);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().hasApplicationParameters(), false);
+  BOOST_CHECK(face.sentInterests.back().getHopLimit() == 64);
+  BOOST_CHECK(!face.sentInterests.back().hasApplicationParameters());
   BOOST_CHECK(peek->getResult() == NdnPeek::Result::DATA);
 }
 

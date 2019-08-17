@@ -49,6 +49,7 @@ struct PeekOptions
   bool mustBeFresh = false;
   shared_ptr<Link> link;
   time::milliseconds interestLifetime = DEFAULT_INTEREST_LIFETIME;
+  optional<uint8_t> hopLimit;
   shared_ptr<Buffer> applicationParameters;
 
   // program behavior options

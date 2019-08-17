@@ -4,7 +4,8 @@ ndnpeek
 Synopsis
 --------
 
-**ndnpeek** [-h] [-P] [-f] [-l *lifetime*] [-A *parameters*] [-p] [-w *timeout*] [-v] [-V] *name*
+**ndnpeek** [-h] [-P] [-f] [-l *lifetime*] [-H *hops*] [-A *parameters*]
+[-p] [-w *timeout*] [-v] [-V] *name*
 
 Description
 -----------
@@ -32,6 +33,9 @@ Options
 
 ``-l, --lifetime <lifetime>``
   Set ``lifetime`` (in milliseconds) as the ``InterestLifetime``.
+
+``-H, --hop-limit <hops>``
+  Set the Interest's ``HopLimit`` to the specified number of hops.
 
 ``-A, --app-params <parameters>``
   Set the Interest's ``ApplicationParameters`` from a base64-encoded string.

@@ -84,6 +84,7 @@ main(int argc, char* argv[])
     ("link-file",  po::value<std::string>(), "set ForwardingHint from a raw binary file")
     ("lifetime,l", po::value<time::milliseconds::rep>()->default_value(options.interestLifetime.count()),
                    "set InterestLifetime, in milliseconds")
+    ("hop-limit,H",     po::value<int>(), "set HopLimit")
     ("app-params,A",    po::value<std::string>(), "set ApplicationParameters from a base64-encoded string")
     ("app-params-file", po::value<std::string>(), "set ApplicationParameters from a file")
   ;
@@ -158,8 +159,17 @@ main(int argc, char* argv[])
 
   options.interestLifetime = time::milliseconds(vm["lifetime"].as<time::milliseconds::rep>());
   if (options.interestLifetime < 0_ms) {
-    std::cerr << "ERROR: lifetime cannot be negative" << std::endl;
+    std::cerr << "ERROR: InterestLifetime cannot be negative" << std::endl;
     return 2;
+  }
+
+  if (vm.count("hop-limit") > 0) {
+    auto hopLimit = vm["hop-limit"].as<int>();
+    if (hopLimit < 0 || hopLimit > 255) {
+      std::cerr << "ERROR: HopLimit must be between 0 and 255" << std::endl;
+      return 2;
+    }
+    options.hopLimit = static_cast<uint8_t>(hopLimit);
   }
 
   if (vm.count("app-params") > 0) {
