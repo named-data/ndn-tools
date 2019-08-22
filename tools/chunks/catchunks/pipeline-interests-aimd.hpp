@@ -40,7 +40,7 @@ namespace chunks {
 class PipelineInterestsAimd : public PipelineInterestsAdaptive
 {
 public:
-  PipelineInterestsAimd(Face& face, RttEstimator& rttEstimator,
+  PipelineInterestsAimd(Face& face, RttEstimatorWithStats& rttEstimator,
                         const Options& options = Options());
 
 private:

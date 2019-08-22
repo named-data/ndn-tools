@@ -37,7 +37,8 @@ namespace chunks {
 
 constexpr double PipelineInterestsAdaptive::MIN_SSTHRESH;
 
-PipelineInterestsAdaptive::PipelineInterestsAdaptive(Face& face, RttEstimator& rttEstimator,
+PipelineInterestsAdaptive::PipelineInterestsAdaptive(Face& face,
+                                                     RttEstimatorWithStats& rttEstimator,
                                                      const Options& options)
   : PipelineInterests(face)
   , m_options(options)
@@ -285,7 +286,11 @@ PipelineInterestsAdaptive::handleData(const Interest& interest, const Data& data
       m_retxCount.count(recvSegNo) == 0) {
     auto nExpectedSamples = std::max<int64_t>((m_nInFlight + 1) >> 1, 1);
     BOOST_ASSERT(nExpectedSamples > 0);
-    m_rttEstimator.addMeasurement(rtt, static_cast<size_t>(nExpectedSamples), recvSegNo);
+    m_rttEstimator.addMeasurement(rtt, static_cast<size_t>(nExpectedSamples));
+    afterRttMeasurement({recvSegNo, rtt,
+                         m_rttEstimator.getSmoothedRtt(),
+                         m_rttEstimator.getRttVariation(),
+                         m_rttEstimator.getEstimatedRto()});
   }
 
   // remove the entry associated with the received segment

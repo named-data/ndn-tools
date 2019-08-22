@@ -61,7 +61,7 @@ public:
   using Options = PipelineInterestsCubicOptions;
 
 public:
-  PipelineInterestsCubic(Face& face, RttEstimator& rttEstimator,
+  PipelineInterestsCubic(Face& face, RttEstimatorWithStats& rttEstimator,
                          const Options& options = Options());
 
 private:

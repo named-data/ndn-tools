@@ -71,23 +71,23 @@ private:
     return pipelineOptions;
   }
 
-  static RttEstimator::Options
+  static shared_ptr<RttEstimatorWithStats::Options>
   makeRttEstimatorOptions()
   {
-    RttEstimator::Options rttOptions;
-    rttOptions.alpha = 0.125;
-    rttOptions.beta = 0.25;
-    rttOptions.k = 4;
-    rttOptions.initialRto = 1_s;
-    rttOptions.minRto = 200_ms;
-    rttOptions.maxRto = 4_s;
-    rttOptions.rtoBackoffMultiplier = 2;
+    auto rttOptions = make_shared<RttEstimatorWithStats::Options>();
+    rttOptions->alpha = 0.125;
+    rttOptions->beta = 0.25;
+    rttOptions->k = 4;
+    rttOptions->initialRto = 1_s;
+    rttOptions->minRto = 200_ms;
+    rttOptions->maxRto = 4_s;
+    rttOptions->rtoBackoffMultiplier = 2;
     return rttOptions;
   }
 
 protected:
   PipelineInterestsAdaptive::Options opt;
-  RttEstimator rttEstimator;
+  RttEstimatorWithStats rttEstimator;
   PipelineInterestsAdaptive* pipeline;
   static constexpr double MARGIN = 0.001;
 };

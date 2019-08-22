@@ -195,7 +195,7 @@ main(int argc, char* argv[])
     auto discover = make_unique<DiscoverVersion>(Name(uri), face, options);
     unique_ptr<PipelineInterests> pipeline;
     unique_ptr<StatisticsCollector> statsCollector;
-    unique_ptr<RttEstimator> rttEstimator;
+    unique_ptr<RttEstimatorWithStats> rttEstimator;
     std::ofstream statsFileCwnd;
     std::ofstream statsFileRtt;
 
@@ -205,27 +205,26 @@ main(int argc, char* argv[])
       pipeline = make_unique<PipelineInterestsFixed>(face, optionsPipeline);
     }
     else if (pipelineType == "aimd" || pipelineType == "cubic") {
-      RttEstimator::Options optionsRttEst;
-      optionsRttEst.alpha = rtoAlpha;
-      optionsRttEst.beta = rtoBeta;
-      optionsRttEst.k = k;
-      optionsRttEst.initialRto = 1_s;
-      optionsRttEst.minRto = time::milliseconds(minRto);
-      optionsRttEst.maxRto = time::milliseconds(maxRto);
-      optionsRttEst.rtoBackoffMultiplier = 2;
-      rttEstimator = make_unique<RttEstimator>(optionsRttEst);
-
+      auto optionsRttEst = make_shared<RttEstimatorWithStats::Options>();
+      optionsRttEst->alpha = rtoAlpha;
+      optionsRttEst->beta = rtoBeta;
+      optionsRttEst->k = k;
+      optionsRttEst->initialRto = 1_s;
+      optionsRttEst->minRto = time::milliseconds(minRto);
+      optionsRttEst->maxRto = time::milliseconds(maxRto);
+      optionsRttEst->rtoBackoffMultiplier = 2;
       if (options.isVerbose) {
         using namespace ndn::time;
         std::cerr << "RTT estimator parameters:\n"
-                  << "\tAlpha = " << optionsRttEst.alpha << "\n"
-                  << "\tBeta = " << optionsRttEst.beta << "\n"
-                  << "\tK = " << optionsRttEst.k << "\n"
-                  << "\tInitial RTO = " << duration_cast<milliseconds>(optionsRttEst.initialRto) << "\n"
-                  << "\tMin RTO = " << duration_cast<milliseconds>(optionsRttEst.minRto) << "\n"
-                  << "\tMax RTO = " << duration_cast<milliseconds>(optionsRttEst.maxRto) << "\n"
-                  << "\tBackoff multiplier = " << optionsRttEst.rtoBackoffMultiplier << "\n";
+                  << "\tAlpha = " << optionsRttEst->alpha << "\n"
+                  << "\tBeta = " << optionsRttEst->beta << "\n"
+                  << "\tK = " << optionsRttEst->k << "\n"
+                  << "\tInitial RTO = " << duration_cast<milliseconds>(optionsRttEst->initialRto) << "\n"
+                  << "\tMin RTO = " << duration_cast<milliseconds>(optionsRttEst->minRto) << "\n"
+                  << "\tMax RTO = " << duration_cast<milliseconds>(optionsRttEst->maxRto) << "\n"
+                  << "\tBackoff multiplier = " << optionsRttEst->rtoBackoffMultiplier << "\n";
       }
+      rttEstimator = make_unique<RttEstimatorWithStats>(std::move(optionsRttEst));
 
       PipelineInterestsAdaptive::Options optionsPipeline(options);
       optionsPipeline.disableCwa = disableCwa;
@@ -262,8 +261,7 @@ main(int argc, char* argv[])
             return 4;
           }
         }
-        statsCollector = make_unique<StatisticsCollector>(*adaptivePipeline, *rttEstimator,
-                                                          statsFileCwnd, statsFileRtt);
+        statsCollector = make_unique<StatisticsCollector>(*adaptivePipeline, statsFileCwnd, statsFileRtt);
       }
 
       pipeline = std::move(adaptivePipeline);

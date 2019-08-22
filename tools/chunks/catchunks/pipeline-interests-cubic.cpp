@@ -32,7 +32,7 @@ namespace chunks {
 
 constexpr double CUBIC_C = 0.4;
 
-PipelineInterestsCubic::PipelineInterestsCubic(Face& face, RttEstimator& rttEstimator,
+PipelineInterestsCubic::PipelineInterestsCubic(Face& face, RttEstimatorWithStats& rttEstimator,
                                                const Options& options)
   : PipelineInterestsAdaptive(face, rttEstimator, options)
   , m_cubicOptions(options)

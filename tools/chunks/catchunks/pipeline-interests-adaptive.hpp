@@ -40,7 +40,7 @@
 namespace ndn {
 namespace chunks {
 
-using util::RttEstimator;
+using util::RttEstimatorWithStats;
 
 class PipelineInterestsAdaptiveOptions : public Options
 {
@@ -111,7 +111,7 @@ public:
    * Configures the pipelining service without specifying the retrieval namespace. After this
    * configuration the method run must be called to start the Pipeline.
    */
-  PipelineInterestsAdaptive(Face& face, RttEstimator& rttEstimator,
+  PipelineInterestsAdaptive(Face& face, RttEstimatorWithStats& rttEstimator,
                             const Options& options = Options());
 
   ~PipelineInterestsAdaptive() override;
@@ -123,6 +123,20 @@ public:
    * time since the pipeline started and `cwnd` is the new congestion window size (in segments).
    */
   signal::Signal<PipelineInterestsAdaptive, time::nanoseconds, double> afterCwndChange;
+
+  struct RttSample
+  {
+    uint64_t segNum;          ///< segment number on which this sample was taken
+    time::nanoseconds rtt;    ///< measured RTT
+    time::nanoseconds sRtt;   ///< smoothed RTT
+    time::nanoseconds rttVar; ///< RTT variation
+    time::nanoseconds rto;    ///< retransmission timeout
+  };
+
+  /**
+   * @brief Signals when a new RTT sample has been taken.
+   */
+  signal::Signal<PipelineInterestsAdaptive, RttSample> afterRttMeasurement;
 
 protected:
   DECLARE_SIGNAL_EMIT(afterCwndChange)
@@ -206,7 +220,7 @@ PUBLIC_WITH_TESTS_ELSE_PROTECTED:
   double m_ssthresh; ///< current slow start threshold
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  RttEstimator& m_rttEstimator;
+  RttEstimatorWithStats& m_rttEstimator;
   Scheduler m_scheduler;
   scheduler::ScopedEventId m_checkRtoEvent;
 

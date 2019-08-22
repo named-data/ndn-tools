@@ -36,7 +36,7 @@ namespace chunks {
 class StatisticsCollector : noncopyable
 {
 public:
-  StatisticsCollector(PipelineInterestsAdaptive& pipeline, RttEstimator& rttEstimator,
+  StatisticsCollector(PipelineInterestsAdaptive& pipeline,
                       std::ostream& osCwnd, std::ostream& osRtt);
 
 private:

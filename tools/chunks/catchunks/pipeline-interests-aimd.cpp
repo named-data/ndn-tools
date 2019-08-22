@@ -33,7 +33,7 @@
 namespace ndn {
 namespace chunks {
 
-PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimator& rttEstimator,
+PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimatorWithStats& rttEstimator,
                                              const Options& options)
   : PipelineInterestsAdaptive(face, rttEstimator, options)
 {
