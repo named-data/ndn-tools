@@ -55,7 +55,7 @@ operator<<(std::ostream& os, const PipelineInterestsCubicOptions& options);
  * This implementation follows the RFC8312 https://tools.ietf.org/html/rfc8312
  * and the Linux kernel implementation https://github.com/torvalds/linux/blob/master/net/ipv4/tcp_cubic.c
  */
-class PipelineInterestsCubic : public PipelineInterestsAdaptive
+class PipelineInterestsCubic final : public PipelineInterestsAdaptive
 {
 public:
   using Options = PipelineInterestsCubicOptions;

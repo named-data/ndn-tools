@@ -62,7 +62,7 @@ public:
  * No guarantees are made as to the order in which segments are fetched or callbacks are invoked,
  * i.e. out-of-order delivery is possible.
  */
-class PipelineInterestsFixed : public PipelineInterests
+class PipelineInterestsFixed final : public PipelineInterests
 {
 public:
   typedef PipelineInterestsFixedOptions Options;
