@@ -34,10 +34,10 @@
 namespace ndn {
 namespace chunks {
 
-DiscoverVersion::DiscoverVersion(const Name& prefix, Face& face, const Options& options)
-  : chunks::Options(options)
+DiscoverVersion::DiscoverVersion(Face& face, const Name& prefix, const Options& options)
+  : m_face(face)
   , m_prefix(prefix)
-  , m_face(face)
+  , m_options(options)
 {
 }
 
@@ -50,24 +50,24 @@ DiscoverVersion::run()
   }
 
   Interest interest = MetadataObject::makeDiscoveryInterest(m_prefix)
-                                      .setInterestLifetime(interestLifetime);
+                      .setInterestLifetime(m_options.interestLifetime);
 
   m_fetcher = DataFetcher::fetch(m_face, interest,
-                                 maxRetriesOnTimeoutOrNack, maxRetriesOnTimeoutOrNack,
+                                 m_options.maxRetriesOnTimeoutOrNack, m_options.maxRetriesOnTimeoutOrNack,
                                  bind(&DiscoverVersion::handleData, this, _1, _2),
-                                 [this] (const Interest& interest, const std::string& reason) {
+                                 [this] (const Interest&, const std::string& reason) {
                                    onDiscoveryFailure(reason);
                                  },
-                                 [this] (const Interest& interest, const std::string& reason) {
+                                 [this] (const Interest&, const std::string& reason) {
                                    onDiscoveryFailure(reason);
                                  },
-                                 isVerbose);
+                                 m_options.isVerbose);
 }
 
 void
 DiscoverVersion::handleData(const Interest& interest, const Data& data)
 {
-  if (isVerbose)
+  if (m_options.isVerbose)
     std::cerr << "Data: " << data << std::endl;
 
   // make a metadata object from received metadata packet
@@ -85,7 +85,7 @@ DiscoverVersion::handleData(const Interest& interest, const Data& data)
     return;
   }
 
-  if (isVerbose) {
+  if (m_options.isVerbose) {
     std::cerr << "Discovered Data version: " << mobject.getVersionedName()[-1] << std::endl;
   }
 

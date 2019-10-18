@@ -136,11 +136,7 @@ BOOST_AUTO_TEST_CASE(OutputDataUnordered)
 class PipelineInterestsDummy : public PipelineInterests
 {
 public:
-  PipelineInterestsDummy(Face& face)
-    : PipelineInterests(face)
-    , isPipelineRunning(false)
-  {
-  }
+  using PipelineInterests::PipelineInterests;
 
 private:
   void
@@ -155,18 +151,19 @@ private:
   }
 
 public:
-  bool isPipelineRunning;
+  bool isPipelineRunning = false;
 };
 
 BOOST_FIXTURE_TEST_CASE(RunBasic, UnitTestTimeFixture)
 {
   boost::asio::io_service io;
   util::DummyClientFace face(io);
+  Options options;
   Consumer consumer(security::v2::getAcceptAllValidator());
 
   Name prefix = Name("/ndn/chunks/test").appendVersion(1);
-  auto discover = make_unique<DiscoverVersion>(prefix, face, Options());
-  auto pipeline = make_unique<PipelineInterestsDummy>(face);
+  auto discover = make_unique<DiscoverVersion>(face, prefix, options);
+  auto pipeline = make_unique<PipelineInterestsDummy>(face, options);
   auto pipelinePtr = pipeline.get();
 
   consumer.run(std::move(discover), std::move(pipeline));

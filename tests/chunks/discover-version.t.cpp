@@ -41,28 +41,18 @@ class DiscoverVersionFixture : public UnitTestTimeFixture,
                                public IdentityManagementFixture
 {
 public:
-  DiscoverVersionFixture()
-    : face(io)
-    , name("/ndn/chunks/test")
-    , isDiscoveryFinished(false)
-    , version(1449227841747)
-  {
-    opt.interestLifetime = ndn::DEFAULT_INTEREST_LIFETIME;
-    opt.maxRetriesOnTimeoutOrNack = 15;
-    opt.isVerbose = false;
-  }
-
   void
   run(const Name& prefix)
   {
     BOOST_REQUIRE(!prefix.empty());
-    discover = make_unique<DiscoverVersion>(prefix, face, opt);
+
+    discover = make_unique<DiscoverVersion>(face, prefix, opt);
     discover->onDiscoverySuccess.connect([this] (const Name& versionedName) {
-      isDiscoveryFinished = true;
       BOOST_REQUIRE(!versionedName.empty() && versionedName[-1].isVersion());
       discoveredVersion = versionedName[-1].toVersion();
+      isDiscoveryFinished = true;
     });
-    discover->onDiscoveryFailure.connect([this] (const std::string& reason) {
+    discover->onDiscoveryFailure.connect([this] (const std::string&) {
       isDiscoveryFinished = true;
     });
 
@@ -72,13 +62,13 @@ public:
 
 protected:
   boost::asio::io_service io;
-  util::DummyClientFace face;
-  Name name;
+  util::DummyClientFace face{io};
+  Name name = "/ndn/chunks/test";
+  Options opt;
   unique_ptr<DiscoverVersion> discover;
   optional<uint64_t> discoveredVersion;
-  bool isDiscoveryFinished;
-  uint64_t version;
-  Options opt;
+  bool isDiscoveryFinished = false;
+  uint64_t version = 1449227841747;
 };
 
 BOOST_AUTO_TEST_SUITE(Chunks)

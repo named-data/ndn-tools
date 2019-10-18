@@ -26,7 +26,6 @@
  */
 
 #include "tools/chunks/catchunks/pipeline-interests-cubic.hpp"
-#include "tools/chunks/catchunks/options.hpp"
 
 #include "pipeline-interests-fixture.hpp"
 
@@ -40,9 +39,9 @@ class PipelineInterestCubicFixture : public PipelineInterestsFixture
 {
 public:
   PipelineInterestCubicFixture()
-    : opt(makePipelineOptions())
-    , rttEstimator(makeRttEstimatorOptions())
+    : rttEstimator(makeRttEstimatorOptions())
   {
+    opt.isQuiet = true;
     createPipeline();
   }
 
@@ -55,24 +54,6 @@ public:
   }
 
 private:
-  static PipelineInterestsCubic::Options
-  makePipelineOptions()
-  {
-    PipelineInterestsCubic::Options pipelineOptions;
-    pipelineOptions.isQuiet = true;
-    pipelineOptions.isVerbose = false;
-    pipelineOptions.disableCwa = false;
-    pipelineOptions.ignoreCongMarks = false;
-    pipelineOptions.resetCwndToInit = false;
-    pipelineOptions.initCwnd = 1.0;
-    pipelineOptions.aiStep = 1.0;
-    pipelineOptions.mdCoef = 0.5;
-    pipelineOptions.initSsthresh = std::numeric_limits<int>::max();
-    pipelineOptions.cubicBeta = 0.7;
-    pipelineOptions.enableFastConv = false;
-    return pipelineOptions;
-  }
-
   static shared_ptr<RttEstimatorWithStats::Options>
   makeRttEstimatorOptions()
   {
@@ -88,7 +69,7 @@ private:
   }
 
 protected:
-  PipelineInterestsCubic::Options opt;
+  Options opt;
   RttEstimatorWithStats rttEstimator;
   PipelineInterestsCubic* pipeline;
   static constexpr double MARGIN = 0.001;

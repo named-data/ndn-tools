@@ -31,24 +31,6 @@
 namespace ndn {
 namespace chunks {
 
-class PipelineInterestsCubicOptions : public PipelineInterestsAdaptiveOptions
-{
-public:
-  explicit
-  PipelineInterestsCubicOptions(const PipelineInterestsAdaptiveOptions& options =
-                                PipelineInterestsAdaptiveOptions())
-    : PipelineInterestsAdaptiveOptions(options)
-  {
-  }
-
-public:
-  bool enableFastConv = false; ///< use cubic fast convergence
-  double cubicBeta = 0.7; ///< multiplicative decrease factor (from Linux kernel: 717/1024)
-};
-
-std::ostream&
-operator<<(std::ostream& os, const PipelineInterestsCubicOptions& options);
-
 /**
  * @brief Implements Cubic window increase and decrease.
  *
@@ -58,11 +40,7 @@ operator<<(std::ostream& os, const PipelineInterestsCubicOptions& options);
 class PipelineInterestsCubic final : public PipelineInterestsAdaptive
 {
 public:
-  using Options = PipelineInterestsCubicOptions;
-
-public:
-  PipelineInterestsCubic(Face& face, RttEstimatorWithStats& rttEstimator,
-                         const Options& options = Options());
+  PipelineInterestsCubic(Face& face, RttEstimatorWithStats& rttEstimator, const Options& opts);
 
 private:
   void
@@ -72,8 +50,6 @@ private:
   decreaseWindow() final;
 
 private:
-  const Options m_cubicOptions;
-
   double m_wmax = 0.0; ///< window size before last window decrease
   double m_lastWmax = 0.0; ///< last wmax
   time::steady_clock::TimePoint m_lastDecrease; ///< time of last window decrease

@@ -26,7 +26,6 @@
  */
 
 #include "tools/chunks/catchunks/pipeline-interests-aimd.hpp"
-#include "tools/chunks/catchunks/options.hpp"
 
 #include "pipeline-interests-fixture.hpp"
 
@@ -40,9 +39,9 @@ class PipelineInterestAimdFixture : public PipelineInterestsFixture
 {
 public:
   PipelineInterestAimdFixture()
-    : opt(makePipelineOptions())
-    , rttEstimator(makeRttEstimatorOptions())
+    : rttEstimator(makeRttEstimatorOptions())
   {
+    opt.isQuiet = true;
     createPipeline();
   }
 
@@ -55,22 +54,6 @@ public:
   }
 
 private:
-  static PipelineInterestsAdaptive::Options
-  makePipelineOptions()
-  {
-    PipelineInterestsAdaptive::Options pipelineOptions;
-    pipelineOptions.isQuiet = true;
-    pipelineOptions.isVerbose = false;
-    pipelineOptions.disableCwa = false;
-    pipelineOptions.ignoreCongMarks = false;
-    pipelineOptions.resetCwndToInit = false;
-    pipelineOptions.initCwnd = 1.0;
-    pipelineOptions.aiStep = 1.0;
-    pipelineOptions.mdCoef = 0.5;
-    pipelineOptions.initSsthresh = std::numeric_limits<int>::max();
-    return pipelineOptions;
-  }
-
   static shared_ptr<RttEstimatorWithStats::Options>
   makeRttEstimatorOptions()
   {
@@ -86,7 +69,7 @@ private:
   }
 
 protected:
-  PipelineInterestsAdaptive::Options opt;
+  Options opt;
   RttEstimatorWithStats rttEstimator;
   PipelineInterestsAdaptive* pipeline;
   static constexpr double MARGIN = 0.001;

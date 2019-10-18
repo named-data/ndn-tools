@@ -33,12 +33,15 @@
 namespace ndn {
 namespace chunks {
 
-PipelineInterestsFixed::PipelineInterestsFixed(Face& face, const Options& options)
-  : PipelineInterests(face)
-  , m_options(options)
-  , m_hasFailure(false)
+PipelineInterestsFixed::PipelineInterestsFixed(Face& face, const Options& opts)
+  : PipelineInterests(face, opts)
 {
   m_segmentFetchers.resize(m_options.maxPipelineSize);
+
+  if (m_options.isVerbose) {
+    printOptions();
+    std::cerr << "\tPipeline size = " << m_options.maxPipelineSize << "\n";
+  }
 }
 
 PipelineInterestsFixed::~PipelineInterestsFixed()

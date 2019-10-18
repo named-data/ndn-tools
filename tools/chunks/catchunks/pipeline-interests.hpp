@@ -31,7 +31,7 @@
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_HPP
 #define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_HPP
 
-#include "core/common.hpp"
+#include "options.hpp"
 
 namespace ndn {
 namespace chunks {
@@ -49,20 +49,19 @@ namespace chunks {
 class PipelineInterests
 {
 public:
-  using DataCallback = std::function<void(const Data&)>;
-  using FailureCallback = std::function<void(const std::string& reason)>;
-
   /**
-   * @brief create a PipelineInterests service
+   * @brief Constructor.
    *
    * Configures the pipelining service without specifying the retrieval namespace.
    * After construction, the method run() must be called in order to start the pipeline.
    */
-  explicit
-  PipelineInterests(Face& face);
+  PipelineInterests(Face& face, const Options& opts);
 
   virtual
   ~PipelineInterests();
+
+  using DataCallback = std::function<void(const Data&)>;
+  using FailureCallback = std::function<void(const std::string& reason)>;
 
   /**
    * @brief start fetching all the segments of the specified prefix
@@ -119,6 +118,9 @@ protected:
   void
   onFailure(const std::string& reason);
 
+  void
+  printOptions() const;
+
   /**
    * @brief print statistics about this fetching session
    *
@@ -150,6 +152,7 @@ private:
   doCancel() = 0;
 
 protected:
+  const Options& m_options;
   Face& m_face;
   Name m_prefix;
 

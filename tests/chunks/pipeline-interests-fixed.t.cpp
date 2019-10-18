@@ -37,8 +37,11 @@ class PipelineInterestFixedFixture : public PipelineInterestsFixture
 {
 public:
   PipelineInterestFixedFixture()
-    : opt(makeOptions())
   {
+    opt.interestLifetime = 1_s;
+    opt.maxRetriesOnTimeoutOrNack = 3;
+    opt.isQuiet = true;
+    opt.maxPipelineSize = 5;
     createPipeline();
   }
 
@@ -50,21 +53,8 @@ public:
     setPipeline(std::move(pline));
   }
 
-private:
-  static PipelineInterestsFixed::Options
-  makeOptions()
-  {
-    PipelineInterestsFixed::Options options;
-    options.isQuiet = true;
-    options.isVerbose = false;
-    options.interestLifetime = time::seconds(1);
-    options.maxRetriesOnTimeoutOrNack = 3;
-    options.maxPipelineSize = 5;
-    return options;
-  }
-
 protected:
-  PipelineInterestsFixed::Options opt;
+  Options opt;
   PipelineInterestsFixed* pipeline;
 };
 

@@ -27,19 +27,38 @@
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_OPTIONS_HPP
 #define NDN_TOOLS_CHUNKS_CATCHUNKS_OPTIONS_HPP
 
-#include <ndn-cxx/interest.hpp>
-#include <ndn-cxx/util/time.hpp>
+#include "core/common.hpp"
 
 namespace ndn {
 namespace chunks {
 
-struct Options
+struct Options : noncopyable
 {
+  // Common options
   time::milliseconds interestLifetime = DEFAULT_INTEREST_LIFETIME;
   int maxRetriesOnTimeoutOrNack = 15;
   bool mustBeFresh = false;
   bool isQuiet = false;
   bool isVerbose = false;
+
+  // Fixed pipeline options
+  size_t maxPipelineSize = 1;
+
+  // Adaptive pipeline common options
+  double initCwnd = 1.0;        ///< initial congestion window size
+  double initSsthresh = std::numeric_limits<double>::max(); ///< initial slow start threshold
+  time::milliseconds rtoCheckInterval{10}; ///< interval for checking retransmission timer
+  bool ignoreCongMarks = false; ///< disable window decrease after receiving congestion mark
+  bool disableCwa = false;      ///< disable conservative window adaptation
+
+  // AIMD pipeline options
+  double aiStep = 1.0;          ///< AIMD additive increase step (in segments)
+  double mdCoef = 0.5;          ///< AIMD multiplicative decrease factor
+  bool resetCwndToInit = false; ///< reduce cwnd to initCwnd when loss event occurs
+
+  // Cubic pipeline options
+  double cubicBeta = 0.7;       ///< cubic multiplicative decrease factor
+  bool enableFastConv = false;  ///< use cubic fast convergence
 };
 
 } // namespace chunks

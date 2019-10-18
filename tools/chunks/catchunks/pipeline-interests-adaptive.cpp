@@ -39,9 +39,8 @@ constexpr double PipelineInterestsAdaptive::MIN_SSTHRESH;
 
 PipelineInterestsAdaptive::PipelineInterestsAdaptive(Face& face,
                                                      RttEstimatorWithStats& rttEstimator,
-                                                     const Options& options)
-  : PipelineInterests(face)
-  , m_options(options)
+                                                     const Options& opts)
+  : PipelineInterests(face, opts)
   , m_cwnd(m_options.initCwnd)
   , m_ssthresh(m_options.initSsthresh)
   , m_rttEstimator(rttEstimator)
@@ -417,6 +416,22 @@ PipelineInterestsAdaptive::cancelInFlightSegmentsGreaterThan(uint64_t segNo)
 }
 
 void
+PipelineInterestsAdaptive::printOptions() const
+{
+  PipelineInterests::printOptions();
+  std::cerr
+      << "\tInitial congestion window size = " << m_options.initCwnd << "\n"
+      << "\tInitial slow start threshold = " << m_options.initSsthresh << "\n"
+      << "\tAdditive increase step = " << m_options.aiStep << "\n"
+      << "\tMultiplicative decrease factor = " << m_options.mdCoef << "\n"
+      << "\tRTO check interval = " << m_options.rtoCheckInterval << "\n"
+      << "\tReact to congestion marks = " << (m_options.ignoreCongMarks ? "no" : "yes") << "\n"
+      << "\tConservative window adaptation = " << (m_options.disableCwa ? "no" : "yes") << "\n"
+      << "\tResetting window to " << (m_options.resetCwndToInit ?
+                                        "initial value" : "ssthresh") << " upon loss event\n";
+}
+
+void
 PipelineInterestsAdaptive::printSummary() const
 {
   PipelineInterests::printSummary();
@@ -453,23 +468,6 @@ operator<<(std::ostream& os, SegmentState state)
     os << "Retransmitted";
     break;
   }
-  return os;
-}
-
-std::ostream&
-operator<<(std::ostream& os, const PipelineInterestsAdaptiveOptions& options)
-{
-  os << "Adaptive pipeline parameters:\n"
-     << "\tInitial congestion window size = " << options.initCwnd << "\n"
-     << "\tInitial slow start threshold = " << options.initSsthresh << "\n"
-     << "\tAdditive increase step = " << options.aiStep << "\n"
-     << "\tMultiplicative decrease factor = " << options.mdCoef << "\n"
-     << "\tRTO check interval = " << options.rtoCheckInterval << "\n"
-     << "\tMax retries on timeout or Nack = " << (options.maxRetriesOnTimeoutOrNack == DataFetcher::MAX_RETRIES_INFINITE ?
-                                                  "infinite" : to_string(options.maxRetriesOnTimeoutOrNack)) << "\n"
-     << "\tReact to congestion marks = " << (options.ignoreCongMarks ? "no" : "yes") << "\n"
-     << "\tConservative window adaptation = " << (options.disableCwa ? "no" : "yes") << "\n"
-     << "\tResetting window to " << (options.resetCwndToInit ? "initCwnd" : "ssthresh") << " upon loss event\n";
   return os;
 }
 

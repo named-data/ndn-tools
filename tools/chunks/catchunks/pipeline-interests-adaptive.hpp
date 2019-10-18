@@ -29,7 +29,6 @@
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_ADAPTIVE_HPP
 #define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_ADAPTIVE_HPP
 
-#include "options.hpp"
 #include "pipeline-interests.hpp"
 
 #include <ndn-cxx/util/rtt-estimator.hpp>
@@ -41,29 +40,6 @@ namespace ndn {
 namespace chunks {
 
 using util::RttEstimatorWithStats;
-
-class PipelineInterestsAdaptiveOptions : public Options
-{
-public:
-  explicit
-  PipelineInterestsAdaptiveOptions(const Options& options = Options())
-    : Options(options)
-  {
-  }
-
-public:
-  double initCwnd = 1.0; ///< initial congestion window size
-  double initSsthresh = std::numeric_limits<double>::max(); ///< initial slow start threshold
-  double aiStep = 1.0; ///< additive increase step (in segments)
-  double mdCoef = 0.5; ///< multiplicative decrease coefficient
-  time::milliseconds rtoCheckInterval{10}; ///< interval for checking retransmission timer
-  bool disableCwa = false; ///< disable Conservative Window Adaptation
-  bool resetCwndToInit = false; ///< reduce cwnd to initCwnd when loss event occurs
-  bool ignoreCongMarks = false; ///< disable window decrease after congestion marks
-};
-
-std::ostream&
-operator<<(std::ostream& os, const PipelineInterestsAdaptiveOptions& options);
 
 /**
  * @brief indicates the state of the segment
@@ -102,17 +78,13 @@ struct SegmentInfo
 class PipelineInterestsAdaptive : public PipelineInterests
 {
 public:
-  using Options = PipelineInterestsAdaptiveOptions;
-
-public:
   /**
    * @brief Constructor.
    *
    * Configures the pipelining service without specifying the retrieval namespace. After this
    * configuration the method run must be called to start the Pipeline.
    */
-  PipelineInterestsAdaptive(Face& face, RttEstimatorWithStats& rttEstimator,
-                            const Options& options = Options());
+  PipelineInterestsAdaptive(Face& face, RttEstimatorWithStats& rttEstimator, const Options& opts);
 
   ~PipelineInterestsAdaptive() override;
 
@@ -140,6 +112,9 @@ public:
 
 protected:
   DECLARE_SIGNAL_EMIT(afterCwndChange)
+
+  void
+  printOptions() const;
 
 private:
   /**
@@ -214,7 +189,6 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
 
 PUBLIC_WITH_TESTS_ELSE_PROTECTED:
   static constexpr double MIN_SSTHRESH = 2.0;
-  const Options m_options;
 
   double m_cwnd; ///< current congestion window size (in segments)
   double m_ssthresh; ///< current slow start threshold
