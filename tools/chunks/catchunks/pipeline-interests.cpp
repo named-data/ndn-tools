@@ -51,8 +51,10 @@ PipelineInterests::~PipelineInterests() = default;
 void
 PipelineInterests::run(const Name& versionedName, DataCallback dataCb, FailureCallback failureCb)
 {
-  BOOST_ASSERT(!versionedName.empty() && versionedName[-1].isVersion());
+  BOOST_ASSERT(m_options.disableVersionDiscovery ||
+               (!versionedName.empty() && versionedName[-1].isVersion()));
   BOOST_ASSERT(dataCb != nullptr);
+
   m_prefix = versionedName;
   m_onData = std::move(dataCb);
   m_onFailure = std::move(failureCb);

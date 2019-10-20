@@ -60,11 +60,14 @@ main(int argc, char* argv[])
     ("help,h",      "print this help message and exit")
     ("pipeline-type,p", po::value<std::string>(&pipelineType)->default_value(pipelineType),
                         "type of Interest pipeline to use; valid values are: 'fixed', 'aimd', 'cubic'")
-    ("fresh,f",     po::bool_switch(&options.mustBeFresh), "only return fresh content")
+    ("fresh,f",     po::bool_switch(&options.mustBeFresh),
+                    "only return fresh content (set MustBeFresh on all outgoing Interests)")
     ("lifetime,l",  po::value<time::milliseconds::rep>()->default_value(options.interestLifetime.count()),
                     "lifetime of expressed Interests, in milliseconds")
     ("retries,r",   po::value<int>(&options.maxRetriesOnTimeoutOrNack)->default_value(options.maxRetriesOnTimeoutOrNack),
                     "maximum number of retries in case of Nack or timeout (-1 = no limit)")
+    ("no-version-discovery,D", po::bool_switch(&options.disableVersionDiscovery),
+                    "skip version discovery, even if the supplied name does not end with a version component")
     ("quiet,q",     po::bool_switch(&options.isQuiet), "suppress all diagnostic output, except fatal errors")
     ("verbose,v",   po::bool_switch(&options.isVerbose), "turn on verbose output (per segment information")
     ("version,V",   "print program version and exit")
@@ -79,7 +82,7 @@ main(int argc, char* argv[])
   po::options_description adaptivePipeDesc("Adaptive pipeline options (AIMD & CUBIC)");
   adaptivePipeDesc.add_options()
     ("ignore-marks", po::bool_switch(&options.ignoreCongMarks),
-                     "do not decrease the window after receiving a congestion mark")
+                     "do not reduce the window after receiving a congestion mark")
     ("disable-cwa",  po::bool_switch(&options.disableCwa),
                      "disable Conservative Window Adaptation, i.e., reduce the window on "
                      "each timeout or congestion mark instead of at most once per RTT")

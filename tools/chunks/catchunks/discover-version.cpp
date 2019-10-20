@@ -44,7 +44,7 @@ DiscoverVersion::DiscoverVersion(Face& face, const Name& prefix, const Options& 
 void
 DiscoverVersion::run()
 {
-  if (!m_prefix.empty() && m_prefix[-1].isVersion()) {
+  if (m_options.disableVersionDiscovery || (!m_prefix.empty() && m_prefix[-1].isVersion())) {
     onDiscoverySuccess(m_prefix);
     return;
   }

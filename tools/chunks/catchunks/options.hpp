@@ -37,6 +37,7 @@ struct Options : noncopyable
   // Common options
   time::milliseconds interestLifetime = DEFAULT_INTEREST_LIFETIME;
   int maxRetriesOnTimeoutOrNack = 15;
+  bool disableVersionDiscovery = false;
   bool mustBeFresh = false;
   bool isQuiet = false;
   bool isVerbose = false;
