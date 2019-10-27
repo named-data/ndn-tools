@@ -46,7 +46,7 @@ struct Options : noncopyable
   size_t maxPipelineSize = 1;
 
   // Adaptive pipeline common options
-  double initCwnd = 1.0;        ///< initial congestion window size
+  double initCwnd = 2.0;        ///< initial congestion window size
   double initSsthresh = std::numeric_limits<double>::max(); ///< initial slow start threshold
   time::milliseconds rtoCheckInterval{10}; ///< interval for checking retransmission timer
   bool ignoreCongMarks = false; ///< disable window decrease after receiving congestion mark

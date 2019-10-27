@@ -70,10 +70,10 @@ PipelineInterestsCubic::increaseWindow()
     // 3. Target: W_cubic(t) = C*(t-K)^3 + wmax (Eq. 1)
     const double wCubic = CUBIC_C * std::pow(t - k, 3) + m_wmax;
 
-    // 4. Estimate of Reno Increase (Currently Disabled)
-    // const double rtt = m_rtt->GetCurrentEstimate().GetSeconds();
-    // const double w_est = wmax*m_beta + (3*(1-m_beta)/(1+m_beta)) * (t/rtt);
-    const double wEst = 0.0;
+    // 4. Estimate of Reno Increase (Eq. 4)
+    const double rtt = m_rttEstimator.getSmoothedRtt().count() / 1e9;
+    const double wEst = m_wmax * m_options.cubicBeta +
+                        (3 * (1 - m_options.cubicBeta) / (1 + m_options.cubicBeta)) * (t / rtt);
 
     // Actual adaptation
     double cubicIncrement = std::max(wCubic, wEst) - m_cwnd;

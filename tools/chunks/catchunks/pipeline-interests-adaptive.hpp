@@ -192,9 +192,9 @@ PUBLIC_WITH_TESTS_ELSE_PROTECTED:
 
   double m_cwnd; ///< current congestion window size (in segments)
   double m_ssthresh; ///< current slow start threshold
+  RttEstimatorWithStats& m_rttEstimator;
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  RttEstimatorWithStats& m_rttEstimator;
   Scheduler m_scheduler;
   scheduler::ScopedEventId m_checkRtoEvent;
 
