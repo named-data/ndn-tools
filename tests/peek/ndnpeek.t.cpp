@@ -24,6 +24,11 @@
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
 #include <boost/mpl/vector.hpp>
+#if BOOST_VERSION >= 105900
+#include <boost/test/tools/output_test_stream.hpp>
+#else
+#include <boost/test/output_test_stream.hpp>
+#endif
 
 namespace ndn {
 namespace peek {
