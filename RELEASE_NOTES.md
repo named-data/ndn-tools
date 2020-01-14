@@ -1,5 +1,35 @@
 # Release Notes
 
+## Version 0.7
+
+chunks:
+- Add `--no-version-discovery` option to ndncatchunks (Issue #5021)
+- Improve CUBIC performance on lossy networks (Issue #5036)
+- Switch to ndn-cxx's `RttEstimatorWithStats` class (Issue #4887)
+- Remove previously deprecated options `-d` and `-t` from ndncatchunks
+
+ping:
+- Change the short form of ndnpingserver's `--freshness` option to `-f`,
+  for consistency with ndnputchunks
+
+peek:
+- Add `--app-params`, `--app-params-file`, and `--hop-limit` options
+- The `--link-file` option now expects a raw binary file
+- Print Data name and Nack reason if `--verbose` is specified
+- Code cleanup
+- Manual page improvements
+
+poke:
+- Add `--signing-info` option, replacing `--digest` and `--identity` which are
+  now deprecated
+- Add `--verbose` option
+- Wait indefinitely if `--timeout` is not specified
+- The program now exits with status 3 when a timeout occurs and with status 5
+  if prefix registration fails
+- Rename `--force` option to `--unsolicited`
+- Code cleanup
+- Major rewrite of the manual page
+
 ## Version 0.6.4
 
 chunks:
