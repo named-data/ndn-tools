@@ -1,26 +1,33 @@
-# ndn-tools authors
+# ndn-tools Authors
 
-## All project authors and contributors
+The following lists maintainers, primary developers, and all much-appreciated contributors to ndn-tools in alphabetical order.
+The specific contributions of individual authors can be obtained from the git history of the [official ndn-tools repository](https://github.com/named-data/ndn-tools).
+If you would like to become a contributor to the official repository, please follow the recommendations in https://github.com/named-data/.github/blob/master/CONTRIBUTING.md.
 
-The following is an inevitably incomplete list of MUCH-APPRECIATED CONTRIBUTORS,
-people who have reported bugs, submitted patches, and implemented new features
-in ndn-tools:
-
-* Jerald Paul Abraham   <http://www.cs.arizona.edu/people/jeraldabraham/>
-* Alexander Afanasyev   <http://lasr.cs.ucla.edu/afanasyev/index.html>
-* Davide Pesavento      <https://www.linkedin.com/in/davidepesavento>
-* Junxiao Shi           <http://www.cs.arizona.edu/people/shijunxiao/>
-* Eric Newberry         <http://cs.arizona.edu/~enewberry/>
-* Xiaoke Jiang          <http://netarchlab.tsinghua.edu.cn/~shock/>
-* Yingdi Yu             <http://irl.cs.ucla.edu/~yingdi/>
-* Qi Zhao               <https://www.linkedin.com/pub/qi-zhao/73/835/9a3>
-* Seunghyun Yoo         <http://relue2718.com/>
-* Seungbae Kim          <https://sites.google.com/site/sbkimcv/>
-* Wentao Shang          <http://irl.cs.ucla.edu/~wentao/>
-* Steve DiBenedetto     <https://dibenede.github.io>
-* Andrea Tosatto        <https://linkedin.com/in/tosattoandrea>
-* Vince Lehman          <http://vslehman.com>
-* Weiwei Liu            <https://www.linkedin.com/in/weiweiliu10>
-* Zipeng Wang
+* Jerald Paul Abraham <https://cs.arizona.edu/~jeraldabraham>
+* ***(Maintainer)*** Alexander Afanasyev <https://users.cs.fiu.edu/~afanasyev>
+* Stephanie DiBenedetto
+* Ashlesh Gawande <https://www.linkedin.com/in/agawande>
+* Chavoosh Ghasemi <https://chavoosh.github.io>
+* Nick Gordon <https://github.com/gorgonical>
+* Xiaoke Jiang <http://netarchlab.tsinghua.edu.cn/~shock>
+* Seungbae Kim <https://sites.google.com/site/sbkimcv>
+* Vince Lehman <http://vslehman.com>
+* Zhuo Li <https://github.com/mrzhuoli>
+* Teng Liang <https://cs.arizona.edu/~philoliang>
+* Weiwei Liu <https://www.linkedin.com/in/weiweiliu10>
+* Eric Newberry <https://ericnewberry.com>
+* João Pereira <http://www.jpereira.co.uk>
+* ***(Maintainer)*** Davide Pesavento <https://github.com/Pesa>
+* Klaus Schneider <https://cs.arizona.edu/~klaus>
+* Wentao Shang <https://irl.cs.ucla.edu/~wentao>
+* Susmit Shannigrahi <https://susm.it>
+* Junxiao Shi <https://cs.arizona.edu/~shijunxiao>
+* Jeff Thompson <https://remap.ucla.edu/jeff-thompson>
+* Andrea Tosatto <https://linkedin.com/in/tosattoandrea>
+* Zipeng Wang <https://github.com/zpwang2113>
+* Ryan Wickman <https://rwickman.github.io>
+* Seunghyun Yoo <https://relue2718.com>
 * Qianshan Yu
-* Chavoosh Ghasemi
+* Yingdi Yu <https://irl.cs.ucla.edu/~yingdi>
+* Qi Zhao <https://web.cs.ucla.edu/~qi.zhao>
