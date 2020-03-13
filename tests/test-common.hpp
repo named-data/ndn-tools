@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018,  Regents of the University of California,
+ * Copyright (c) 2014-2020,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -74,14 +74,11 @@ protected:
 };
 
 /** \brief create an Interest
- *  \param name Interest name
- *  \param canBePrefix CanBePrefix setting
- *  \param lifetime InterestLifetime
- *  \param nonce if non-zero, set Nonce to this value (useful for creating Nack with same Nonce)
  */
 shared_ptr<Interest>
 makeInterest(const Name& name, bool canBePrefix = false,
-             time::milliseconds lifetime = DEFAULT_INTEREST_LIFETIME, uint32_t nonce = 0);
+             time::milliseconds lifetime = DEFAULT_INTEREST_LIFETIME,
+             optional<Interest::Nonce> nonce = nullopt);
 
 /** \brief create a Data with fake signature
  *  \note Data may be modified afterwards without losing the fake signature.
@@ -98,18 +95,16 @@ signData(Data& data);
 /** \brief add a fake signature to Data
  */
 inline shared_ptr<Data>
-signData(const shared_ptr<Data>& data)
+signData(shared_ptr<Data> data)
 {
   signData(*data);
   return data;
 }
 
 /** \brief create a Nack
- *  \param interest Interest
- *  \param reason Nack reason
  */
 lp::Nack
-makeNack(const Interest& interest, lp::NackReason reason);
+makeNack(Interest interest, lp::NackReason reason);
 
 } // namespace tests
 } // namespace ndn

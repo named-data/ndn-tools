@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2019, University of Memphis,
+ * Copyright (c) 2014-2020, University of Memphis,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
@@ -174,11 +174,11 @@ BOOST_AUTO_TEST_CASE(Interest)
 {
   auto interest = makeInterest("/test", false, DEFAULT_INTEREST_LIFETIME, 1);
   this->receive(*interest);
-  BOOST_CHECK(output.is_equal("0.000000 Ethernet, INTEREST: /test?Nonce=1\n"));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, INTEREST: /test?Nonce=00000001\n"));
   this->receive(interest->setCanBePrefix(true));
-  BOOST_CHECK(output.is_equal("0.000000 Ethernet, INTEREST: /test?CanBePrefix&Nonce=1\n"));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, INTEREST: /test?CanBePrefix&Nonce=00000001\n"));
   this->receive(interest->setInterestLifetime(50_ms));
-  BOOST_CHECK(output.is_equal("0.000000 Ethernet, INTEREST: /test?CanBePrefix&Nonce=1&Lifetime=50\n"));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, INTEREST: /test?CanBePrefix&Nonce=00000001&Lifetime=50\n"));
 }
 
 BOOST_AUTO_TEST_CASE(Data)
@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE(Nack)
   lpPacket.add<lp::NackField>(nack.getHeader());
 
   this->receive(lpPacket);
-  BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDNLPv2, NACK (Duplicate): /test?Nonce=1\n"));
+  BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDNLPv2, NACK (Duplicate): /test?Nonce=00000001\n"));
 }
 
 BOOST_AUTO_TEST_CASE(LpFragment)
@@ -440,9 +440,9 @@ BOOST_AUTO_TEST_CASE(FromFile)
 
   const std::string expected =
     "1571091605.129263 IP 127.0.0.1 > 127.0.0.1, TCP, length 36, "
-    "INTEREST: /producer/nack/no-route?Nonce=3301604226\n"
+    "INTEREST: /producer/nack/no-route?Nonce=827bcac4\n"
     "1571091605.129702 IP 127.0.0.1 > 127.0.0.1, TCP, length 49, "
-    "NDNLPv2, NACK (NoRoute): /producer/nack/no-route?Nonce=3301604226\n";
+    "NDNLPv2, NACK (NoRoute): /producer/nack/no-route?Nonce=827bcac4\n";
   BOOST_CHECK(output.is_equal(expected));
 }
 
@@ -452,7 +452,7 @@ BOOST_AUTO_TEST_CASE(LinuxSllTcp4)
   this->readFile("tests/dump/linux-sll-tcp4.pcap");
 
   const std::string expected =
-    "IP 162.211.64.84 > 131.179.196.46, TCP, length 41, INTEREST: /ndn/edu/arizona/ping/8202?Nonce=1059849935\n"
+    "IP 162.211.64.84 > 131.179.196.46, TCP, length 41, INTEREST: /ndn/edu/arizona/ping/8202?Nonce=cf062c3f\n"
     "IP 131.179.196.46 > 162.211.64.84, TCP, length 403, DATA: /ndn/edu/arizona/ping/8202\n";
   BOOST_CHECK(output.is_equal(expected));
 }
@@ -463,7 +463,7 @@ BOOST_AUTO_TEST_CASE(LinuxSllUdp4)
   this->readFile("tests/dump/linux-sll-udp4.pcap");
 
   const std::string expected =
-    "IP 162.211.64.84 > 131.179.196.46, UDP, length 42, INTEREST: /ndn/edu/arizona/ping/31044?Nonce=3171630323\n"
+    "IP 162.211.64.84 > 131.179.196.46, UDP, length 42, INTEREST: /ndn/edu/arizona/ping/31044?Nonce=f33c0bbd\n"
     "IP 131.179.196.46 > 162.211.64.84, UDP, length 404, DATA: /ndn/edu/arizona/ping/31044\n";
   BOOST_CHECK(output.is_equal(expected));
 }
@@ -475,7 +475,7 @@ BOOST_AUTO_TEST_CASE(LinuxSllTcp6)
 
   const std::string expected =
     "IP6 2602:fff6:d:b317::39f8 > 2001:660:3302:282c:160::163, TCP, length 42, "
-    "INTEREST: /ndn/edu/arizona/ping/19573?Nonce=777756283\n"
+    "INTEREST: /ndn/edu/arizona/ping/19573?Nonce=7b9e5b2e\n"
     "IP6 2001:660:3302:282c:160::163 > 2602:fff6:d:b317::39f8, TCP, length 404, "
     "DATA: /ndn/edu/arizona/ping/19573\n"
     "IP6 2001:660:3302:282c:160::163 > 2602:fff6:d:b317::39f8, TCP, length 56, "
@@ -490,7 +490,7 @@ BOOST_AUTO_TEST_CASE(LinuxSllUdp6)
 
   const std::string expected =
     "IP6 2602:fff6:d:b317::39f8 > 2001:660:3302:282c:160::163, UDP, length 39, "
-    "INTEREST: /ndn/edu/arizona/ping/18?Nonce=571618686\n"
+    "INTEREST: /ndn/edu/arizona/ping/18?Nonce=7e351222\n"
     "IP6 2001:660:3302:282c:160::163 > 2602:fff6:d:b317::39f8, UDP, length 401, "
     "DATA: /ndn/edu/arizona/ping/18\n"
     "IP6 2001:660:3302:282c:160::163 > 2602:fff6:d:b317::39f8, UDP, length 56, "
