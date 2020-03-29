@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-set -e
-
-JDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-source "$JDIR"/util.sh
-
-set -x
+set -ex
 
 # Prepare environment
 rm -rf ~/.ndn
@@ -30,8 +25,7 @@ ASAN_OPTIONS+=":check_initialization_order=1"
 ASAN_OPTIONS+=":detect_stack_use_after_return=1"
 ASAN_OPTIONS+=":strict_init_order=1"
 ASAN_OPTIONS+=":strict_string_checks=1"
-ASAN_OPTIONS+=":detect_invalid_pointer_pairs=1"
-ASAN_OPTIONS+=":detect_container_overflow=0"
+ASAN_OPTIONS+=":detect_invalid_pointer_pairs=2"
 ASAN_OPTIONS+=":strip_path_prefix=${PWD}/"
 export ASAN_OPTIONS
 

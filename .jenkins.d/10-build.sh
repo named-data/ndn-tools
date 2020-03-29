@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-set -e
-
-JDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-source "$JDIR"/util.sh
-
-set -x
+set -ex
 
 git submodule sync
 git submodule update --init

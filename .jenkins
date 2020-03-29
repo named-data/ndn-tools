@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
+source .jenkins.d/util.sh
 
+export CACHE_DIR=${CACHE_DIR:-/tmp}
 export WAF_JOBS=${WAF_JOBS:-1}
 
 nanos() {
