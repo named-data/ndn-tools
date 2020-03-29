@@ -7,9 +7,9 @@ source "$JDIR"/util.sh
 set -x
 
 # Prepare environment
-rm -Rf ~/.ndn
+rm -rf ~/.ndn
 
-BOOST_VERSION=$(python -c "import sys; sys.path.append('build/c4che'); import _cache; print(_cache.BOOST_VERSION_NUMBER);")
+BOOST_VERSION=$(python3 -c "import sys; sys.path.append('build/c4che'); import _cache; print(_cache.BOOST_VERSION_NUMBER);")
 
 ut_log_args() {
     if (( BOOST_VERSION >= 106200 )); then
@@ -24,13 +24,14 @@ ut_log_args() {
     fi
 }
 
+# https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
 ASAN_OPTIONS="color=always"
-ASAN_OPTIONS+=":detect_stack_use_after_return=true"
-ASAN_OPTIONS+=":check_initialization_order=true"
-ASAN_OPTIONS+=":strict_init_order=true"
+ASAN_OPTIONS+=":check_initialization_order=1"
+ASAN_OPTIONS+=":detect_stack_use_after_return=1"
+ASAN_OPTIONS+=":strict_init_order=1"
+ASAN_OPTIONS+=":strict_string_checks=1"
 ASAN_OPTIONS+=":detect_invalid_pointer_pairs=1"
-ASAN_OPTIONS+=":detect_container_overflow=false"
-ASAN_OPTIONS+=":strict_string_checks=true"
+ASAN_OPTIONS+=":detect_container_overflow=0"
 ASAN_OPTIONS+=":strip_path_prefix=${PWD}/"
 export ASAN_OPTIONS
 

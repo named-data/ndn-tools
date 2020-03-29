@@ -43,7 +43,7 @@ sudo rm -f /usr/local/lib{,64}/pkgconfig/libndn-cxx.pc
 pushd ndn-cxx >/dev/null
 
 ./waf --color=yes configure --disable-static --enable-shared --without-osx-keychain
-./waf --color=yes build -j${WAF_JOBS:-1}
+./waf --color=yes build -j$WAF_JOBS
 sudo_preserve_env PATH -- ./waf --color=yes install
 
 popd >/dev/null

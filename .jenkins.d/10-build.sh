@@ -6,34 +6,34 @@ source "$JDIR"/util.sh
 
 set -x
 
+git submodule sync
+git submodule update --init
+
 if [[ $JOB_NAME == *"code-coverage" ]]; then
     COVERAGE="--with-coverage"
 elif [[ -z $DISABLE_ASAN ]]; then
     ASAN="--with-sanitizer=address"
 fi
 
-# Cleanup
-sudo_preserve_env PATH -- ./waf --color=yes distclean
-
 if [[ $JOB_NAME != *"code-coverage" && $JOB_NAME != *"limited-build" ]]; then
     # Build in release mode with tests
     ./waf --color=yes configure --with-tests
-    ./waf --color=yes build -j${WAF_JOBS:-1}
+    ./waf --color=yes build -j$WAF_JOBS
 
     # Cleanup
-    sudo_preserve_env PATH -- ./waf --color=yes distclean
+    ./waf --color=yes distclean
 
     # Build in release mode without tests
     ./waf --color=yes configure
-    ./waf --color=yes build -j${WAF_JOBS:-1}
+    ./waf --color=yes build -j$WAF_JOBS
 
     # Cleanup
-    sudo_preserve_env PATH -- ./waf --color=yes distclean
+    ./waf --color=yes distclean
 fi
 
 # Build in debug mode with tests
 ./waf --color=yes configure --debug --with-tests $ASAN $COVERAGE
-./waf --color=yes build -j${WAF_JOBS:-1}
+./waf --color=yes build -j$WAF_JOBS
 
 # (tests will be run against the debug version)
 

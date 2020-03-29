@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = u'NDN Essential Tools'
-copyright = u'Copyright © 2014-2019 Named Data Networking Project.'
+copyright = u'Copyright © 2014-2020 Named Data Networking Project.'
 author = u'Named Data Networking Project'
 
 # The short X.Y version
@@ -57,13 +57,13 @@ master_doc = 'index'
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('ndnpeek',         'ndnpeek',          'simple consumer to send one Interest and expect one Data', [], 1),
-    ('ndnpoke',         'ndnpoke',          'simple producer to publish one Data',          [], 1),
-    ('ndnping',         'ndnping',          'reachability testing client',                  [], 1),
-    ('ndnpingserver',   'ndnpingserver',    'reachability testing server',                  [], 1),
-    ('ndnputchunks',    'ndnputchunks',     'producer program with content segmentation',   [], 1),
-    ('ndndump',         'ndndump',          'traffic analysis tool',                        [], 8),
-    ('ndn-dissect',     'ndn-dissect',      'NDN packet format inspector',                  [], 1),
+    ('ndnpeek',       'ndnpeek',       'simple consumer to send one Interest and receive one Data', [], 1),
+    ('ndnpoke',       'ndnpoke',       'simple producer to publish one Data',        [], 1),
+    ('ndnping',       'ndnping',       'reachability testing client',                [], 1),
+    ('ndnpingserver', 'ndnpingserver', 'reachability testing server',                [], 1),
+    ('ndnputchunks',  'ndnputchunks',  'producer program with content segmentation', [], 1),
+    ('ndndump',       'ndndump',       'traffic analysis tool',                      [], 8),
+    ('ndn-dissect',   'ndn-dissect',   'NDN packet format inspector',                [], 1),
 ]
 
 # If true, show URL addresses after external links.
