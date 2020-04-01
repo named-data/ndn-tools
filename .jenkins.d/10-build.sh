@@ -4,10 +4,11 @@ set -ex
 git submodule sync
 git submodule update --init
 
+if [[ -z $DISABLE_ASAN ]]; then
+    ASAN="--with-sanitizer=address"
+fi
 if [[ $JOB_NAME == *"code-coverage" ]]; then
     COVERAGE="--with-coverage"
-elif [[ -z $DISABLE_ASAN ]]; then
-    ASAN="--with-sanitizer=address"
 fi
 
 if [[ $JOB_NAME != *"code-coverage" && $JOB_NAME != *"limited-build" ]]; then
