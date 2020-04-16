@@ -83,6 +83,10 @@ before_script:
   - |
     : Enabling workarounds
     case "${TRAVIS_CPU_ARCH},${COMPILER}" in
+      arm64,g++*)
+        # Avoid exceeding the per-job time limit
+        export JOB_NAME=limited-build
+        ;;
       ppc64le,g++-7)
         # AddressSanitizer does not seem to be working
         export DISABLE_ASAN=yes
