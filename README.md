@@ -27,9 +27,9 @@ Please submit any bug reports or feature requests to the
 
 ## Contributing
 
-You're encouraged to contribute to ndn-tools!  If you are new to the NDN
+We greatly appreciate contributions to ndn-tools. If you are new to the NDN
 software community, please read [`README-dev.md`](README-dev.md) and the
-[Contributor's Guide](https://github.com/named-data/NFD/blob/master/CONTRIBUTING.md)
+[Contributor's Guide](https://github.com/named-data/.github/blob/master/CONTRIBUTING.md)
 to get started.
 
 ## License

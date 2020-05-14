@@ -1,11 +1,11 @@
 # -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
+from waflib import Context, Logs, Utils
+import os, subprocess
+
 VERSION = '0.7'
 APPNAME = 'ndn-tools'
 GIT_TAG_PREFIX = 'ndn-tools-'
-
-from waflib import Utils, Context
-import os, subprocess
 
 def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
@@ -14,16 +14,16 @@ def options(opt):
               'sphinx_build'],
              tooldir=['.waf-tools'])
 
-    opt_group = opt.add_option_group('Tools Options')
-
-    opt_group.add_option('--with-tests', action='store_true', default=False,
-                         help='Build unit tests')
+    optgrp = opt.add_option_group('Tools Options')
+    optgrp.add_option('--with-tests', action='store_true', default=False,
+                      help='Build unit tests')
 
     opt.recurse('tools')
 
 def configure(conf):
     conf.load(['compiler_cxx', 'gnu_dirs',
-               'default-compiler-flags', 'boost', 'sphinx_build'])
+               'default-compiler-flags', 'boost',
+               'sphinx_build'])
 
     conf.env.WITH_TESTS = conf.options.with_tests
 
@@ -37,9 +37,13 @@ def configure(conf):
 
     conf.check_boost(lib=boost_libs, mt=True)
     if conf.env.BOOST_VERSION_NUMBER < 105800:
-        conf.fatal('Minimum required Boost version is 1.58.0\n'
-                   'Please upgrade your distribution or manually install a newer version of Boost'
-                   ' (https://redmine.named-data.net/projects/nfd/wiki/Boost_FAQ)')
+        conf.fatal('The minimum supported version of Boost is 1.65.1.\n'
+                   'Please upgrade your distribution or manually install a newer version of Boost.\n'
+                   'For more information, see https://redmine.named-data.net/projects/nfd/wiki/Boost')
+    elif conf.env.BOOST_VERSION_NUMBER < 106501:
+        Logs.warn('WARNING: Using a version of Boost older than 1.65.1 is not officially supported and may not work.\n'
+                  'If you encounter any problems, please upgrade your distribution or manually install a newer version of Boost.\n'
+                  'For more information, see https://redmine.named-data.net/projects/nfd/wiki/Boost')
 
     conf.recurse('tools')
 

@@ -1,13 +1,12 @@
-ndn-tools unit tests
-====================
+# ndn-tools unit tests
 
 ## Assumptions
 
-Unit tests for a tool `foo` should be placed in the folder `foo` and build script for the tool
-should define `foo-objects` that includes all object files for the tool, except object files
-defining main function.
+Unit tests for a tool `foo` should be placed in the folder `foo` and the build script
+for the tool should define `foo-objects` that includes all object files for that tool,
+except the object that contains the `main()` function.
 
-For example,
+For example:
 
     bld(features='cxx',
         name='tool-subtool-objects',

@@ -35,16 +35,12 @@ sudo rm -f /usr/local/lib{,64}/pkgconfig/libndn-cxx.pc
 
 pushd ndn-cxx >/dev/null
 
-if has Linux $NODE_LABELS && [[ $CXX != clang* && -z $DISABLE_ASAN ]]; then
-    # https://stackoverflow.com/a/47022141
-    ASAN="--with-sanitizer=address"
-fi
 if has CentOS-8 $NODE_LABELS; then
     # https://bugzilla.redhat.com/show_bug.cgi?id=1721553
     PCH="--without-pch"
 fi
 
-./waf --color=yes configure --disable-static --enable-shared --without-osx-keychain $ASAN $PCH
+./waf --color=yes configure --disable-static --enable-shared --without-osx-keychain $PCH
 ./waf --color=yes build -j$WAF_JOBS
 sudo_preserve_env PATH -- ./waf --color=yes install
 
