@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2020, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(InOrderData)
 
   util::DummyClientFace face;
   output_test_stream output("");
-  Consumer cons(security::v2::getAcceptAllValidator(), output);
+  Consumer cons(security::getAcceptAllValidator(), output);
 
   auto interest = makeInterest(name, true);
 
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(OutOfOrderData)
 
   util::DummyClientFace face;
   output_test_stream output("");
-  Consumer cons(security::v2::getAcceptAllValidator(), output);
+  Consumer cons(security::getAcceptAllValidator(), output);
 
   auto interest = makeInterest(name, true);
   std::vector<shared_ptr<Data>> dataStore;
@@ -156,7 +156,7 @@ BOOST_FIXTURE_TEST_CASE(RunBasic, UnitTestTimeFixture)
   boost::asio::io_service io;
   util::DummyClientFace face(io);
   Options options;
-  Consumer consumer(security::v2::getAcceptAllValidator());
+  Consumer consumer(security::getAcceptAllValidator());
 
   Name prefix = Name("/ndn/chunks/test").appendVersion(1);
   auto discover = make_unique<DiscoverVersion>(face, prefix, options);

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2020, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -252,7 +252,7 @@ main(int argc, char* argv[])
       return 2;
     }
 
-    Consumer consumer(security::v2::getAcceptAllValidator());
+    Consumer consumer(security::getAcceptAllValidator());
     BOOST_ASSERT(discover != nullptr);
     BOOST_ASSERT(pipeline != nullptr);
     consumer.run(std::move(discover), std::move(pipeline));

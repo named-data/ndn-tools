@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2018, Regents of the University of California,
+ * Copyright (c) 2016-2020, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -31,8 +31,8 @@
 #include "discover-version.hpp"
 #include "pipeline-interests.hpp"
 
-#include <ndn-cxx/security/v2/validation-error.hpp>
-#include <ndn-cxx/security/v2/validator.hpp>
+#include <ndn-cxx/security/validation-error.hpp>
+#include <ndn-cxx/security/validator.hpp>
 
 namespace ndn {
 namespace chunks {
@@ -61,7 +61,7 @@ public:
   {
   public:
     explicit
-    DataValidationError(const security::v2::ValidationError& error)
+    DataValidationError(const security::ValidationError& error)
       : std::runtime_error(boost::lexical_cast<std::string>(error))
     {
     }
@@ -71,7 +71,7 @@ public:
    * @brief Create the consumer
    */
   explicit
-  Consumer(security::v2::Validator& validator, std::ostream& os = std::cout);
+  Consumer(security::Validator& validator, std::ostream& os = std::cout);
 
   /**
    * @brief Run the consumer
@@ -88,7 +88,7 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   writeInOrderData();
 
 private:
-  security::v2::Validator& m_validator;
+  security::Validator& m_validator;
   std::ostream& m_outputStream;
   unique_ptr<DiscoverVersion> m_discover;
   unique_ptr<PipelineInterests> m_pipeline;

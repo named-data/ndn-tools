@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2020, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -30,7 +30,7 @@
 namespace ndn {
 namespace chunks {
 
-Consumer::Consumer(security::v2::Validator& validator, std::ostream& os)
+Consumer::Consumer(security::Validator& validator, std::ostream& os)
   : m_validator(validator)
   , m_outputStream(os)
   , m_nextToPrint(0)
@@ -71,7 +71,7 @@ Consumer::handleData(const Data& data)
       m_bufferedData[getSegmentFromPacket(data)] = dataPtr;
       writeInOrderData();
     },
-    [] (const Data&, const security::v2::ValidationError& error) {
+    [] (const Data&, const security::ValidationError& error) {
       NDN_THROW(DataValidationError(error));
     });
 }

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California.
+/*
+ * Copyright (c) 2014-2020,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -18,11 +18,13 @@
  */
 
 #include "identity-management-fixture.hpp"
+
+#include <ndn-cxx/security/certificate.hpp>
 #include <ndn-cxx/security/pib/identity.hpp>
 #include <ndn-cxx/security/pib/key.hpp>
 #include <ndn-cxx/security/pib/pib.hpp>
-#include <ndn-cxx/security/v2/certificate.hpp>
 #include <ndn-cxx/util/io.hpp>
+
 #include <boost/filesystem.hpp>
 
 namespace ndn {
@@ -56,7 +58,7 @@ IdentityManagementFixture::addIdentity(const Name& identity, const KeyParams& pa
 bool
 IdentityManagementFixture::saveIdentityCertificate(const Name& identity, const std::string& filename, bool wantAdd)
 {
-  security::v2::Certificate cert;
+  security::Certificate cert;
   try {
     cert = m_keyChain.getPib().getIdentity(identity).getDefaultKey().getDefaultCertificate();
   }
