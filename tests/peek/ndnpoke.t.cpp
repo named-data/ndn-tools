@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2019,  Regents of the University of California,
+ * Copyright (c) 2014-2020,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(Basic)
   BOOST_CHECK_EQUAL(face.sentData.back().getFreshnessPeriod(), 0_ms);
   BOOST_CHECK_EQUAL(face.sentData.back().getContentType(), tlv::ContentType_Blob);
   BOOST_CHECK_EQUAL(face.sentData.back().getContent(), "150E48656C6C6F2C20776F726C64210A"_block);
-  BOOST_CHECK_EQUAL(face.sentData.back().getSignature().getType(), tlv::SignatureSha256WithEcdsa);
+  BOOST_CHECK_EQUAL(face.sentData.back().getSignatureType(), tlv::SignatureSha256WithEcdsa);
 
   // Check for prefix unregistration
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 2); // One for registration, one for unregistration
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(FreshnessPeriod)
   BOOST_CHECK_EQUAL(face.sentData.back().getName(), "/poke/test");
   BOOST_CHECK(!face.sentData.back().getFinalBlock());
   BOOST_CHECK_EQUAL(face.sentData.back().getFreshnessPeriod(), 1_s);
-  BOOST_CHECK_EQUAL(face.sentData.back().getSignature().getType(), tlv::SignatureSha256WithEcdsa);
+  BOOST_CHECK_EQUAL(face.sentData.back().getSignatureType(), tlv::SignatureSha256WithEcdsa);
 }
 
 BOOST_AUTO_TEST_CASE(FinalBlockId)
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(FinalBlockId)
   BOOST_REQUIRE(face.sentData.back().getFinalBlock());
   BOOST_CHECK_EQUAL(*(face.sentData.back().getFinalBlock()), name::Component("123"));
   BOOST_CHECK_EQUAL(face.sentData.back().getFreshnessPeriod(), 0_ms);
-  BOOST_CHECK_EQUAL(face.sentData.back().getSignature().getType(), tlv::SignatureSha256WithEcdsa);
+  BOOST_CHECK_EQUAL(face.sentData.back().getSignatureType(), tlv::SignatureSha256WithEcdsa);
 }
 
 BOOST_AUTO_TEST_CASE(DigestSha256)
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(DigestSha256)
   BOOST_CHECK_EQUAL(face.sentData.back().getName(), "/poke/test");
   BOOST_CHECK(!face.sentData.back().getFinalBlock());
   BOOST_CHECK_EQUAL(face.sentData.back().getFreshnessPeriod(), 0_ms);
-  BOOST_CHECK_EQUAL(face.sentData.back().getSignature().getType(), tlv::DigestSha256);
+  BOOST_CHECK_EQUAL(face.sentData.back().getSignatureType(), tlv::DigestSha256);
 }
 
 BOOST_AUTO_TEST_CASE(Unsolicited)
@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(Unsolicited)
   BOOST_CHECK_EQUAL(face.sentData.back().getName(), "/poke/test");
   BOOST_CHECK(!face.sentData.back().getFinalBlock());
   BOOST_CHECK_EQUAL(face.sentData.back().getFreshnessPeriod(), 0_ms);
-  BOOST_CHECK_EQUAL(face.sentData.back().getSignature().getType(), tlv::SignatureSha256WithEcdsa);
+  BOOST_CHECK_EQUAL(face.sentData.back().getSignatureType(), tlv::SignatureSha256WithEcdsa);
 }
 
 BOOST_AUTO_TEST_CASE(Timeout)

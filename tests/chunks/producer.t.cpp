@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019,  Regents of the University of California,
+ * Copyright (c) 2016-2020,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -115,9 +115,8 @@ BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
   auto lastData = face.sentData.back();
   BOOST_REQUIRE_EQUAL(lastData.getName().size(), prefix.size() + 2);
   BOOST_CHECK_EQUAL(lastData.getName()[-1].toSegment(), 0);
-  BOOST_REQUIRE(lastData.getFinalBlock());
-  BOOST_CHECK_EQUAL(lastData.getFinalBlock()->toSegment(), nSegments - 1);
-  BOOST_CHECK_EQUAL(lastData.getSignature().getKeyLocator().getName(), keyLocatorName);
+  BOOST_CHECK_EQUAL(lastData.getFinalBlock().value().toSegment(), nSegments - 1);
+  BOOST_CHECK_EQUAL(lastData.getKeyLocator().value().getName(), keyLocatorName);
 
   // segment request
   Name nameWithVersion(prefix);
@@ -131,9 +130,8 @@ BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
   lastData = face.sentData.back();
   BOOST_REQUIRE_EQUAL(lastData.getName().size(), prefix.size() + 2);
   BOOST_CHECK_EQUAL(lastData.getName()[-1].toSegment(), requestSegmentNo);
-  BOOST_REQUIRE(lastData.getFinalBlock());
-  BOOST_CHECK_EQUAL(lastData.getFinalBlock()->toSegment(), nSegments - 1);
-  BOOST_CHECK_EQUAL(lastData.getSignature().getKeyLocator().getName(), keyLocatorName);
+  BOOST_CHECK_EQUAL(lastData.getFinalBlock().value().toSegment(), nSegments - 1);
+  BOOST_CHECK_EQUAL(lastData.getKeyLocator().value().getName(), keyLocatorName);
 }
 
 BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
@@ -151,9 +149,8 @@ BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
   BOOST_REQUIRE_EQUAL(lastData.getName().size(), prefix.size() + 1);
   BOOST_CHECK_EQUAL(lastData.getName()[-2].toVersion(), version);
   BOOST_CHECK_EQUAL(lastData.getName()[-1].toSegment(), 0);
-  BOOST_REQUIRE(lastData.getFinalBlock());
-  BOOST_CHECK_EQUAL(lastData.getFinalBlock()->toSegment(), nSegments - 1);
-  BOOST_CHECK_EQUAL(lastData.getSignature().getKeyLocator().getName(), keyLocatorName);
+  BOOST_CHECK_EQUAL(lastData.getFinalBlock().value().toSegment(), nSegments - 1);
+  BOOST_CHECK_EQUAL(lastData.getKeyLocator().value().getName(), keyLocatorName);
 
   // segment request
   Name nameWithVersion(prefix);
@@ -167,9 +164,8 @@ BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
   BOOST_REQUIRE_EQUAL(lastData.getName().size(), prefix.size() + 1);
   BOOST_CHECK_EQUAL(lastData.getName()[-2].toVersion(), version);
   BOOST_CHECK_EQUAL(lastData.getName()[-1].toSegment(), requestSegmentNo);
-  BOOST_REQUIRE(lastData.getFinalBlock());
-  BOOST_CHECK_EQUAL(lastData.getFinalBlock()->toSegment(), nSegments - 1);
-  BOOST_CHECK_EQUAL(lastData.getSignature().getKeyLocator().getName(), keyLocatorName);
+  BOOST_CHECK_EQUAL(lastData.getFinalBlock().value().toSegment(), nSegments - 1);
+  BOOST_CHECK_EQUAL(lastData.getKeyLocator().value().getName(), keyLocatorName);
 }
 
 BOOST_AUTO_TEST_CASE(RequestNotExistingSegment)
@@ -186,9 +182,8 @@ BOOST_AUTO_TEST_CASE(RequestNotExistingSegment)
   auto lastData = face.sentData.back();
   BOOST_REQUIRE_EQUAL(lastData.getName().size(), prefix.size() + 2);
   BOOST_CHECK_EQUAL(lastData.getName()[-1].toSegment(), 0);
-  BOOST_REQUIRE(lastData.getFinalBlock());
-  BOOST_CHECK_EQUAL(lastData.getFinalBlock()->toSegment(), nSegments - 1);
-  BOOST_CHECK_EQUAL(lastData.getSignature().getKeyLocator().getName(), keyLocatorName);
+  BOOST_CHECK_EQUAL(lastData.getFinalBlock().value().toSegment(), nSegments - 1);
+  BOOST_CHECK_EQUAL(lastData.getKeyLocator().value().getName(), keyLocatorName);
 
   // segment request
   Name nameWithVersion(prefix);
