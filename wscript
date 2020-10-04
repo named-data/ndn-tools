@@ -3,7 +3,7 @@
 from waflib import Context, Logs, Utils
 import os, subprocess
 
-VERSION = '0.7'
+VERSION = '0.7.1'
 APPNAME = 'ndn-tools'
 GIT_TAG_PREFIX = 'ndn-tools-'
 

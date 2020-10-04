@@ -1,5 +1,12 @@
 # Release Notes
 
+## Version 0.7.1
+
+The build requirements have been increased to require Clang >= 4.0, Xcode >= 9.0, and Python >= 3.6.
+Meanwhile, it is *recommended* to use GCC >= 7.4.0 and Boost >= 1.65.1.
+
+This release contains minor build fixes and code cleanups.
+
 ## Version 0.7
 
 chunks:
