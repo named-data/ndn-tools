@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018,  Regents of the University of California.
+ * Copyright (c) 2014-2020,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -17,14 +17,15 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "boost-test.hpp"
+#include "core/common.hpp"
+
+#include "tests/boost-test.hpp"
 
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <stdlib.h>
 
 namespace ndn {
-namespace tools {
 namespace tests {
 
 class GlobalConfiguration
@@ -36,19 +37,22 @@ public:
     if (envHome)
       m_home = envHome;
 
-    boost::filesystem::path dir{TMP_TESTS_PATH};
-    dir /= "test-home";
-    ::setenv("HOME", dir.c_str(), 1);
+    auto testHome = boost::filesystem::path(UNIT_TESTS_TMPDIR) / "test-home";
+    if (::setenv("HOME", testHome.c_str(), 1) != 0)
+      NDN_THROW(std::runtime_error("setenv() failed"));
 
-    boost::filesystem::create_directories(dir);
-    std::ofstream clientConf((dir / ".ndn" / "client.conf").c_str());
+    boost::filesystem::create_directories(testHome);
+
+    std::ofstream clientConf((testHome / ".ndn" / "client.conf").c_str());
     clientConf << "pib=pib-sqlite3" << std::endl
                << "tpm=tpm-file" << std::endl;
   }
 
-  ~GlobalConfiguration()
+  ~GlobalConfiguration() noexcept
   {
-    if (!m_home.empty())
+    if (m_home.empty())
+      ::unsetenv("HOME");
+    else
       ::setenv("HOME", m_home.data(), 1);
   }
 
@@ -65,5 +69,4 @@ BOOST_GLOBAL_FIXTURE(GlobalConfiguration)
 #endif
 
 } // namespace tests
-} // namespace tools
 } // namespace ndn

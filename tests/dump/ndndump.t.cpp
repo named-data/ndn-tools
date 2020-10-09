@@ -20,7 +20,6 @@
 
 #include "tools/dump/ndndump.hpp"
 
-#include "tests/identity-management-fixture.hpp"
 #include "tests/test-common.hpp"
 
 #include <net/ethernet.h>
@@ -66,7 +65,7 @@ private:
   std::streambuf* originalBuffer;
 };
 
-class NdnDumpFixture : public IdentityManagementFixture
+class NdnDumpFixture
 {
 protected:
   NdnDumpFixture()

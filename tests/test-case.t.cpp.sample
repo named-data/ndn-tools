@@ -23,6 +23,8 @@
 //#include "unit-under-test.hpp"
 
 #include "tests/test-common.hpp"
+#include "tests/io-fixture.hpp"           // optional, for IoFixture
+//#include "tests/key-chain-fixture.hpp"  // optional, for KeyChainFixture
 
 namespace ndn {
 namespace tool_name {
@@ -46,12 +48,11 @@ BOOST_AUTO_TEST_CASE(Test1)
   BOOST_CHECK_EQUAL(i, 1);
 }
 
-// Use UnitTestTimeFixture to mock clocks.
-BOOST_FIXTURE_TEST_CASE(Test2, UnitTestTimeFixture)
+// Use ClockFixture or IoFixture to mock clocks.
+BOOST_FIXTURE_TEST_CASE(Test2, IoFixture)
 {
   // advanceClocks() increments mock clocks.
-  boost::asio::io_service io;
-  this->advanceClocks(io, time::milliseconds(500));
+  advanceClocks(500_ms);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

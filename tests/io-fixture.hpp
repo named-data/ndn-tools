@@ -23,69 +23,37 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NDN_TOOLS_TESTS_TEST_COMMON_HPP
-#define NDN_TOOLS_TESTS_TEST_COMMON_HPP
+#ifndef NDN_TOOLS_TESTS_IO_FIXTURE_HPP
+#define NDN_TOOLS_TESTS_IO_FIXTURE_HPP
 
-#include "core/common.hpp"
-#include "tests/boost-test.hpp"
+#include "tests/clock-fixture.hpp"
+
+#include <boost/asio/io_service.hpp>
 
 namespace ndn {
 namespace tests {
 
-/**
- * \brief Create an Interest
- */
-shared_ptr<Interest>
-makeInterest(const Name& name, bool canBePrefix = false,
-             optional<time::milliseconds> lifetime = nullopt,
-             optional<Interest::Nonce> nonce = nullopt);
-
-/**
- * \brief Create a Data with a null (i.e., empty) signature
- *
- * If a "real" signature is desired, use KeyChainFixture and sign again with `m_keyChain`.
- */
-shared_ptr<Data>
-makeData(const Name& name);
-
-/**
- * \brief Add a null signature to \p data
- */
-Data&
-signData(Data& data);
-
-/**
- * \brief Add a null signature to \p data
- */
-inline shared_ptr<Data>
-signData(shared_ptr<Data> data)
+class IoFixture : public ClockFixture
 {
-  signData(*data);
-  return data;
-}
+private:
+  void
+  afterTick() final
+  {
+    if (m_io.stopped()) {
+#if BOOST_VERSION >= 106600
+      m_io.restart();
+#else
+      m_io.reset();
+#endif
+    }
+    m_io.poll();
+  }
 
-/**
- * \brief Create a Nack
- */
-lp::Nack
-makeNack(Interest interest, lp::NackReason reason);
-
-/**
- * \brief Replace a name component in a packet
- * \param[inout] pkt the packet
- * \param index the index of the name component to replace
- * \param args arguments to name::Component constructor
- */
-template<typename Packet, typename ...Args>
-void
-setNameComponent(Packet& pkt, ssize_t index, Args&& ...args)
-{
-  Name name = pkt.getName();
-  name.set(index, name::Component(std::forward<Args>(args)...));
-  pkt.setName(name);
-}
+protected:
+  boost::asio::io_service m_io;
+};
 
 } // namespace tests
 } // namespace ndn
 
-#endif // NDN_TOOLS_TESTS_TEST_COMMON_HPP
+#endif // NDN_TOOLS_TESTS_IO_FIXTURE_HPP

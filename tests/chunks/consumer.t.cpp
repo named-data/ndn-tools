@@ -28,6 +28,7 @@
 #include "tools/chunks/catchunks/pipeline-interests.hpp"
 
 #include "tests/test-common.hpp"
+#include "tests/io-fixture.hpp"
 
 #include <ndn-cxx/security/validator-null.hpp>
 #include <ndn-cxx/util/dummy-client-face.hpp>
@@ -151,10 +152,9 @@ public:
   bool isPipelineRunning = false;
 };
 
-BOOST_FIXTURE_TEST_CASE(RunBasic, UnitTestTimeFixture)
+BOOST_FIXTURE_TEST_CASE(RunBasic, IoFixture)
 {
-  boost::asio::io_service io;
-  util::DummyClientFace face(io);
+  util::DummyClientFace face(m_io);
   Options options;
   Consumer consumer(security::getAcceptAllValidator());
 
@@ -166,7 +166,7 @@ BOOST_FIXTURE_TEST_CASE(RunBasic, UnitTestTimeFixture)
   BOOST_CHECK_EQUAL(pipelinePtr->isPipelineRunning, false);
 
   consumer.run(std::move(discover), std::move(pipeline));
-  this->advanceClocks(io, 1_ms);
+  this->advanceClocks(1_ms);
 
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 0); // no discovery Interests are issued
   BOOST_CHECK_EQUAL(pipelinePtr->isPipelineRunning, true);

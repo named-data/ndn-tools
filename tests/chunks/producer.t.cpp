@@ -26,7 +26,7 @@
 #include "tools/chunks/putchunks/producer.hpp"
 
 #include "tests/test-common.hpp"
-#include "tests/identity-management-fixture.hpp"
+#include "tests/key-chain-fixture.hpp"
 
 #include <ndn-cxx/metadata-object.hpp>
 #include <ndn-cxx/security/pib/identity.hpp>
@@ -42,7 +42,7 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class ProducerFixture : public IdentityManagementFixture
+class ProducerFixture : public KeyChainFixture
 {
 protected:
   ProducerFixture()

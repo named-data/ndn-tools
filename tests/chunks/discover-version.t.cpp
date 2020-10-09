@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2020, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -26,7 +26,8 @@
 #include "tools/chunks/catchunks/discover-version.hpp"
 
 #include "tests/test-common.hpp"
-#include "tests/identity-management-fixture.hpp"
+#include "tests/io-fixture.hpp"
+#include "tests/key-chain-fixture.hpp"
 
 #include <ndn-cxx/metadata-object.hpp>
 #include <ndn-cxx/util/dummy-client-face.hpp>
@@ -37,8 +38,7 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class DiscoverVersionFixture : public UnitTestTimeFixture,
-                               public IdentityManagementFixture
+class DiscoverVersionFixture : public IoFixture, public KeyChainFixture
 {
 public:
   void
@@ -56,14 +56,13 @@ public:
     });
 
     discover->run();
-    advanceClocks(io, 1_ns);
+    advanceClocks(1_ns);
   }
 
 protected:
   const Name name = "/ndn/chunks/test";
   const uint64_t version = 1449227841747;
-  boost::asio::io_service io;
-  util::DummyClientFace face{io};
+  util::DummyClientFace face{m_io};
   Options opt;
   unique_ptr<DiscoverVersion> discover;
   optional<Name> discoveredName;
@@ -113,7 +112,7 @@ BOOST_AUTO_TEST_CASE(Success)
   MetadataObject mobject;
   mobject.setVersionedName(Name(name).appendVersion(version));
   face.receive(mobject.makeData(lastInterest.getName(), m_keyChain));
-  advanceClocks(io, 1_ns);
+  advanceClocks(1_ns);
 
   BOOST_CHECK_EQUAL(discoveredVersion.value(), version);
 }
@@ -163,11 +162,11 @@ BOOST_AUTO_TEST_CASE(MaxRetriesExceeded)
   // timeout or nack discovery Interests
   for (int retries = 0; retries < opt.maxRetriesOnTimeoutOrNack * 2; ++retries) {
     if (retries % 2 == 0) {
-      advanceClocks(io, opt.interestLifetime);
+      advanceClocks(opt.interestLifetime);
     }
     else {
       face.receive(makeNack(face.sentInterests.back(), lp::NackReason::DUPLICATE));
-      advanceClocks(io, 1_ns);
+      advanceClocks(1_ns);
     }
 
     BOOST_CHECK_EQUAL(isDiscoveryFinished, false);
@@ -175,7 +174,7 @@ BOOST_AUTO_TEST_CASE(MaxRetriesExceeded)
   }
 
   // timeout the last sent Interest
-  advanceClocks(io, opt.interestLifetime);
+  advanceClocks(opt.interestLifetime);
 
   // finish discovery process without a resolved version number
   BOOST_CHECK_EQUAL(isDiscoveryFinished, true);
@@ -193,11 +192,11 @@ BOOST_AUTO_TEST_CASE(SuccessAfterNackAndTimeout)
   // timeout or nack discovery Interests
   for (int retries = 0; retries < opt.maxRetriesOnTimeoutOrNack * 2; ++retries) {
     if (retries % 2 == 0) {
-      advanceClocks(io, opt.interestLifetime);
+      advanceClocks(opt.interestLifetime);
     }
     else {
       face.receive(makeNack(face.sentInterests.back(), lp::NackReason::DUPLICATE));
-      advanceClocks(io, 1_ns);
+      advanceClocks(1_ns);
     }
 
     BOOST_CHECK_EQUAL(isDiscoveryFinished, false);
@@ -208,7 +207,7 @@ BOOST_AUTO_TEST_CASE(SuccessAfterNackAndTimeout)
   MetadataObject mobject;
   mobject.setVersionedName(Name(name).appendVersion(version));
   face.receive(mobject.makeData(face.sentInterests.back().getName(), m_keyChain));
-  advanceClocks(io, 1_ns);
+  advanceClocks(1_ns);
 
   BOOST_CHECK_EQUAL(discoveredVersion.value(), version);
 }

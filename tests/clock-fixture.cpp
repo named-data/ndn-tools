@@ -23,69 +23,38 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NDN_TOOLS_TESTS_TEST_COMMON_HPP
-#define NDN_TOOLS_TESTS_TEST_COMMON_HPP
-
-#include "core/common.hpp"
-#include "tests/boost-test.hpp"
+#include "tests/clock-fixture.hpp"
 
 namespace ndn {
 namespace tests {
 
-/**
- * \brief Create an Interest
- */
-shared_ptr<Interest>
-makeInterest(const Name& name, bool canBePrefix = false,
-             optional<time::milliseconds> lifetime = nullopt,
-             optional<Interest::Nonce> nonce = nullopt);
-
-/**
- * \brief Create a Data with a null (i.e., empty) signature
- *
- * If a "real" signature is desired, use KeyChainFixture and sign again with `m_keyChain`.
- */
-shared_ptr<Data>
-makeData(const Name& name);
-
-/**
- * \brief Add a null signature to \p data
- */
-Data&
-signData(Data& data);
-
-/**
- * \brief Add a null signature to \p data
- */
-inline shared_ptr<Data>
-signData(shared_ptr<Data> data)
+ClockFixture::ClockFixture()
+  : m_steadyClock(make_shared<time::UnitTestSteadyClock>())
+  , m_systemClock(make_shared<time::UnitTestSystemClock>())
 {
-  signData(*data);
-  return data;
+  time::setCustomClocks(m_steadyClock, m_systemClock);
 }
 
-/**
- * \brief Create a Nack
- */
-lp::Nack
-makeNack(Interest interest, lp::NackReason reason);
-
-/**
- * \brief Replace a name component in a packet
- * \param[inout] pkt the packet
- * \param index the index of the name component to replace
- * \param args arguments to name::Component constructor
- */
-template<typename Packet, typename ...Args>
-void
-setNameComponent(Packet& pkt, ssize_t index, Args&& ...args)
+ClockFixture::~ClockFixture()
 {
-  Name name = pkt.getName();
-  name.set(index, name::Component(std::forward<Args>(args)...));
-  pkt.setName(name);
+  time::setCustomClocks(nullptr, nullptr);
+}
+
+void
+ClockFixture::advanceClocks(time::nanoseconds tick, time::nanoseconds total)
+{
+  BOOST_ASSERT(tick > time::nanoseconds::zero());
+  BOOST_ASSERT(total >= time::nanoseconds::zero());
+
+  while (total > time::nanoseconds::zero()) {
+    auto t = std::min(tick, total);
+    m_steadyClock->advance(t);
+    m_systemClock->advance(t);
+    total -= t;
+
+    afterTick();
+  }
 }
 
 } // namespace tests
 } // namespace ndn
-
-#endif // NDN_TOOLS_TESTS_TEST_COMMON_HPP

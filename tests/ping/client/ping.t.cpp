@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2019,  Arizona Board of Regents.
+ * Copyright (c) 2014-2020,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -20,6 +20,8 @@
 #include "tools/ping/client/ping.hpp"
 
 #include "tests/test-common.hpp"
+#include "tests/io-fixture.hpp"
+
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
 namespace ndn {
@@ -34,20 +36,18 @@ BOOST_AUTO_TEST_SUITE(TestPing)
 
 using ping::client::Ping;
 
-BOOST_FIXTURE_TEST_CASE(Basic, UnitTestTimeFixture)
+BOOST_FIXTURE_TEST_CASE(Basic, IoFixture)
 {
+  util::DummyClientFace face(m_io, {true, true});
   Options pingOptions;
-  pingOptions.prefix = "ndn:/test-prefix";
+  pingOptions.prefix = "/test-prefix";
   pingOptions.shouldAllowStaleData = false;
   pingOptions.shouldGenerateRandomSeq = false;
   pingOptions.shouldPrintTimestamp = false;
   pingOptions.nPings = 4;
-  pingOptions.interval = time::milliseconds(100);
-  pingOptions.timeout = time::milliseconds(2000);
+  pingOptions.interval = 100_ms;
+  pingOptions.timeout = 2_s;
   pingOptions.startSeq = 1000;
-
-  boost::asio::io_service io;
-  util::DummyClientFace face(io, {true, true});
   Ping ping(face, pingOptions);
 
   int nFinishSignals = 0;
@@ -73,29 +73,24 @@ BOOST_FIXTURE_TEST_CASE(Basic, UnitTestTimeFixture)
 
   ping.start();
 
-  this->advanceClocks(io, time::milliseconds(1), 500);
+  this->advanceClocks(1_ms, 500);
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 4);
 
   auto data = makeData("/test-prefix/ping/1000");
   data->setFreshnessPeriod(1_s);
   face.receive(*data);
 
-  lp::Nack nack(face.sentInterests[1]);
-  nack.setReason(lp::NackReason::DUPLICATE);
-  face.receive(nack);
+  face.receive(makeNack(face.sentInterests[1], lp::NackReason::DUPLICATE));
 
   data = makeData("/test-prefix/ping/1002");
   data->setFreshnessPeriod(1_s);
   face.receive(*data);
 
-  this->advanceClocks(io, time::milliseconds(100), 20);
+  this->advanceClocks(100_ms, 20);
 
-  // ndn:/test-prefix/ping/1003 is unanswered and will timeout
+  // /test-prefix/ping/1003 is unanswered and will timeout
 
   BOOST_CHECK_EQUAL(nFinishSignals, 1);
-
-  face.shutdown();
-  io.stop();
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestPing

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2020, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -32,6 +32,7 @@
 #include "tools/chunks/catchunks/pipeline-interests.hpp"
 
 #include "tests/test-common.hpp"
+#include "tests/io-fixture.hpp"
 
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
@@ -41,7 +42,7 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class PipelineInterestsFixture : public UnitTestTimeFixture
+class PipelineInterestsFixture : public IoFixture
 {
 protected:
   void
@@ -78,8 +79,7 @@ protected:
   }
 
 protected:
-  boost::asio::io_service io;
-  util::DummyClientFace face{io};
+  util::DummyClientFace face{m_io};
   Name name{"/ndn/chunks/test"};
   uint64_t nDataSegments = 0;
   bool hasFailed = false;

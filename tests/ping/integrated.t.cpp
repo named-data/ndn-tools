@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2018,  Arizona Board of Regents.
+ * Copyright (c) 2015-2020,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -17,10 +17,13 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "tools/ping/server/ping-server.hpp"
 #include "tools/ping/client/ping.hpp"
+#include "tools/ping/server/ping-server.hpp"
 
-#include "tests/identity-management-fixture.hpp"
+#include "tests/test-common.hpp"
+#include "tests/io-fixture.hpp"
+#include "tests/key-chain-fixture.hpp"
+
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
 namespace ndn {
@@ -29,25 +32,25 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class PingIntegratedFixture : public IdentityManagementTimeFixture
+class PingIntegratedFixture : public IoFixture, public KeyChainFixture
 {
 public:
   PingIntegratedFixture()
-    : serverFace(io, m_keyChain, {false, true})
-    , clientFace(io, m_keyChain, {false, true})
+    : serverFace(m_io, m_keyChain, {false, true})
+    , clientFace(m_io, m_keyChain, {false, true})
     , wantLoss(false)
   {
     serverFace.onSendInterest.connect([this] (const Interest& interest) {
-      io.post([=] { if (!wantLoss) { clientFace.receive(interest); } });
+      m_io.post([=] { if (!wantLoss) { clientFace.receive(interest); } });
     });
     clientFace.onSendInterest.connect([this] (const Interest& interest) {
-      io.post([=] { if (!wantLoss) { serverFace.receive(interest); } });
+      m_io.post([=] { if (!wantLoss) { serverFace.receive(interest); } });
     });
     serverFace.onSendData.connect([this] (const Data& data) {
-      io.post([=] { if (!wantLoss) { clientFace.receive(data); } });
+      m_io.post([=] { if (!wantLoss) { clientFace.receive(data); } });
     });
     clientFace.onSendData.connect([this] (const Data& data) {
-      io.post([=] { if (!wantLoss) { serverFace.receive(data); } });
+      m_io.post([=] { if (!wantLoss) { serverFace.receive(data); } });
     });
   }
 
@@ -55,11 +58,10 @@ public:
   {
     serverFace.shutdown();
     clientFace.shutdown();
-    io.stop();
+    m_io.stop();
   }
 
 public:
-  boost::asio::io_service io;
   util::DummyClientFace serverFace;
   util::DummyClientFace clientFace;
   std::unique_ptr<server::PingServer> server;
@@ -92,11 +94,11 @@ BOOST_FIXTURE_TEST_CASE(Normal, PingIntegratedFixture)
   clientOpts.timeout = 2_s;
   clientOpts.startSeq = 1000;
   client = make_unique<client::Ping>(clientFace, clientOpts);
-  client->afterFinish.connect(bind(&PingIntegratedFixture::onFinish, this));
+  client->afterFinish.connect([this] { onFinish(); });
   client->start();
 
-  advanceClocks(io, 1_ms, 400);
-  io.run();
+  advanceClocks(1_ms, 400);
+  m_io.run();
 
   BOOST_CHECK_EQUAL(4, server->getNPings());
 }
@@ -125,11 +127,11 @@ BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
   clientOpts.timeout = 500_ms;
   clientOpts.startSeq = 1000;
   client = make_unique<client::Ping>(clientFace, clientOpts);
-  client->afterFinish.connect(bind(&PingIntegratedFixture::onFinish, this));
+  client->afterFinish.connect([this] { onFinish(); });
   client->start();
 
-  advanceClocks(io, 1_ms, 1000);
-  io.run();
+  advanceClocks(1_ms, 1000);
+  m_io.run();
 
   BOOST_CHECK_EQUAL(0, server->getNPings());
 }
