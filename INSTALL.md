@@ -22,7 +22,7 @@ This document describes how to build and install ndn-tools.
 
     On CentOS and Fedora:
 
-        sudo dnf config-manager --enable PowerTools  # CentOS only
+        sudo dnf config-manager --enable powertools  # CentOS only
         sudo dnf install libpcap-devel
 
 ## Build Steps
