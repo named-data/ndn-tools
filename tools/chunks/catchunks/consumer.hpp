@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2020, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -33,6 +33,8 @@
 
 #include <ndn-cxx/security/validation-error.hpp>
 #include <ndn-cxx/security/validator.hpp>
+
+#include <map>
 
 namespace ndn {
 namespace chunks {

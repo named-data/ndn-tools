@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2019,  Regents of the University of California.
+ * Copyright (c) 2014-2021,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -21,15 +21,15 @@
 #include "core/version.hpp"
 
 #include <boost/program_options/options_description.hpp>
-#include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
 
 #include <fstream>
 
-namespace po = boost::program_options;
-
 namespace ndn {
 namespace dissect {
+
+namespace po = boost::program_options;
 
 static void
 usage(std::ostream& os, const std::string& appName, const po::options_description& options)
@@ -43,34 +43,27 @@ usage(std::ostream& os, const std::string& appName, const po::options_descriptio
 static int
 main(int argc, char* argv[])
 {
+  std::string inputFileName;
+
   po::options_description visibleOptions;
   visibleOptions.add_options()
-    ("help,h", "Print help and exit.")
-    ("version,V", "Print version and exit.")
+    ("help,h",    "print help and exit")
+    ("version,V", "print version and exit")
     ;
 
-  std::string inputFileName;
   po::options_description hiddenOptions;
   hiddenOptions.add_options()
     ("input-file", po::value<std::string>(&inputFileName));
-  ;
-  po::positional_options_description positionalArguments;
-  positionalArguments
-    .add("input-file", -1);
 
   po::options_description allOptions;
-  allOptions
-    .add(visibleOptions)
-    .add(hiddenOptions)
-    ;
+  allOptions.add(visibleOptions).add(hiddenOptions);
+
+  po::positional_options_description pos;
+  pos.add("input-file", -1);
 
   po::variables_map vm;
   try {
-    po::store(po::command_line_parser(argc, argv)
-                .options(allOptions)
-                .positional(positionalArguments)
-                .run(),
-              vm);
+    po::store(po::command_line_parser(argc, argv).options(allOptions).positional(pos).run(), vm);
     po::notify(vm);
   }
   catch (const po::error& e) {

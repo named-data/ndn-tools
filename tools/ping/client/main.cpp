@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2019,  Arizona Board of Regents.
+ * Copyright (c) 2014-2021,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -26,6 +26,11 @@
 #include "ping.hpp"
 #include "statistics-collector.hpp"
 #include "tracer.hpp"
+
+#include <boost/asio/signal_set.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
 
 namespace ndn {
 namespace ping {

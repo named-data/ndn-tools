@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2013-2019, Regents of the University of California.
+ * Copyright (c) 2013-2021, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -24,6 +24,7 @@
 #include "ndn-dissect.hpp"
 
 #include <algorithm>
+#include <map>
 
 #include <ndn-cxx/name-component.hpp>
 #include <ndn-cxx/encoding/tlv.hpp>

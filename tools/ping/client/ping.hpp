@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2019,  Arizona Board of Regents.
+ * Copyright (c) 2015-2021,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -25,6 +25,8 @@
 #define NDN_TOOLS_PING_CLIENT_PING_HPP
 
 #include "core/common.hpp"
+
+#include <ndn-cxx/util/signal.hpp>
 
 namespace ndn {
 namespace ping {
@@ -62,7 +64,7 @@ public:
    * @param seq ping sequence number
    * @param rtt round trip time
    */
-  signal::Signal<Ping, uint64_t, Rtt> afterData;
+  util::Signal<Ping, uint64_t, Rtt> afterData;
 
   /**
    * @brief Signals on the return of a Nack
@@ -71,19 +73,19 @@ public:
    * @param rtt round trip time
    * @param header the received Network NACK header
    */
-  signal::Signal<Ping, uint64_t, Rtt, lp::NackHeader> afterNack;
+  util::Signal<Ping, uint64_t, Rtt, lp::NackHeader> afterNack;
 
   /**
    * @brief Signals on timeout of a packet
    *
    * @param seq ping sequence number
    */
-  signal::Signal<Ping, uint64_t> afterTimeout;
+  util::Signal<Ping, uint64_t> afterTimeout;
 
   /**
    * @brief Signals when finished pinging
    */
-  signal::Signal<Ping> afterFinish;
+  util::Signal<Ping> afterFinish;
 
   /**
    * @brief Start sending ping interests

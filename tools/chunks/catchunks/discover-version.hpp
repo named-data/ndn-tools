@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -31,6 +31,8 @@
 
 #include "options.hpp"
 
+#include <ndn-cxx/util/signal.hpp>
+
 namespace ndn {
 namespace chunks {
 
@@ -44,23 +46,19 @@ class DataFetcher;
  */
 class DiscoverVersion
 {
-public: // signals
-  /**
-   * @brief Signal emitted when the versioned name of Data is found.
-   */
-  signal::Signal<DiscoverVersion, Name> onDiscoverySuccess;
-
-  /**
-   * @brief Signal emitted when a failure occurs.
-   */
-  signal::Signal<DiscoverVersion, std::string> onDiscoveryFailure;
-
 public:
   DiscoverVersion(Face& face, const Name& prefix, const Options& options);
 
   /**
-   * @brief identify the latest Data version published.
+   * @brief Signal emitted when the versioned name of Data is found.
    */
+  util::Signal<DiscoverVersion, Name> onDiscoverySuccess;
+
+  /**
+   * @brief Signal emitted when a failure occurs.
+   */
+  util::Signal<DiscoverVersion, std::string> onDiscoveryFailure;
+
   void
   run();
 

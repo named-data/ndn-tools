@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2020,  Regents of the University of California,
+ * Copyright (c) 2016-2021,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -26,6 +26,7 @@
 #include "tools/chunks/putchunks/producer.hpp"
 
 #include "tests/test-common.hpp"
+#include "tests/io-fixture.hpp"
 #include "tests/key-chain-fixture.hpp"
 
 #include <ndn-cxx/metadata-object.hpp>
@@ -42,32 +43,26 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class ProducerFixture : public KeyChainFixture
+class ProducerFixture : public IoFixture, public KeyChainFixture
 {
 protected:
   ProducerFixture()
-    : face(io, {true, true})
-    , prefix("/ndn/chunks/test")
-    , version(1449227841747)
-    , keyLocatorName(m_keyChain.createIdentity("/ProducerFixture").getDefaultKey().getName())
-    , testString(std::string(
-        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget "
-        "dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, "
-        "nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, "
-        "sem. Nulla consequat massa Donec pede justo,"))
   {
     options.maxSegmentSize = 40;
     options.isQuiet = true;
   }
 
 protected:
-  boost::asio::io_service io;
-  util::DummyClientFace face;
-  Name prefix;
+  util::DummyClientFace face{m_io, {true, true}};
+  Name prefix = "/ndn/chunks/test";
   Producer::Options options;
-  uint64_t version;
-  Name keyLocatorName;
-  std::istringstream testString;
+  uint64_t version = 1449227841747;
+  Name keyLocatorName = m_keyChain.createIdentity("/ProducerFixture").getDefaultKey().getName();
+  std::istringstream testString{
+    "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget "
+    "dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, "
+    "nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, "
+    "sem. Nulla consequat massa Donec pede justo,"s};
 };
 
 BOOST_AUTO_TEST_SUITE(Chunks)
@@ -94,8 +89,9 @@ BOOST_AUTO_TEST_CASE(InputData)
     Producer prod(prefix, face, m_keyChain, input, options);
 
     size_t expectedSize = std::ceil(static_cast<double>(testStrings[i].size()) / options.maxSegmentSize);
-    if (testStrings[i].empty())
+    if (testStrings[i].empty()) {
       expectedSize = 1;
+    }
 
     BOOST_CHECK_EQUAL(prod.m_store.size(), expectedSize);
   }
@@ -104,7 +100,7 @@ BOOST_AUTO_TEST_CASE(InputData)
 BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
 {
   Producer producer(prefix, face, m_keyChain, testString, options);
-  io.poll();
+  m_io.poll();
   size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / options.maxSegmentSize);
 
   // version request
@@ -137,7 +133,7 @@ BOOST_AUTO_TEST_CASE(RequestSegmentUnspecifiedVersion)
 BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
 {
   Producer producer(prefix.appendVersion(version), face, m_keyChain, testString, options);
-  io.poll();
+  m_io.poll();
   size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / options.maxSegmentSize);
 
   // version request
@@ -171,7 +167,7 @@ BOOST_AUTO_TEST_CASE(RequestSegmentSpecifiedVersion)
 BOOST_AUTO_TEST_CASE(RequestNotExistingSegment)
 {
   Producer producer(prefix, face, m_keyChain, testString, options);
-  io.poll();
+  m_io.poll();
   size_t nSegments = std::ceil(static_cast<double>(testString.str().size()) / options.maxSegmentSize);
 
   // version request
@@ -198,7 +194,7 @@ BOOST_AUTO_TEST_CASE(RequestNotExistingSegment)
 BOOST_AUTO_TEST_CASE(RequestMetadata)
 {
   Producer producer(prefix.appendVersion(version), face, m_keyChain, testString, options);
-  io.poll();
+  m_io.poll();
 
   // ask for metadata with a valid discovery interest
   face.receive(MetadataObject::makeDiscoveryInterest(Name(prefix).getPrefix(-1)));

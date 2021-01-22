@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2020, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -39,6 +39,10 @@
 
 #include <fstream>
 #include <ndn-cxx/security/validator-null.hpp>
+
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
 
 namespace ndn {
 namespace chunks {

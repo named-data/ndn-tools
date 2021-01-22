@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -32,6 +32,7 @@
 #include "pipeline-interests.hpp"
 
 #include <ndn-cxx/util/rtt-estimator.hpp>
+#include <ndn-cxx/util/signal.hpp>
 
 #include <queue>
 #include <unordered_map>
@@ -94,7 +95,7 @@ public:
    * The callback function should be: `void(nanoseconds age, double cwnd)`, where `age` is the
    * time since the pipeline started and `cwnd` is the new congestion window size (in segments).
    */
-  signal::Signal<PipelineInterestsAdaptive, time::nanoseconds, double> afterCwndChange;
+  util::Signal<PipelineInterestsAdaptive, time::nanoseconds, double> afterCwndChange;
 
   struct RttSample
   {
@@ -108,7 +109,7 @@ public:
   /**
    * @brief Signals when a new RTT sample has been taken.
    */
-  signal::Signal<PipelineInterestsAdaptive, RttSample> afterRttMeasurement;
+  util::Signal<PipelineInterestsAdaptive, RttSample> afterRttMeasurement;
 
 protected:
   DECLARE_SIGNAL_EMIT(afterCwndChange)

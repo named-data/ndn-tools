@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020,  Regents of the University of California,
+ * Copyright (c) 2014-2021,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -43,20 +43,15 @@
 #include <functional>
 #include <iostream>
 #include <limits>
-#include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <boost/asio.hpp>
 #include <boost/assert.hpp>
 #include <boost/core/noncopyable.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/variables_map.hpp>
-#include <boost/program_options/parsers.hpp>
 
 #include <ndn-cxx/data.hpp>
 #include <ndn-cxx/face.hpp>
@@ -66,7 +61,6 @@
 #include <ndn-cxx/util/backports.hpp>
 #include <ndn-cxx/util/exception.hpp>
 #include <ndn-cxx/util/scheduler.hpp>
-#include <ndn-cxx/util/signal.hpp>
 #include <ndn-cxx/util/time.hpp>
 
 namespace ndn {
@@ -79,8 +73,6 @@ using std::make_unique;
 using std::size_t;
 
 using boost::noncopyable;
-
-namespace signal = util::signal;
 
 } // namespace ndn
 

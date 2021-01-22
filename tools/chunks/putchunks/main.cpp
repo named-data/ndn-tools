@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -30,10 +30,14 @@
 #include "core/version.hpp"
 #include "producer.hpp"
 
-namespace po = boost::program_options;
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
 
 namespace ndn {
 namespace chunks {
+
+namespace po = boost::program_options;
 
 static void
 usage(std::ostream& os, const std::string& programName, const po::options_description& desc)
