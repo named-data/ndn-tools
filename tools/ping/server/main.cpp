@@ -127,13 +127,8 @@ main(int argc, char* argv[])
   hiddenDesc.add_options()
     ("prefix", po::value<std::string>(&prefix));
 
-  po::options_description deprecatedDesc;
-  deprecatedDesc.add_options()
-    ("_deprecated_freshness_,x", po::value<time::milliseconds::rep>())
-    ;
-
   po::options_description optDesc;
-  optDesc.add(visibleDesc).add(hiddenDesc).add(deprecatedDesc);
+  optDesc.add(visibleDesc).add(hiddenDesc);
 
   po::positional_options_description posDesc;
   posDesc.add("prefix", -1);
@@ -154,11 +149,6 @@ main(int argc, char* argv[])
     return 2;
   }
 
-  if (vm.count("_deprecated_freshness_") > 0) {
-    std::cerr << "WARNING: short option '-x' is deprecated and will be removed in the near "
-                 "future. Please use '-f' or the long form '--freshness'." << std::endl;
-  }
-
   if (vm.count("help") > 0) {
     usage(std::cout, argv[0], visibleDesc);
     return 0;
@@ -177,9 +167,6 @@ main(int argc, char* argv[])
   options.prefix = prefix;
 
   options.freshnessPeriod = time::milliseconds(vm["freshness"].as<time::milliseconds::rep>());
-  if (vm.count("_deprecated_freshness_") > 0) {
-    options.freshnessPeriod = time::milliseconds(vm["_deprecated_freshness_"].as<time::milliseconds::rep>());
-  }
   if (options.freshnessPeriod < 0_ms) {
     std::cerr << "ERROR: FreshnessPeriod cannot be negative" << std::endl;
     return 2;

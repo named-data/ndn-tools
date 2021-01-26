@@ -4,7 +4,7 @@ ndnpoke
 Synopsis
 --------
 
-**ndnpoke** [-h] [-u] [-F] [-x *freshness*] [-S *info*] [-w *timeout*] [-v] [-V] *name*
+**ndnpoke** [-h] [-x *freshness*] [-F] [-S *info*] [-u\|\ -w *timeout*] [-v] [-V] *name*
 
 Description
 -----------
@@ -20,14 +20,11 @@ Options
 ``-h, --help``
   Print help and exit.
 
-``-u, --unsolicited``
-  Send the Data packet without waiting for an incoming Interest.
+``-x, --freshness <freshness>``
+  Set ``freshness`` (in milliseconds) as the ``FreshnessPeriod``.
 
 ``-F, --final``
   Set the ``FinalBlockId`` to the last component of *name*.
-
-``-x, --freshness <freshness>``
-  Set ``freshness`` (in milliseconds) as the ``FreshnessPeriod``.
 
 ``-S, --signing-info <info>``
   Specify the parameters used to sign the Data packet. If omitted, the default key of
@@ -40,6 +37,9 @@ Options
   * Sign with a SHA-256 digest: ``id:/localhost/identity/digest-sha256``. Note that this
     is only a hash function, not a real signature, but it can significantly speed up
     packet signing operations.
+
+``-u, --unsolicited``
+  Send the Data packet without waiting for an incoming Interest.
 
 ``-w, --timeout <timeout>``
   Quit the program after ``timeout`` milliseconds, even if no Interest has been received.
