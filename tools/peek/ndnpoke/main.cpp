@@ -66,11 +66,11 @@ main(int argc, char* argv[])
 
   po::options_description dataOptDesc("Data construction");
   dataOptDesc.add_options()
-    ("final,F",     po::bool_switch(&options.wantFinalBlockId),
-                    "set FinalBlockId to the last component of the Data name")
-    ("freshness,x", po::value<time::milliseconds::rep>()->default_value(options.freshnessPeriod.count()),
-                    "set FreshnessPeriod, in milliseconds")
-    ("signing-info,S",  po::value<std::string>(&signingStr), "see 'man ndnpoke' for usage")
+    ("freshness,f",    po::value<time::milliseconds::rep>()->default_value(options.freshnessPeriod.count()),
+                       "set FreshnessPeriod, in milliseconds")
+    ("final,F",        po::bool_switch(&options.wantFinalBlockId),
+                       "set FinalBlockId to the last component of the Data name")
+    ("signing-info,S", po::value<std::string>(&signingStr), "see 'man ndnpoke' for usage")
   ;
 
   po::options_description visibleOptDesc;

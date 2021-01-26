@@ -4,7 +4,7 @@ ndnpoke
 Synopsis
 --------
 
-**ndnpoke** [-h] [-x *freshness*] [-F] [-S *info*] [-u\|\ -w *timeout*] [-v] [-V] *name*
+**ndnpoke** [-h] [-f *freshness*] [-F] [-S *info*] [-u\|\ -w *timeout*] [-v] [-V] *name*
 
 Description
 -----------
@@ -20,7 +20,7 @@ Options
 ``-h, --help``
   Print help and exit.
 
-``-x, --freshness <freshness>``
+``-f, --freshness <freshness>``
   Set ``freshness`` (in milliseconds) as the ``FreshnessPeriod``.
 
 ``-F, --final``
