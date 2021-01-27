@@ -32,10 +32,9 @@ namespace dissect {
 namespace po = boost::program_options;
 
 static void
-usage(std::ostream& os, const std::string& appName, const po::options_description& options)
+usage(std::ostream& os, const std::string& programName, const po::options_description& options)
 {
-  os << "Usage:\n"
-     << "  " << appName << " [input-file] \n"
+  os << "Usage: " << programName << " [options] [input-file]\n"
      << "\n"
      << options;
 }
@@ -45,7 +44,7 @@ main(int argc, char* argv[])
 {
   std::string inputFileName;
 
-  po::options_description visibleOptions;
+  po::options_description visibleOptions("Options");
   visibleOptions.add_options()
     ("help,h",    "print help and exit")
     ("version,V", "print version and exit")
@@ -67,8 +66,7 @@ main(int argc, char* argv[])
     po::notify(vm);
   }
   catch (const po::error& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
-    usage(std::cerr, argv[0], visibleOptions);
+    std::cerr << "ERROR: " << e.what() << "\n";
     return 2;
   }
 
@@ -78,23 +76,20 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("version") > 0) {
-    std::cout << "ndn-dissect " << tools::VERSION << std::endl;
+    std::cout << "ndn-dissect " << tools::VERSION << "\n";
     return 0;
   }
 
   std::ifstream inputFile;
-  std::istream* inputStream;
+  std::istream* inputStream = &std::cin;
 
   if (vm.count("input-file") > 0 && inputFileName != "-") {
     inputFile.open(inputFileName);
-    if (!inputFile.is_open()) {
-      std::cerr << argv[0] << ": " << inputFileName << ": File does not exist or is unreadable" << std::endl;
+    if (!inputFile) {
+      std::cerr << argv[0] << ": " << inputFileName << ": File does not exist or is unreadable\n";
       return 3;
     }
     inputStream = &inputFile;
-  }
-  else {
-    inputStream = &std::cin;
   }
 
   NdnDissect program;

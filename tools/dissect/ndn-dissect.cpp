@@ -118,9 +118,9 @@ NdnDissect::printBlock(std::ostream& os, const Block& block)
   if (block.elements().empty()) {
     os << " [[";
     name::Component(block.value(), block.value_size()).toUri(os);
-    os<< "]]";
+    os << "]]";
   }
-  os << std::endl;
+  os << "\n";
 
   util::IndentedStream os2(os, "  ");
   std::for_each(block.elements_begin(), block.elements_end(),
@@ -130,13 +130,16 @@ NdnDissect::printBlock(std::ostream& os, const Block& block)
 void
 NdnDissect::dissect(std::ostream& os, std::istream& is)
 {
-  while (is.peek() != std::char_traits<char>::eof()) {
-    try {
-      printBlock(os, Block::fromStream(is));
+  size_t offset = 0;
+  try {
+    while (is.peek() != std::istream::traits_type::eof()) {
+      auto block = Block::fromStream(is);
+      printBlock(os, block);
+      offset += block.size();
     }
-    catch (const std::exception& e) {
-      std::cerr << "ERROR: " << e.what() << std::endl;
-    }
+  }
+  catch (const std::exception& e) {
+    std::cerr << "ERROR: " << e.what() << " at offset " << offset << "\n";
   }
 }
 
