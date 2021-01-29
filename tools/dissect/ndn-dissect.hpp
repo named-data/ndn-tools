@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2017,  Regents of the University of California.
+/*
+ * Copyright (c) 2014-2021,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -30,15 +30,27 @@ namespace dissect {
 class NdnDissect : noncopyable
 {
 public:
+  NdnDissect(std::istream& input, std::ostream& output);
+
   void
-  dissect(std::ostream& os, std::istream& is);
+  dissect();
 
 private:
   void
-  printType(std::ostream& os, uint32_t type);
+  printBranches();
 
   void
-  printBlock(std::ostream& os, const Block& block);
+  printType(uint32_t type);
+
+  void
+  printBlock(const Block& block);
+
+private:
+  std::istream& m_in;
+  std::ostream& m_out;
+
+  // m_branches[i] is true iff the i-th level of the tree has more branches after the current one
+  std::vector<bool> m_branches;
 };
 
 } // namespace dissect

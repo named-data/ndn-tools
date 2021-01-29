@@ -82,7 +82,6 @@ main(int argc, char* argv[])
 
   std::ifstream inputFile;
   std::istream* inputStream = &std::cin;
-
   if (vm.count("input-file") > 0 && inputFileName != "-") {
     inputFile.open(inputFileName);
     if (!inputFile) {
@@ -92,8 +91,8 @@ main(int argc, char* argv[])
     inputStream = &inputFile;
   }
 
-  NdnDissect program;
-  program.dissect(std::cout, *inputStream);
+  NdnDissect program(*inputStream, std::cout);
+  program.dissect();
 
   return 0;
 }

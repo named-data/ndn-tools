@@ -23,15 +23,54 @@
 
 #include "ndn-dissect.hpp"
 
-#include <algorithm>
 #include <map>
 
-#include <ndn-cxx/name-component.hpp>
 #include <ndn-cxx/encoding/tlv.hpp>
-#include <ndn-cxx/util/indented-stream.hpp>
+#include <ndn-cxx/name-component.hpp>
 
 namespace ndn {
 namespace dissect {
+
+NdnDissect::NdnDissect(std::istream& input, std::ostream& output)
+  : m_in(input)
+  , m_out(output)
+{
+}
+
+void
+NdnDissect::dissect()
+{
+  size_t offset = 0;
+  try {
+    while (m_in.peek() != std::istream::traits_type::eof()) {
+      auto block = Block::fromStream(m_in);
+      printBlock(block);
+      offset += block.size();
+    }
+  }
+  catch (const std::exception& e) {
+    std::cerr << "ERROR: " << e.what() << " at offset " << offset << "\n";
+  }
+}
+
+// http://git.altlinux.org/people/legion/packages/kbd.git?p=kbd.git;a=blob;f=data/consolefonts/README.eurlatgr
+static const char GLYPH_VERTICAL[]           = "\u2502 ";      // "│ "
+static const char GLYPH_VERTICAL_AND_RIGHT[] = "\u251c\u2500"; // "├─"
+static const char GLYPH_UP_AND_RIGHT[]       = "\u2514\u2500"; // "└─"
+static const char GLYPH_SPACE[]              = "  ";
+
+void
+NdnDissect::printBranches()
+{
+  for (size_t i = 0; i < m_branches.size(); ++i) {
+    if (i == m_branches.size() - 1) {
+      m_out << (m_branches[i] ? GLYPH_VERTICAL_AND_RIGHT : GLYPH_UP_AND_RIGHT);
+    }
+    else {
+      m_out << (m_branches[i] ? GLYPH_VERTICAL : GLYPH_SPACE);
+    }
+  }
+}
 
 static const std::map<uint32_t, const char*> TLV_DICT = {
   {tlv::Interest                     , "Interest"},
@@ -75,35 +114,36 @@ static const std::map<uint32_t, const char*> TLV_DICT = {
 };
 
 void
-NdnDissect::printType(std::ostream& os, uint32_t type)
+NdnDissect::printType(uint32_t type)
 {
-  os << type << " (";
+  m_out << type << " (";
 
   auto it = TLV_DICT.find(type);
   if (it != TLV_DICT.end()) {
-    os << it->second;
+    m_out << it->second;
   }
   else if (type < tlv::AppPrivateBlock1) {
-    os << "RESERVED_1";
+    m_out << "RESERVED_1";
   }
   else if (tlv::AppPrivateBlock1 <= type && type < 253) {
-    os << "APP_TAG_1";
+    m_out << "APP_TAG_1";
   }
   else if (253 <= type && type < tlv::AppPrivateBlock2) {
-    os << "RESERVED_3";
+    m_out << "RESERVED_3";
   }
   else {
-    os << "APP_TAG_3";
+    m_out << "APP_TAG_3";
   }
 
-  os << ")";
+  m_out << ")";
 }
 
 void
-NdnDissect::printBlock(std::ostream& os, const Block& block)
+NdnDissect::printBlock(const Block& block)
 {
-  printType(os, block.type());
-  os << " (size: " << block.value_size() << ")";
+  printBranches();
+  printType(block.type());
+  m_out << " (size: " << block.value_size() << ")";
 
   try {
     // if (block.type() != tlv::Content && block.type() != tlv::SignatureValue)
@@ -115,32 +155,23 @@ NdnDissect::printBlock(std::ostream& os, const Block& block)
     // @todo: Figure how to deterministically figure out that value is not recursive TLV block
   }
 
-  if (block.elements().empty()) {
-    os << " [[";
-    name::Component(block.value(), block.value_size()).toUri(os);
-    os << "]]";
+  const auto& elements = block.elements();
+  if (elements.empty()) {
+    m_out << " [[";
+    name::Component(block.value(), block.value_size()).toUri(m_out);
+    m_out << "]]";
   }
-  os << "\n";
+  m_out << "\n";
 
-  util::IndentedStream os2(os, "  ");
-  std::for_each(block.elements_begin(), block.elements_end(),
-                [this, &os2] (const Block& element) { printBlock(os2, element); });
-}
-
-void
-NdnDissect::dissect(std::ostream& os, std::istream& is)
-{
-  size_t offset = 0;
-  try {
-    while (is.peek() != std::istream::traits_type::eof()) {
-      auto block = Block::fromStream(is);
-      printBlock(os, block);
-      offset += block.size();
+  m_branches.push_back(true);
+  for (size_t i = 0; i < elements.size(); ++i) {
+    if (i == elements.size() - 1) {
+      // no more branches to draw at this level of the tree
+      m_branches.back() = false;
     }
+    printBlock(elements[i]);
   }
-  catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << " at offset " << offset << "\n";
-  }
+  m_branches.pop_back();
 }
 
 } // namespace dissect
