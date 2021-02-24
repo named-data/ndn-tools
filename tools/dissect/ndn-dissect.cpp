@@ -146,13 +146,12 @@ NdnDissect::printBlock(const Block& block)
   m_out << " (size: " << block.value_size() << ")";
 
   try {
-    // if (block.type() != tlv::Content && block.type() != tlv::SignatureValue)
-    block.parse();
+    if (block.type() != tlv::SignatureValue) {
+      block.parse();
+    }
   }
   catch (const tlv::Error&) {
     // pass (e.g., leaf block reached)
-
-    // @todo: Figure how to deterministically figure out that value is not recursive TLV block
   }
 
   const auto& elements = block.elements();
