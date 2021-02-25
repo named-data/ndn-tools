@@ -18,10 +18,11 @@
  *
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
  *
- * @author Alexander Afanasyev <http://lasr.cs.ucla.edu/afanasyev/index.html>
+ * @author Alexander Afanasyev
+ * @author Davide Pesavento
  */
 
-#include "ndn-dissect.hpp"
+#include "dissector.hpp"
 
 #include <map>
 
@@ -31,14 +32,15 @@
 namespace ndn {
 namespace dissect {
 
-NdnDissect::NdnDissect(std::istream& input, std::ostream& output)
-  : m_in(input)
+Dissector::Dissector(std::istream& input, std::ostream& output, const Options& options)
+  : m_options(options)
+  , m_in(input)
   , m_out(output)
 {
 }
 
 void
-NdnDissect::dissect()
+Dissector::dissect()
 {
   size_t offset = 0;
   try {
@@ -60,7 +62,7 @@ static const char GLYPH_UP_AND_RIGHT[]       = "\u2514\u2500"; // "└─"
 static const char GLYPH_SPACE[]              = "  ";
 
 void
-NdnDissect::printBranches()
+Dissector::printBranches()
 {
   for (size_t i = 0; i < m_branches.size(); ++i) {
     if (i == m_branches.size() - 1) {
@@ -114,7 +116,7 @@ static const std::map<uint32_t, const char*> TLV_DICT = {
 };
 
 void
-NdnDissect::printType(uint32_t type)
+Dissector::printType(uint32_t type)
 {
   m_out << type << " (";
 
@@ -139,14 +141,15 @@ NdnDissect::printType(uint32_t type)
 }
 
 void
-NdnDissect::printBlock(const Block& block)
+Dissector::printBlock(const Block& block)
 {
   printBranches();
   printType(block.type());
   m_out << " (size: " << block.value_size() << ")";
 
   try {
-    if (block.type() != tlv::SignatureValue) {
+    if (block.type() != tlv::SignatureValue &&
+        (block.type() != tlv::Content || m_options.dissectContent)) {
       block.parse();
     }
   }

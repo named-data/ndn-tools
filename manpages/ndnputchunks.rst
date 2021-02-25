@@ -59,16 +59,15 @@ Options
 
     Print program version and exit.
 
-Example
--------
+Examples
+--------
 
 The following command will publish the text of the GPL-3 license under the `/localhost/demo/gpl3`
 prefix::
 
     ndnputchunks /localhost/demo/gpl3 < /usr/share/common-licenses/GPL-3
 
-To find the published version you have to start ndnputchunks with the `-p` command line option,
-for example::
+To see the published version, you can run the program with the **-p** option::
 
     ndnputchunks -p /localhost/demo/gpl3 < /usr/share/common-licenses/GPL-3
 

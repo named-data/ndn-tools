@@ -17,7 +17,7 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ndn-dissect.hpp"
+#include "dissector.hpp"
 #include "core/version.hpp"
 
 #include <boost/program_options/options_description.hpp>
@@ -42,12 +42,14 @@ usage(std::ostream& os, const std::string& programName, const po::options_descri
 static int
 main(int argc, char* argv[])
 {
+  Options options;
   std::string inputFileName;
 
   po::options_description visibleOptions("Options");
   visibleOptions.add_options()
-    ("help,h",    "print help and exit")
-    ("version,V", "print version and exit")
+    ("help,h",    "print this help message and exit")
+    ("content,c", po::bool_switch(&options.dissectContent), "dissect the value of Content elements")
+    ("version,V", "print program version and exit")
     ;
 
   po::options_description hiddenOptions;
@@ -91,8 +93,8 @@ main(int argc, char* argv[])
     inputStream = &inputFile;
   }
 
-  NdnDissect program(*inputStream, std::cout);
-  program.dissect();
+  Dissector d(*inputStream, std::cout, options);
+  d.dissect();
 
   return 0;
 }

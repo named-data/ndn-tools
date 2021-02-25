@@ -63,8 +63,8 @@ Exit Status
 
 5: Prefix registration failed
 
-Example
--------
+Examples
+--------
 
 Create a Data packet with content ``hello`` and name ``/app/video`` and wait at
 most 3 seconds for a matching Interest to arrive::

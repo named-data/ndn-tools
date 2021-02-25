@@ -1,5 +1,5 @@
-ndnping
-=======
+ndnpingserver
+=============
 
 Synopsis
 --------
@@ -43,8 +43,8 @@ Options
 ``-V``
   Print version and exit.
 
-Example
--------
+Examples
+--------
 
 Listen on ``/edu/arizona`` and respond to at most 4 pings, printing the timestamp
 on each received ping::

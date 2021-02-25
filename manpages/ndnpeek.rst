@@ -68,8 +68,8 @@ Exit Status
 
 4: Nack received
 
-Example
--------
+Examples
+--------
 
 Send an Interest for ``/app1/video`` and print the received payload only::
 

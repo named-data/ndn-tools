@@ -1,41 +1,43 @@
 ndn-dissect
 ===========
 
-Usage
------
+Synopsis
+--------
 
-::
-
-    ndn-dissect [-hV] [INPUT-FILE]
+**ndn-dissect** [**-h**] [**-c**] [**-V**] [*file*]
 
 Description
 -----------
 
-``ndn-dissect`` is an NDN packet format inspector.
-It reads zero or more NDN packets from either an input file or the standard input,
-and displays the Type-Length-Value (TLV) structure of those packets on the standard output.
+:program:`ndn-dissect` is an NDN packet format inspector.
+It reads zero or more NDN packets from either an input file or the standard
+input, and displays the Type-Length-Value (TLV) structure of those packets
+on the standard output.
 
 Options
 -------
 
-.. option:: -h
+.. option:: -h, --help
 
-  Print help and exit.
+    Print help and exit.
 
-.. option:: -V
+.. option:: -c, --content
 
-  Print version and exit.
+    Dissect the value of Content elements as well. By default, the value of a
+    Content element is treated as an opaque blob and is not dissected further.
 
-.. option:: INPUT-FILE
+.. option:: -V, --version
 
-  The file to read packets from.
-  If no :option:`INPUT-FILE` is given, the standard input is used.
+    Print program version and exit.
+
+.. option:: file
+
+    The file to read packets from.
+    If no *file* is given, or if *file* is "-", the standard input is used.
 
 Examples
 --------
 
-Inspect the response to Interest ``ndn:/app1/video``
+Inspect the response to Interest ``/app1/video``::
 
-::
-
-    ndnpeek ndn:/app1/video | ndn-dissect
+    ndnpeek /app1/video | ndn-dissect

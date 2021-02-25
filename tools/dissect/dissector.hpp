@@ -17,8 +17,8 @@
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NDN_TOOLS_DISSECT_NDN_DISSECT_HPP
-#define NDN_TOOLS_DISSECT_NDN_DISSECT_HPP
+#ifndef NDN_TOOLS_DISSECT_DISSECTOR_HPP
+#define NDN_TOOLS_DISSECT_DISSECTOR_HPP
 
 #include "core/common.hpp"
 
@@ -27,10 +27,15 @@
 namespace ndn {
 namespace dissect {
 
-class NdnDissect : noncopyable
+struct Options
+{
+  bool dissectContent = false;
+};
+
+class Dissector : noncopyable
 {
 public:
-  NdnDissect(std::istream& input, std::ostream& output);
+  Dissector(std::istream& input, std::ostream& output, const Options& options);
 
   void
   dissect();
@@ -46,6 +51,7 @@ private:
   printBlock(const Block& block);
 
 private:
+  const Options& m_options;
   std::istream& m_in;
   std::ostream& m_out;
 
@@ -56,4 +62,4 @@ private:
 } // namespace dissect
 } // namespace ndn
 
-#endif // NDN_TOOLS_DISSECT_NDN_DISSECT_HPP
+#endif // NDN_TOOLS_DISSECT_DISSECTOR_HPP
