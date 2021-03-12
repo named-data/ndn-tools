@@ -94,7 +94,7 @@ private:
   std::ostream& m_outputStream;
   unique_ptr<DiscoverVersion> m_discover;
   unique_ptr<PipelineInterests> m_pipeline;
-  uint64_t m_nextToPrint;
+  uint64_t m_nextToPrint = 0;
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   std::map<uint64_t, shared_ptr<const Data>> m_bufferedData;

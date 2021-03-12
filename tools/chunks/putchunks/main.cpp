@@ -53,35 +53,37 @@ usage(std::ostream& os, const std::string& programName, const po::options_descri
 static int
 main(int argc, char* argv[])
 {
-  std::string programName = argv[0];
-  std::string prefix;
-  std::string signingStr;
+  const std::string programName(argv[0]);
+
   Producer::Options opts;
+  std::string prefix, nameConv, signingStr;
 
   po::options_description visibleDesc("Options");
   visibleDesc.add_options()
-    ("help,h",          "print this help message and exit")
-    ("freshness,f",     po::value<time::milliseconds::rep>()->default_value(opts.freshnessPeriod.count()),
-                        "FreshnessPeriod of the published Data packets, in milliseconds")
+    ("help,h",      "print this help message and exit")
+    ("freshness,f", po::value<time::milliseconds::rep>()->default_value(opts.freshnessPeriod.count()),
+                    "FreshnessPeriod of the published Data packets, in milliseconds")
+    ("size,s",      po::value<size_t>(&opts.maxSegmentSize)->default_value(opts.maxSegmentSize),
+                    "maximum chunk size, in bytes")
+    ("naming-convention,N",  po::value<std::string>(&nameConv),
+                             "encoding convention to use for name components, either 'marker' or 'typed'")
+    ("signing-info,S",       po::value<std::string>(&signingStr), "see 'man ndnputchunks' for usage")
     ("print-data-version,p", po::bool_switch(&opts.wantShowVersion),
                              "print Data version to the standard output")
-    ("size,s",          po::value<size_t>(&opts.maxSegmentSize)->default_value(opts.maxSegmentSize),
-                        "maximum chunk size, in bytes")
-    ("signing-info,S",  po::value<std::string>(&signingStr), "see 'man ndnputchunks' for usage")
-    ("quiet,q",         po::bool_switch(&opts.isQuiet), "turn off all non-error output")
-    ("verbose,v",       po::bool_switch(&opts.isVerbose), "turn on verbose output (per Interest information)")
-    ("version,V",       "print program version and exit")
+    ("quiet,q",     po::bool_switch(&opts.isQuiet), "turn off all non-error output")
+    ("verbose,v",   po::bool_switch(&opts.isVerbose), "turn on verbose output (per Interest information)")
+    ("version,V",   "print program version and exit")
     ;
 
   po::options_description hiddenDesc;
   hiddenDesc.add_options()
-    ("ndn-name,n", po::value<std::string>(&prefix), "NDN name for the served content");
-
-  po::positional_options_description p;
-  p.add("ndn-name", -1);
+    ("name", po::value<std::string>(&prefix), "NDN name for the served content");
 
   po::options_description optDesc;
   optDesc.add(visibleDesc).add(hiddenDesc);
+
+  po::positional_options_description p;
+  p.add("name", -1);
 
   po::variables_map vm;
   try {
@@ -89,11 +91,11 @@ main(int argc, char* argv[])
     po::notify(vm);
   }
   catch (const po::error& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl;
+    std::cerr << "ERROR: " << e.what() << "\n";
     return 2;
   }
   catch (const boost::bad_any_cast& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl;
+    std::cerr << "ERROR: " << e.what() << "\n";
     return 2;
   }
 
@@ -103,7 +105,7 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("version") > 0) {
-    std::cout << "ndnputchunks " << tools::VERSION << std::endl;
+    std::cout << "ndnputchunks " << tools::VERSION << "\n";
     return 0;
   }
 
@@ -112,14 +114,25 @@ main(int argc, char* argv[])
     return 2;
   }
 
+  if (nameConv == "marker" || nameConv == "m" || nameConv == "1") {
+    name::setConventionEncoding(name::Convention::MARKER);
+  }
+  else if (nameConv == "typed" || nameConv == "t" || nameConv == "2") {
+    name::setConventionEncoding(name::Convention::TYPED);
+  }
+  else if (!nameConv.empty()) {
+    std::cerr << "ERROR: '" << nameConv << "' is not a valid naming convention\n";
+    return 2;
+  }
+
   opts.freshnessPeriod = time::milliseconds(vm["freshness"].as<time::milliseconds::rep>());
   if (opts.freshnessPeriod < 0_ms) {
-    std::cerr << "ERROR: FreshnessPeriod cannot be negative" << std::endl;
+    std::cerr << "ERROR: --freshness cannot be negative\n";
     return 2;
   }
 
   if (opts.maxSegmentSize < 1 || opts.maxSegmentSize > MAX_NDN_PACKET_SIZE) {
-    std::cerr << "ERROR: Maximum chunk size must be between 1 and " << MAX_NDN_PACKET_SIZE << std::endl;
+    std::cerr << "ERROR: --size must be between 1 and " << MAX_NDN_PACKET_SIZE << "\n";
     return 2;
   }
 
@@ -127,12 +140,12 @@ main(int argc, char* argv[])
     opts.signingInfo = security::SigningInfo(signingStr);
   }
   catch (const std::invalid_argument& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl;
+    std::cerr << "ERROR: " << e.what() << "\n";
     return 2;
   }
 
   if (opts.isQuiet && opts.isVerbose) {
-    std::cerr << "ERROR: Cannot be quiet and verbose at the same time" << std::endl;
+    std::cerr << "ERROR: cannot be quiet and verbose at the same time\n";
     return 2;
   }
 
@@ -143,7 +156,7 @@ main(int argc, char* argv[])
     producer.run();
   }
   catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl;
+    std::cerr << "ERROR: " << e.what() << "\n";
     return 1;
   }
 

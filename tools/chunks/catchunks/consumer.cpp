@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2020, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -33,7 +33,6 @@ namespace chunks {
 Consumer::Consumer(security::Validator& validator, std::ostream& os)
   : m_validator(validator)
   , m_outputStream(os)
-  , m_nextToPrint(0)
 {
 }
 
@@ -47,8 +46,8 @@ Consumer::run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests
 
   m_discover->onDiscoverySuccess.connect([this] (const Name& versionedName) {
     m_pipeline->run(versionedName,
-      [this] (const Data& data) { handleData(data); },
-      [] (const std::string& msg) { NDN_THROW(std::runtime_error(msg)); });
+                    [this] (const Data& data) { handleData(data); },
+                    [] (const std::string& msg) { NDN_THROW(std::runtime_error(msg)); });
   });
   m_discover->onDiscoveryFailure.connect([] (const std::string& msg) {
     NDN_THROW(std::runtime_error(msg));
