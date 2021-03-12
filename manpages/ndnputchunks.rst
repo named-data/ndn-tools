@@ -26,11 +26,12 @@ Options
 
 .. option:: -f, --freshness MILLISECS
 
-    FreshnessPeriod of the published Data packets, in milliseconds. Default = 10000 [ms].
+    FreshnessPeriod of the published Data packets, in milliseconds.
+    The default is 10000 (10 seconds).
 
 .. option:: -s, --size BYTES
 
-    Maximum chunk size, in bytes. Default = 4400 [bytes].
+    Maximum chunk size, in bytes. The default is 8000 bytes.
 
 .. option:: -N, --naming-convention CONVENTION
 
