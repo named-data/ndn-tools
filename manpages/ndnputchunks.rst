@@ -50,7 +50,7 @@ Options
 
     * Sign with the default certificate of the default key of an identity: ``id:/<my-identity>``.
     * Sign with the default certificate of a specific key: ``key:/<my-identity>/ksk-1``.
-    * Sign with a specific certificate: ``cert:/<my-identity>/KEY/ksk-1/ID-CERT/%FD%01``.
+    * Sign with a specific certificate: ``cert:/<my-identity>/KEY/ksk-1/ID-CERT/v=1``.
     * Sign with a SHA-256 digest: ``id:/localhost/identity/digest-sha256``. Note that this
       is only a hash function, not a real signature, but it can significantly speed up
       packet signing operations.
