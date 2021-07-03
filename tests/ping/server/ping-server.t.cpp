@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020,  Arizona Board of Regents.
+ * Copyright (c) 2014-2021,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -33,12 +33,12 @@ namespace tests {
 using namespace ndn::tests;
 
 BOOST_AUTO_TEST_SUITE(Ping)
-BOOST_AUTO_TEST_SUITE(TestPingServer)
+BOOST_AUTO_TEST_SUITE(TestServer)
 
-class CreatePingServerFixture : public IoFixture, public KeyChainFixture
+class PingServerFixture : public IoFixture, public KeyChainFixture
 {
 protected:
-  CreatePingServerFixture()
+  PingServerFixture()
     : face(m_io, m_keyChain, {false, true})
     , pingOptions(makeOptions())
     , pingServer(face, m_keyChain, pingOptions)
@@ -78,9 +78,9 @@ protected:
   PingServer pingServer;
 };
 
-BOOST_FIXTURE_TEST_CASE(CreatePingServer, CreatePingServerFixture)
+BOOST_FIXTURE_TEST_CASE(Receive, PingServerFixture)
 {
-  BOOST_REQUIRE_EQUAL(0, pingServer.getNPings());
+  BOOST_TEST(pingServer.getNPings() == 0);
   pingServer.start();
 
   advanceClocks(1_ms, 200);
@@ -90,10 +90,10 @@ BOOST_FIXTURE_TEST_CASE(CreatePingServer, CreatePingServerFixture)
 
   m_io.run();
 
-  BOOST_CHECK_EQUAL(2, pingServer.getNPings());
+  BOOST_TEST(pingServer.getNPings() == 2);
 }
 
-BOOST_AUTO_TEST_SUITE_END() // TestPingServer
+BOOST_AUTO_TEST_SUITE_END() // TestServer
 BOOST_AUTO_TEST_SUITE_END() // Ping
 
 } // namespace tests

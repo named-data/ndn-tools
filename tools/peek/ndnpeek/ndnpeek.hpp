@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2019,  Regents of the University of California,
+ * Copyright (c) 2014-2021,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -113,7 +113,7 @@ private:
   const PeekOptions m_options;
   Face& m_face;
   Scheduler m_scheduler;
-  time::steady_clock::TimePoint m_sendTime;
+  time::steady_clock::time_point m_sendTime;
   ScopedPendingInterestHandle m_pendingInterest;
   scheduler::ScopedEventId m_timeoutEvent;
   Result m_result = Result::UNKNOWN;

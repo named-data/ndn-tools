@@ -108,8 +108,6 @@ public:
 private:
   /**
    * @brief Creates a ping Name from the sequence number
-   *
-   * @param seq ping sequence number
    */
   Name
   makePingName(uint64_t seq) const;
@@ -122,30 +120,18 @@ private:
 
   /**
    * @brief Called when a Data packet is received in response to a ping
-   *
-   * @param seq ping sequence number
-   * @param sendTime time ping sent
    */
   void
-  onData(uint64_t seq, const time::steady_clock::TimePoint& sendTime);
+  onData(uint64_t seq, const time::steady_clock::time_point& sendTime);
 
   /**
    * @brief Called when a Nack is received in response to a ping
-   *
-   * @param interest NDN interest
-   * @param nack returned nack
-   * @param seq ping sequence number
-   * @param sendTime time ping sent
    */
   void
-  onNack(const lp::Nack& nack, uint64_t seq,
-         const time::steady_clock::TimePoint& sendTime);
+  onNack(uint64_t seq, const time::steady_clock::time_point& sendTime, const lp::Nack& nack);
 
   /**
    * @brief Called when ping timed out
-   *
-   * @param interest NDN interest
-   * @param seq ping sequence number
    */
   void
   onTimeout(uint64_t seq);

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020,  Arizona Board of Regents.
+ * Copyright (c) 2014-2021,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -32,9 +32,9 @@ namespace tests {
 using namespace ndn::tests;
 
 BOOST_AUTO_TEST_SUITE(Ping)
-BOOST_AUTO_TEST_SUITE(TestPing)
+BOOST_AUTO_TEST_SUITE(TestClient)
 
-using ping::client::Ping;
+using client::Ping;
 
 BOOST_FIXTURE_TEST_CASE(Basic, IoFixture)
 {
@@ -55,10 +55,10 @@ BOOST_FIXTURE_TEST_CASE(Basic, IoFixture)
   std::vector<uint64_t> nackSeqs;
   std::vector<uint64_t> timeoutSeqs;
 
-  ping.afterData.connect(bind([&] (uint64_t seq) { dataSeqs.push_back(seq); }, _1));
-  ping.afterNack.connect(bind([&] (uint64_t seq) { nackSeqs.push_back(seq); }, _1));
-  ping.afterTimeout.connect(bind([&] (uint64_t seq) { timeoutSeqs.push_back(seq); }, _1));
-  ping.afterFinish.connect(bind([&] {
+  ping.afterData.connect([&] (uint64_t seq, auto&&...) { dataSeqs.push_back(seq); });
+  ping.afterNack.connect([&] (uint64_t seq, auto&&...) { nackSeqs.push_back(seq); });
+  ping.afterTimeout.connect([&] (uint64_t seq, auto&&...) { timeoutSeqs.push_back(seq); });
+  ping.afterFinish.connect([&] {
     BOOST_REQUIRE_EQUAL(dataSeqs.size(), 2);
     BOOST_REQUIRE_EQUAL(nackSeqs.size(), 1);
     BOOST_REQUIRE_EQUAL(timeoutSeqs.size(), 1);
@@ -69,7 +69,7 @@ BOOST_FIXTURE_TEST_CASE(Basic, IoFixture)
     BOOST_CHECK_EQUAL(timeoutSeqs[0], 1003);
 
     nFinishSignals++;
-  }));
+  });
 
   ping.start();
 
@@ -93,7 +93,7 @@ BOOST_FIXTURE_TEST_CASE(Basic, IoFixture)
   BOOST_CHECK_EQUAL(nFinishSignals, 1);
 }
 
-BOOST_AUTO_TEST_SUITE_END() // TestPing
+BOOST_AUTO_TEST_SUITE_END() // TestClient
 BOOST_AUTO_TEST_SUITE_END() // Ping
 
 } // namespace tests

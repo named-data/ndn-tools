@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2019,  Arizona Board of Regents.
+ * Copyright (c) 2015-2021,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -42,12 +42,11 @@ PingServer::PingServer(Face& face, KeyChain& keyChain, const Options& options)
 void
 PingServer::start()
 {
-  m_registeredPrefix = m_face.setInterestFilter(
-                       Name(m_options.prefix).append("ping"),
-                       bind(&PingServer::onInterest, this, _2),
-                       [] (const auto&, const auto& reason) {
-                         NDN_THROW(std::runtime_error("Failed to register prefix: " + reason));
-                       });
+  m_registeredPrefix = m_face.setInterestFilter(Name(m_options.prefix).append("ping"),
+                         [this] (const auto&, const auto& interest) { onInterest(interest); },
+                         [] (const auto&, const auto& reason) {
+                           NDN_THROW(std::runtime_error("Failed to register prefix: " + reason));
+                         });
 }
 
 void

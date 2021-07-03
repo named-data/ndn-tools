@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -52,7 +52,7 @@ private:
 private:
   double m_wmax = 0.0; ///< window size before last window decrease
   double m_lastWmax = 0.0; ///< last wmax
-  time::steady_clock::TimePoint m_lastDecrease; ///< time of last window decrease
+  time::steady_clock::time_point m_lastDecrease; ///< time of last window decrease
 };
 
 } // namespace chunks

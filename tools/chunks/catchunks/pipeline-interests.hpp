@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -80,7 +80,7 @@ public:
   cancel();
 
 protected:
-  time::steady_clock::TimePoint
+  time::steady_clock::time_point
   getStartTime() const
   {
     return m_startTime;
@@ -166,7 +166,7 @@ private:
   DataCallback m_onData;
   FailureCallback m_onFailure;
   uint64_t m_nextSegmentNo;
-  time::steady_clock::TimePoint m_startTime;
+  time::steady_clock::time_point m_startTime;
   bool m_isStopping;
 };
 

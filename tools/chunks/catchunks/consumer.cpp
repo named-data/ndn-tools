@@ -46,7 +46,7 @@ Consumer::run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests
 
   m_discover->onDiscoverySuccess.connect([this] (const Name& versionedName) {
     m_pipeline->run(versionedName,
-                    [this] (const Data& data) { handleData(data); },
+                    FORWARD_TO_MEM_FN(handleData),
                     [] (const std::string& msg) { NDN_THROW(std::runtime_error(msg)); });
   });
   m_discover->onDiscoveryFailure.connect([] (const std::string& msg) {

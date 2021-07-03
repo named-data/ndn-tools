@@ -60,7 +60,7 @@ operator<<(std::ostream& os, SegmentState state);
 struct SegmentInfo
 {
   ScopedPendingInterestHandle interestHdl;
-  time::steady_clock::TimePoint timeSent;
+  time::steady_clock::time_point timeSent;
   time::nanoseconds rto;
   SegmentState state;
 };

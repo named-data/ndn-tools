@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -53,24 +53,32 @@ Producer::Producer(const Name& prefix, Face& face, KeyChain& keyChain, std::istr
   populateStore(is);
 
   if (m_options.wantShowVersion)
-    std::cout << m_versionedPrefix[-1] << std::endl;
+    std::cout << m_versionedPrefix[-1] << "\n";
 
   // register m_prefix without interest handler
-  m_face.registerPrefix(m_prefix, nullptr, bind(&Producer::onRegisterFailed, this, _1, _2));
+  m_face.registerPrefix(m_prefix, nullptr, [this] (const Name& prefix, const auto& reason) {
+    std::cerr << "ERROR: Failed to register prefix '" << prefix << "' (" << reason << ")\n";
+    m_face.shutdown();
+  });
 
   // match Interests whose name starts with m_versionedPrefix
-  face.setInterestFilter(m_versionedPrefix, bind(&Producer::processSegmentInterest, this, _2));
+  face.setInterestFilter(m_versionedPrefix, [this] (const auto&, const auto& interest) {
+    processSegmentInterest(interest);
+  });
 
   // match Interests whose name is exactly m_prefix
-  face.setInterestFilter(InterestFilter(m_prefix, ""),
-                         bind(&Producer::processSegmentInterest, this, _2));
+  face.setInterestFilter(InterestFilter(m_prefix, ""), [this] (const auto&, const auto& interest) {
+    processSegmentInterest(interest);
+  });
 
   // match discovery Interests
-  face.setInterestFilter(MetadataObject::makeDiscoveryInterest(m_prefix).getName(),
-                         bind(&Producer::processDiscoveryInterest, this, _2));
+  auto discoveryName = MetadataObject::makeDiscoveryInterest(m_prefix).getName();
+  face.setInterestFilter(discoveryName, [this] (const auto&, const auto& interest) {
+    processDiscoveryInterest(interest);
+  });
 
   if (!m_options.isQuiet)
-    std::cerr << "Data published with name: " << m_versionedPrefix << std::endl;
+    std::cerr << "Data published with name: " << m_versionedPrefix << "\n";
 }
 
 void
@@ -83,11 +91,11 @@ void
 Producer::processDiscoveryInterest(const Interest& interest)
 {
   if (m_options.isVerbose)
-    std::cerr << "Discovery Interest: " << interest << std::endl;
+    std::cerr << "Discovery Interest: " << interest << "\n";
 
   if (!interest.getCanBePrefix()) {
     if (m_options.isVerbose)
-      std::cerr << "Discovery Interest lacks CanBePrefix, sending Nack" << std::endl;
+      std::cerr << "Discovery Interest lacks CanBePrefix, sending Nack\n";
     m_face.put(lp::Nack(interest));
     return;
   }
@@ -99,7 +107,7 @@ Producer::processDiscoveryInterest(const Interest& interest)
   Data mdata(mobject.makeData(interest.getName(), m_keyChain, m_options.signingInfo));
 
   if (m_options.isVerbose)
-    std::cerr << "Sending metadata: " << mdata << std::endl;
+    std::cerr << "Sending metadata: " << mdata << "\n";
 
   m_face.put(mdata);
 }
@@ -110,7 +118,7 @@ Producer::processSegmentInterest(const Interest& interest)
   BOOST_ASSERT(m_store.size() > 0);
 
   if (m_options.isVerbose)
-    std::cerr << "Interest: " << interest << std::endl;
+    std::cerr << "Interest: " << interest << "\n";
 
   const Name& name = interest.getName();
   shared_ptr<Data> data;
@@ -129,13 +137,13 @@ Producer::processSegmentInterest(const Interest& interest)
 
   if (data != nullptr) {
     if (m_options.isVerbose)
-      std::cerr << "Data: " << *data << std::endl;
+      std::cerr << "Data: " << *data << "\n";
 
     m_face.put(*data);
   }
   else {
     if (m_options.isVerbose)
-      std::cerr << "Interest cannot be satisfied, sending Nack" << std::endl;
+      std::cerr << "Interest cannot be satisfied, sending Nack\n";
     m_face.put(lp::Nack(interest));
   }
 }
@@ -146,7 +154,7 @@ Producer::populateStore(std::istream& is)
   BOOST_ASSERT(m_store.empty());
 
   if (!m_options.isQuiet)
-    std::cerr << "Loading input ..." << std::endl;
+    std::cerr << "Loading input ...\n";
 
   std::vector<uint8_t> buffer(m_options.maxSegmentSize);
   while (is.good()) {
@@ -174,15 +182,7 @@ Producer::populateStore(std::istream& is)
   }
 
   if (!m_options.isQuiet)
-    std::cerr << "Created " << m_store.size() << " chunks for prefix " << m_prefix << std::endl;
-}
-
-void
-Producer::onRegisterFailed(const Name& prefix, const std::string& reason)
-{
-  std::cerr << "ERROR: Failed to register prefix '"
-            << prefix << "' (" << reason << ")" << std::endl;
-  m_face.shutdown();
+    std::cerr << "Created " << m_store.size() << " chunks for prefix " << m_prefix << "\n";
 }
 
 } // namespace chunks

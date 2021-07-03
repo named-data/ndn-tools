@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -133,7 +133,7 @@ PipelineInterestsAdaptive::sendInterest(uint64_t segNo, bool isRetransmission)
 
   if (m_options.isVerbose) {
     std::cerr << (isRetransmission ? "Retransmitting" : "Requesting")
-              << " segment #" << segNo << std::endl;
+              << " segment #" << segNo << "\n";
   }
 
   if (isRetransmission) {
@@ -150,7 +150,7 @@ PipelineInterestsAdaptive::sendInterest(uint64_t segNo, bool isRetransmission)
 
       if (m_options.isVerbose) {
         std::cerr << "# of retries for segment #" << segNo
-                  << " is " << m_retxCount[segNo] << std::endl;
+                  << " is " << m_retxCount[segNo] << "\n";
       }
     }
   }
@@ -163,9 +163,9 @@ PipelineInterestsAdaptive::sendInterest(uint64_t segNo, bool isRetransmission)
 
   SegmentInfo& segInfo = m_segmentInfo[segNo];
   segInfo.interestHdl = m_face.expressInterest(interest,
-                                               bind(&PipelineInterestsAdaptive::handleData, this, _1, _2),
-                                               bind(&PipelineInterestsAdaptive::handleNack, this, _1, _2),
-                                               bind(&PipelineInterestsAdaptive::handleLifetimeExpiration, this, _1));
+                                               FORWARD_TO_MEM_FN(handleData),
+                                               FORWARD_TO_MEM_FN(handleNack),
+                                               FORWARD_TO_MEM_FN(handleLifetimeExpiration));
   segInfo.timeSent = time::steady_clock::now();
   segInfo.rto = m_rttEstimator.getEstimatedRto();
 
@@ -239,7 +239,7 @@ PipelineInterestsAdaptive::handleData(const Interest& interest, const Data& data
   if (m_options.isVerbose) {
     std::cerr << "Received segment #" << recvSegNo
               << ", rtt=" << rtt.count() / 1e6 << "ms"
-              << ", rto=" << segInfo.rto.count() / 1e6 << "ms" << std::endl;
+              << ", rto=" << segInfo.rto.count() / 1e6 << "ms\n";
   }
 
   if (m_highData < recvSegNo) {
@@ -265,7 +265,7 @@ PipelineInterestsAdaptive::handleData(const Interest& interest, const Data& data
 
         if (m_options.isVerbose) {
           std::cerr << "Received congestion mark, value = " << data.getCongestionMark()
-                    << ", new cwnd = " << m_cwnd << std::endl;
+                    << ", new cwnd = " << m_cwnd << "\n";
         }
       }
     }
@@ -314,7 +314,7 @@ PipelineInterestsAdaptive::handleNack(const Interest& interest, const lp::Nack& 
 
   if (m_options.isVerbose)
     std::cerr << "Received Nack with reason " << nack.getReason()
-              << " for Interest " << interest << std::endl;
+              << " for Interest " << interest << "\n";
 
   uint64_t segNo = getSegmentFromPacket(interest);
 
@@ -360,7 +360,7 @@ PipelineInterestsAdaptive::recordTimeout()
 
     if (m_options.isVerbose) {
       std::cerr << "Packet loss event, new cwnd = " << m_cwnd
-                << ", ssthresh = " << m_ssthresh << std::endl;
+                << ", ssthresh = " << m_ssthresh << "\n";
     }
   }
 }

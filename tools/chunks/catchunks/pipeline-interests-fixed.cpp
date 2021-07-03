@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2021, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -79,7 +79,7 @@ PipelineInterestsFixed::fetchNextSegment(std::size_t pipeNo)
 
   // send interest for next segment
   if (m_options.isVerbose)
-    std::cerr << "Requesting segment #" << nextSegmentNo << std::endl;
+    std::cerr << "Requesting segment #" << nextSegmentNo << "\n";
 
   auto interest = Interest()
                   .setName(Name(m_prefix).appendSegment(nextSegmentNo))
@@ -90,9 +90,15 @@ PipelineInterestsFixed::fetchNextSegment(std::size_t pipeNo)
   auto fetcher = DataFetcher::fetch(m_face, interest,
                                     m_options.maxRetriesOnTimeoutOrNack,
                                     m_options.maxRetriesOnTimeoutOrNack,
-                                    bind(&PipelineInterestsFixed::handleData, this, _1, _2, pipeNo),
-                                    bind(&PipelineInterestsFixed::handleFail, this, _2, pipeNo),
-                                    bind(&PipelineInterestsFixed::handleFail, this, _2, pipeNo),
+                                    [=] (const auto& interest, const auto& data) {
+                                      handleData(interest, data, pipeNo);
+                                    },
+                                    [=] (const auto&, const auto& reason) {
+                                      handleFail(reason, pipeNo);
+                                    },
+                                    [=] (const auto&, const auto& reason) {
+                                      handleFail(reason, pipeNo);
+                                    },
                                     m_options.isVerbose);
 
   BOOST_ASSERT(!m_segmentFetchers[pipeNo].first || !m_segmentFetchers[pipeNo].first->isRunning());
@@ -122,7 +128,7 @@ PipelineInterestsFixed::handleData(const Interest& interest, const Data& data, s
   BOOST_ASSERT(data.getName().equals(interest.getName()));
 
   if (m_options.isVerbose)
-    std::cerr << "Received segment #" << getSegmentFromPacket(data) << std::endl;
+    std::cerr << "Received segment #" << getSegmentFromPacket(data) << "\n";
 
   onData(data);
 

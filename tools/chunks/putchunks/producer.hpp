@@ -96,9 +96,6 @@ private:
   void
   processSegmentInterest(const Interest& interest);
 
-  void
-  onRegisterFailed(const Name& prefix, const std::string& reason);
-
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   std::vector<shared_ptr<Data>> m_store;
 

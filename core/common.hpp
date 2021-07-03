@@ -76,4 +76,7 @@ using boost::noncopyable;
 
 } // namespace ndn
 
+#define FORWARD_TO_MEM_FN(func) \
+  [this] (auto&&... args) { this->func(std::forward<decltype(args)>(args)...); }
+
 #endif // NDN_TOOLS_CORE_COMMON_HPP

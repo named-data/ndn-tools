@@ -47,12 +47,9 @@ public:
     , m_signalSetInt(m_face.getIoService(), SIGINT)
     , m_signalSetQuit(m_face.getIoService(), SIGQUIT)
   {
-    m_signalSetInt.async_wait(bind(&Runner::afterIntSignal, this, _1));
-    m_signalSetQuit.async_wait(bind(&Runner::afterQuitSignal, this, _1));
-
-    m_ping.afterFinish.connect([this] {
-        this->cancel();
-      });
+    m_signalSetInt.async_wait([this] (const auto& err, int) { onInterruptSignal(err); });
+    m_signalSetQuit.async_wait([this] (const auto& err, int) { onQuitSignal(err); });
+    m_ping.afterFinish.connect([this] { cancel(); });
   }
 
   int
@@ -68,8 +65,7 @@ public:
     }
 
     Statistics statistics = m_statisticsCollector.computeStatistics();
-
-    std::cout << statistics << std::endl;
+    std::cout << statistics << "\n";
 
     if (statistics.nReceived == statistics.nSent) {
       return 0;
@@ -89,7 +85,7 @@ private:
   }
 
   void
-  afterIntSignal(const boost::system::error_code& errorCode)
+  onInterruptSignal(const boost::system::error_code& errorCode)
   {
     if (errorCode == boost::asio::error::operation_aborted) {
       return;
@@ -99,14 +95,14 @@ private:
   }
 
   void
-  afterQuitSignal(const boost::system::error_code& errorCode)
+  onQuitSignal(const boost::system::error_code& errorCode)
   {
     if (errorCode == boost::asio::error::operation_aborted) {
       return;
     }
 
     m_statisticsCollector.computeStatistics().printSummary(std::cout);
-    m_signalSetQuit.async_wait(bind(&Runner::afterQuitSignal, this, _1));
+    m_signalSetQuit.async_wait([this] (const auto& err, int) { onQuitSignal(err); });
   }
 
 private:
@@ -203,7 +199,7 @@ main(int argc, char* argv[])
     }
 
     if (optVm.count("version") > 0) {
-      std::cout << "ndnping " << tools::VERSION << std::endl;
+      std::cout << "ndnping " << tools::VERSION << "\n";
       exit(0);
     }
 
@@ -211,14 +207,14 @@ main(int argc, char* argv[])
       options.prefix = Name(optVm["prefix"].as<std::string>());
     }
     else {
-      std::cerr << "ERROR: No prefix specified" << std::endl;
+      std::cerr << "ERROR: No prefix specified\n";
       usage(visibleOptDesc);
     }
 
     options.interval = time::milliseconds(optVm["interval"].as<time::milliseconds::rep>());
     if (options.interval < getMinimumPingInterval()) {
-      std::cerr << "ERROR: Specified ping interval is less than the minimum " <<
-                   getMinimumPingInterval() << std::endl;
+      std::cerr << "ERROR: Specified ping interval is less than the minimum "
+                << getMinimumPingInterval() << "\n";
       usage(visibleOptDesc);
     }
 
@@ -226,7 +222,7 @@ main(int argc, char* argv[])
 
     if (optVm.count("count") > 0) {
       if (options.nPings <= 0) {
-        std::cerr << "ERROR: Number of ping must be positive" << std::endl;
+        std::cerr << "ERROR: Number of ping must be positive\n";
         usage(visibleOptDesc);
       }
     }
@@ -238,7 +234,7 @@ main(int argc, char* argv[])
     if (optVm.count("identifier") > 0) {
       bool isIdentifierAcceptable = std::all_of(identifier.begin(), identifier.end(), &isalnum);
       if (identifier.empty() || !isIdentifierAcceptable) {
-        std::cerr << "ERROR: Unacceptable client identifier" << std::endl;
+        std::cerr << "ERROR: Unacceptable client identifier\n";
         usage(visibleOptDesc);
       }
 
@@ -254,11 +250,11 @@ main(int argc, char* argv[])
     }
   }
   catch (const po::error& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl;
+    std::cerr << "ERROR: " << e.what() << "\n";
     usage(visibleOptDesc);
   }
 
-  std::cout << "PING " << options.prefix << std::endl;
+  std::cout << "PING " << options.prefix << "\n";
   return Runner(options).run();
 }
 

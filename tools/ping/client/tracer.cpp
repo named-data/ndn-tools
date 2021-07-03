@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2015-2016,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2015-2021,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author: Eric Newberry <enewberry@email.arizona.edu>
- * @author: Teng Liang <philoliang@email.arizona.edu>
+ * @author Eric Newberry <enewberry@email.arizona.edu>
+ * @author Teng Liang <philoliang@email.arizona.edu>
  */
 
 #include "tracer.hpp"
@@ -29,9 +29,9 @@ namespace client {
 Tracer::Tracer(Ping& ping, const Options& options)
   : m_options(options)
 {
-  ping.afterData.connect(bind(&Tracer::onData, this, _1, _2));
-  ping.afterNack.connect(bind(&Tracer::onNack, this, _1, _2, _3));
-  ping.afterTimeout.connect(bind(&Tracer::onTimeout, this, _1));
+  ping.afterData.connect(FORWARD_TO_MEM_FN(onData));
+  ping.afterNack.connect(FORWARD_TO_MEM_FN(onNack));
+  ping.afterTimeout.connect(FORWARD_TO_MEM_FN(onTimeout));
 }
 
 void
@@ -42,7 +42,7 @@ Tracer::onData(uint64_t seq, Rtt rtt)
   }
 
   std::cout << "content from " << m_options.prefix << ": seq=" << seq << " time="
-            << rtt.count() << " ms" << std::endl;
+            << rtt.count() << " ms\n";
 }
 
 void
@@ -53,7 +53,7 @@ Tracer::onNack(uint64_t seq, Rtt rtt, const lp::NackHeader& header)
   }
 
   std::cout << "nack from " << m_options.prefix << ": seq=" << seq << " time="
-            << rtt.count() << " ms" << " reason=" << header.getReason() << std::endl;
+            << rtt.count() << " ms" << " reason=" << header.getReason() << "\n";
 }
 
 void
@@ -63,13 +63,13 @@ Tracer::onTimeout(uint64_t seq)
     std::cout << time::toIsoString(time::system_clock::now()) << " - ";
   }
 
-  std::cout << "timeout from " << m_options.prefix << ": seq=" << seq << std::endl;
+  std::cout << "timeout from " << m_options.prefix << ": seq=" << seq << "\n";
 }
 
 void
-Tracer::onError(std::string msg)
+Tracer::onError(const std::string& msg)
 {
-  std::cerr << "ERROR: " << msg << std::endl;
+  std::cerr << "ERROR: " << msg << "\n";
 }
 
 } // namespace client
