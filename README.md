@@ -1,8 +1,9 @@
 # NDN Essential Tools
 
-![Language](https://img.shields.io/badge/C%2B%2B-14-blue.svg)
-[![Build Status](https://travis-ci.org/named-data/ndn-tools.svg?branch=master)](https://travis-ci.org/named-data/ndn-tools)
-![Latest Version](https://img.shields.io/github/tag/named-data/ndn-tools.svg?color=darkkhaki&label=latest%20version)
+[![CI](https://github.com/named-data/ndn-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/named-data/ndn-tools/actions/workflows/ci.yml)
+[![Docs](https://github.com/named-data/ndn-tools/actions/workflows/docs.yml/badge.svg)](https://github.com/named-data/ndn-tools/actions/workflows/docs.yml)
+![Language](https://img.shields.io/badge/C%2B%2B-14-blue)
+![Latest version](https://img.shields.io/github/v/tag/named-data/ndn-tools?label=Latest%20version)
 
 **ndn-tools** is a collection of basic tools for [Named Data Networking](https://named-data.net/).
 Tools in this collection include:
