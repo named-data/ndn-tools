@@ -78,13 +78,17 @@ static const std::map<uint32_t, const char*> TLV_DICT = {
   {tlv::Interest                     , "Interest"},
   {tlv::Data                         , "Data"},
   {tlv::Name                         , "Name"},
+  // Interest packet
   {tlv::CanBePrefix                  , "CanBePrefix"},
   {tlv::MustBeFresh                  , "MustBeFresh"},
-  //{tlv::ForwardingHint               , "ForwardingHint"},
+  {tlv::ForwardingHint               , "ForwardingHint"},
   {tlv::Nonce                        , "Nonce"},
   {tlv::InterestLifetime             , "InterestLifetime"},
   {tlv::HopLimit                     , "HopLimit"},
   {tlv::ApplicationParameters        , "ApplicationParameters"},
+  {tlv::InterestSignatureInfo        , "InterestSignatureInfo"},
+  {tlv::InterestSignatureValue       , "InterestSignatureValue"},
+  // Data packet
   {tlv::MetaInfo                     , "MetaInfo"},
   {tlv::Content                      , "Content"},
   {tlv::SignatureInfo                , "SignatureInfo"},
@@ -92,19 +96,23 @@ static const std::map<uint32_t, const char*> TLV_DICT = {
   {tlv::ContentType                  , "ContentType"},
   {tlv::FreshnessPeriod              , "FreshnessPeriod"},
   {tlv::FinalBlockId                 , "FinalBlockId"},
+  // (Interest)SignatureInfo elements
   {tlv::SignatureType                , "SignatureType"},
   {tlv::KeyLocator                   , "KeyLocator"},
   {tlv::KeyDigest                    , "KeyDigest"},
+  {tlv::SignatureNonce               , "SignatureNonce"},
+  {tlv::SignatureTime                , "SignatureTime"},
+  {tlv::SignatureSeqNum              , "SignatureSeqNum"},
   // Name components
-  {tlv::GenericNameComponent           , "GenericNameComponent"},
-  {tlv::ImplicitSha256DigestComponent  , "ImplicitSha256DigestComponent"},
-  {tlv::ParametersSha256DigestComponent, "ParametersSha256DigestComponent"},
-  {tlv::KeywordNameComponent           , "KeywordNameComponent"},
-  //{tlv::SegmentNameComponent           , "SegmentNameComponent"},
-  //{tlv::ByteOffsetNameComponent        , "ByteOffsetNameComponent"},
-  //{tlv::VersionNameComponent           , "VersionNameComponent"},
-  //{tlv::TimestampNameComponent         , "TimestampNameComponent"},
-  //{tlv::SequenceNumNameComponent       , "SequenceNumNameComponent"},
+  {tlv::GenericNameComponent            , "GenericNameComponent"},
+  {tlv::ImplicitSha256DigestComponent   , "ImplicitSha256DigestComponent"},
+  {tlv::ParametersSha256DigestComponent , "ParametersSha256DigestComponent"},
+  {tlv::KeywordNameComponent            , "KeywordNameComponent"},
+  {tlv::SegmentNameComponent            , "SegmentNameComponent"},
+  {tlv::ByteOffsetNameComponent         , "ByteOffsetNameComponent"},
+  {tlv::VersionNameComponent            , "VersionNameComponent"},
+  {tlv::TimestampNameComponent          , "TimestampNameComponent"},
+  {tlv::SequenceNumNameComponent        , "SequenceNumNameComponent"},
   // Deprecated elements
   {tlv::Selectors                    , "Selectors"},
   {tlv::MinSuffixComponents          , "MinSuffixComponents"},
@@ -149,6 +157,7 @@ Dissector::printBlock(const Block& block)
 
   try {
     if (block.type() != tlv::SignatureValue &&
+        block.type() != tlv::InterestSignatureValue &&
         (block.type() != tlv::Content || m_options.dissectContent)) {
       block.parse();
     }
