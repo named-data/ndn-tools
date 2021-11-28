@@ -205,10 +205,7 @@ local NDN_DICT = {
    [5]  = {name = "Interest"                     , summary = true},
    [33] = {name = "CanBePrefix"                  , field = ProtoField.string("ndn.canbeprefix", "CanBePrefix")                     , value = getTrue},
    [18] = {name = "MustBeFresh"                  , field = ProtoField.string("ndn.mustbefresh", "MustBeFresh")                     , value = getTrue},
-   -- [30] = {name = "ForwardingHint"               , summary = true},
-   -- ForwardingHint and LinkPreference have the same TLV-TYPE number, so we can't recognize both for now (see #4185).
-   [31] = {name = "LinkDelegation"               , summary = true},
-   [30] = {name = "LinkPreference"               , field = ProtoField.uint64("ndn.linkpreference", "LinkPreference", base.DEC)     , value = getNonNegativeInteger},
+   [30] = {name = "ForwardingHint"               , summary = true},
    [10] = {name = "Nonce"                        , field = ProtoField.uint32("ndn.nonce", "Nonce", base.HEX)                       , value = getNonce},
    [12] = {name = "InterestLifetime"             , field = ProtoField.uint64("ndn.lifetime", "InterestLifetime", base.DEC)         , value = getNonNegativeInteger},
    [34] = {name = "HopLimit"                     , field = ProtoField.uint8("ndn.hoplimit", "HopLimit", base.DEC)                  , value = getHopLimit},

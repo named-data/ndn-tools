@@ -162,10 +162,10 @@ Trace summary: Handcrafted packets in NDN Packet Format v0.3
 All packets are valid and do not contain unrecognized TLV elements.
 
 Expected results of the dissection:
-- Packet 1 is recognized as "Interest" type, and has `CanBePrefix: Yes`, `MustBeFresh: Yes`,
-  `HopLimit: 214`, as well as an "ApplicationParameters" field.
-- Packet 2 is recognized as "Interest" type, and has `Name: /2=A/7=B/C/252=D/256=E/65535=E/sha256digest=ee357c5791dcaa4494d9b301047b875d8833caa76dada3e95837bbc3eaf7b300`.
-- Packet 3 is recognized as "Data" type, and has `Name: /`.
+- Packet 1 is recognized as "Interest" and contains `CanBePrefix: Yes`, `MustBeFresh: Yes`,
+  `HopLimit: 214`, as well as a "ForwardingHint" and an "ApplicationParameters" field.
+- Packet 2 is recognized as "Interest" and has `Name: /params-sha256=41/7=B/C/252=D/256=E/65535=E/sha256digest=ee357c5791dcaa4494d9b301047b875d8833caa76dada3e95837bbc3eaf7b300`.
+- Packet 3 is recognized as "Data" and has `Name: /`.
 
 ### 12. URI Scheme
 
@@ -175,7 +175,7 @@ Trace summary: Handcrafted packet for testing URI encoding in Name and FinalBloc
 (`xxd -p -r < nameuri.hex > nameuri.pcap`).
 
 Expected results of the dissection:
-- Packet 1 is recognized as "Data" type.
+- Packet 1 is recognized as "Data".
 - Its name has eight components.
 - First name component is `NameComponent: ...`.
 - Second name component is `NameComponent: ....`.
