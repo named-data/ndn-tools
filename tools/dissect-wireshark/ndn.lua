@@ -49,27 +49,36 @@ function getNonNegativeInteger(b)
    return UInt64.max()
 end
 
-function getUriFromImplicitSha256DigestComponent(b)
-   s = "sha256digest="
+function getUriFromSha256DigestComponent(b)
+   local s = ""
+   if b.type == 1 then
+      s = "sha256digest="
+   elseif b.type == 2 then
+      s = "params-sha256="
+   else
+      assert(false)
+   end
+
    for i = 0, (b.length - 1) do
-      byte = b.tvb(b.offset + b.typeLen + b.lengthLen + i, 1)
+      local byte = b.tvb(b.offset + b.typeLen + b.lengthLen + i, 1)
       s = s .. string.format("%02x", byte:uint())
    end
    return s
 end
 
 function getUriFromNameComponent(b)
-   if b.type == 1 then
-      return getUriFromImplicitSha256DigestComponent(b)
+   if b.type == 1 or b.type == 2 then
+      return getUriFromSha256DigestComponent(b)
    end
-   s = ""
+
+   local s = ""
    if b.type ~= 8 then
       s = string.format("%d=", b.type)
    end
    hasNonPeriod = false
    for i = 0, (b.length - 1) do
-      byte = b.tvb(b.offset + b.typeLen + b.lengthLen + i, 1)
-      ch = byte:uint()
+      local byte = b.tvb(b.offset + b.typeLen + b.lengthLen + i, 1)
+      local ch = byte:uint()
       hasNonPeriod = hasNonPeriod or ch ~= 0x2E
       if (ch >= 0x41 and ch <= 0x5A) or (ch >= 0x61 and ch <= 0x7A) or (ch >= 0x30 and ch <= 0x39) or ch == 0x2D or ch == 0x2E or ch == 0x5F or ch == 0x7E then
          s = s .. byte:string()
@@ -87,6 +96,7 @@ function getUriFromName(b)
    if b.elements == nil then
       return "/"
    end
+
    components = {}
    for i, comp in pairs(b.elements) do
       table.insert(components, getUriFromNameComponent(comp))
@@ -173,9 +183,10 @@ end
 
 local NDN_DICT = {
    -- Name and name components
-   [7]  = {name = "Name"                         , field = ProtoField.string("ndn.name", "Name")                                   , value = getUriFromName},
-   [1]  = {name = "ImplicitSha256DigestComponent", field = ProtoField.string("ndn.implicitsha256", "ImplicitSha256DigestComponent"), value = getUriFromNameComponent},
-   [8]  = {name = "GenericNameComponent"         , field = ProtoField.string("ndn.namecomponent", "NameComponent")                 , value = getUriFromNameComponent},
+   [7]  = {name = "Name"                           , field = ProtoField.string("ndn.name", "Name")                                    , value = getUriFromName},
+   [1]  = {name = "ImplicitSha256DigestComponent"  , field = ProtoField.string("ndn.implicit_sha256", "ImplicitSha256DigestComponent"), value = getUriFromNameComponent},
+   [2]  = {name = "ParametersSha256DigestComponent", field = ProtoField.string("ndn.params_sha256", "ParametersSha256DigestComponent"), value = getUriFromNameComponent},
+   [8]  = {name = "GenericNameComponent"           , field = ProtoField.string("ndn.namecomponent", "GenericNameComponent")           , value = getUriFromNameComponent},
 
    -- Interest and its sub-elements in Packet Format v0.3
    [5]  = {name = "Interest"                     , summary = true},
