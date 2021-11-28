@@ -112,8 +112,11 @@ function getUriFromFinalBlockId(b)
 end
 
 function getNackReasonDetail(b)
+   assert(b.type == 801)
    local code = getNonNegativeInteger(b)
-   if code == UInt64(50) then return "Congestion"
+
+   if code == UInt64(0) then return "None"
+   elseif code == UInt64(50) then return "Congestion"
    elseif code == UInt64(100) then return "Duplicate"
    elseif code == UInt64(150) then return "NoRoute"
    else return tostring(code)
@@ -121,16 +124,27 @@ function getNackReasonDetail(b)
 end
 
 function getCachePolicyDetail(b)
+   assert(b.type == 821)
    local code = getNonNegativeInteger(b)
-   if (code == 1) then return "NoCache"
-   else return "Unknown"
+
+   if code == UInt64(0) then return "None"
+   elseif code == UInt64(1) then return "NoCache"
+   else return tostring(code) .. " (unknown)"
    end
 end
 
 function getNonce(b)
    assert(b.type == 10)
-   if (b.length ~= 4) then
+   if b.length ~= 4 then
       return "invalid (should have 4 octets)"
+   end
+   return getValue(b):uint()
+end
+
+function getHopLimit(b)
+   assert(b.type == 34)
+   if b.length ~= 1 then
+      return "invalid (should have 1 octet)"
    end
    return getValue(b):uint()
 end
@@ -197,17 +211,17 @@ local NDN_DICT = {
    [31] = {name = "LinkDelegation"               , summary = true},
    [30] = {name = "LinkPreference"               , field = ProtoField.uint64("ndn.linkpreference", "LinkPreference", base.DEC)     , value = getNonNegativeInteger},
    [10] = {name = "Nonce"                        , field = ProtoField.uint32("ndn.nonce", "Nonce", base.HEX)                       , value = getNonce},
-   [12] = {name = "InterestLifetime"             , field = ProtoField.uint64("ndn.interestlifetime", "InterestLifetime", base.DEC) , value = getNonNegativeInteger},
-   [34] = {name = "HopLimit"                     , field = ProtoField.uint64("ndn.hoplimit", "HopLimit", base.DEC)                 , value = getNonNegativeInteger},
-   [36] = {name = "ApplicationParameters"        , field = ProtoField.string("ndn.applicationparameters", "ApplicationParameters")},
+   [12] = {name = "InterestLifetime"             , field = ProtoField.uint64("ndn.lifetime", "InterestLifetime", base.DEC)         , value = getNonNegativeInteger},
+   [34] = {name = "HopLimit"                     , field = ProtoField.uint8("ndn.hoplimit", "HopLimit", base.DEC)                  , value = getHopLimit},
+   [36] = {name = "ApplicationParameters"        , field = ProtoField.bytes("ndn.app_params", "ApplicationParameters")},
 
    -- Data and its sub-elements in Packet Format v0.3
    [6]  = {name = "Data"                         , summary = true},
    [20] = {name = "MetaInfo"                     , summary = true},
-   [24] = {name = "ContentType"                  , field = ProtoField.uint64("ndn.contenttype", "Content Type", base.DEC)          , value = getNonNegativeInteger},
-   [25] = {name = "FreshnessPeriod"              , field = ProtoField.uint64("ndn.freshnessperiod", "FreshnessPeriod", base.DEC)   , value = getNonNegativeInteger},
-   [26] = {name = "FinalBlockId"                 , field = ProtoField.string("ndn.finalblockid", "FinalBlockId")                   , value = getUriFromFinalBlockId},
-   [21] = {name = "Content"                      , field = ProtoField.string("ndn.content", "Content")},
+   [24] = {name = "ContentType"                  , field = ProtoField.uint64("ndn.contenttype", "ContentType", base.DEC)           , value = getNonNegativeInteger},
+   [25] = {name = "FreshnessPeriod"              , field = ProtoField.uint64("ndn.freshness", "FreshnessPeriod", base.DEC)         , value = getNonNegativeInteger},
+   [26] = {name = "FinalBlockId"                 , field = ProtoField.string("ndn.finalblock", "FinalBlockId")                     , value = getUriFromFinalBlockId},
+   [21] = {name = "Content"                      , field = ProtoField.bytes("ndn.content", "Content")},
    [22] = {name = "SignatureInfo"                , summary = true},
    [27] = {name = "SignatureType"                , field = ProtoField.uint64("ndn.signaturetype", "SignatureType", base.DEC)       , value = getNonNegativeInteger},
    [28] = {name = "KeyLocator"                   , summary = true},
@@ -219,7 +233,7 @@ local NDN_DICT = {
    [81] = {name = "Sequence"                     , field = ProtoField.uint64("ndn.sequence", "Sequence", base.DEC)                 , value = getNonNegativeInteger},
    [82] = {name = "FragIndex"                    , field = ProtoField.uint64("ndn.fragindex", "FragIndex", base.DEC)               , value = getNonNegativeInteger},
    [83] = {name = "FragCount"                    , field = ProtoField.uint64("ndn.fragcount", "FragCount", base.DEC)               , value = getNonNegativeInteger},
-   [98] = {name = "PitToken"                     , field = ProtoField.uint64("ndn.pit_token", "PitToken", base.DEC)                , value = getNonNegativeInteger},
+   [98] = {name = "PitToken"                     , field = ProtoField.bytes("ndn.pit_token", "PitToken")},
    [100] = {name = "LpPacket"                    , summary = true},
    [800] = {name = "Nack"                        , summary = true},
    [801] = {name = "NackReason"                  , field = ProtoField.string("ndn.nack_reason", "NackReason")                      , value = getNackReasonDetail},
