@@ -158,11 +158,10 @@ local AppPrivateBlock2 = 800
 local AppPrivateBlock3 = 1000
 
 function canIgnoreTlvType(t)
-   if (t < AppPrivateBlock2 or t >= AppPrivateBlock3) then
+   if t < AppPrivateBlock2 or t >= AppPrivateBlock3 then
       return false
    else
-      local mod = math.fmod(t, 2)
-      if (mod == 1) then
+      if math.fmod(t, 2) == 1 then
          return true
       else
          return false
@@ -174,16 +173,16 @@ function getGenericBlockInfo(block)
    local name = ""
 
    -- TODO: Properly format informational message based type value reservations
-   -- (http://named-data.net/doc/ndn-tlv/types.html#type-value-reservations)
+   -- (https://named-data.net/doc/NDN-packet-spec/current/types.html#tlv-type-number-reservations)
    if (block.type <= AppPrivateBlock1) then
       name = "Unrecognized from the reserved range " .. 0 .. "-" .. AppPrivateBlock1 .. ""
    elseif (AppPrivateBlock1 < block.type and block.type < AppPrivateBlock2) then
       name = "Unrecognized from the reserved range " .. (AppPrivateBlock1 + 1) .. "-" .. (AppPrivateBlock2 - 1) .. ""
    elseif (AppPrivateBlock2 <= block.type and block.type <= AppPrivateBlock3) then
-      if (canIgnoreTlvType(block.type)) then
+      if canIgnoreTlvType(block.type) then
          name = "Unknown field (ignored)"
       else
-      name = "Unknown field"
+         name = "Unknown field"
       end
    else
       name = "RESERVED_3"
@@ -223,10 +222,10 @@ local NDN_DICT = {
    [26] = {name = "FinalBlockId"                 , field = ProtoField.string("ndn.finalblock", "FinalBlockId")                     , value = getUriFromFinalBlockId},
    [21] = {name = "Content"                      , field = ProtoField.bytes("ndn.content", "Content")},
    [22] = {name = "SignatureInfo"                , summary = true},
-   [27] = {name = "SignatureType"                , field = ProtoField.uint64("ndn.signaturetype", "SignatureType", base.DEC)       , value = getNonNegativeInteger},
+   [27] = {name = "SignatureType"                , field = ProtoField.uint64("ndn.sigtype", "SignatureType", base.DEC)             , value = getNonNegativeInteger},
    [28] = {name = "KeyLocator"                   , summary = true},
    [29] = {name = "KeyDigest"                    , field = ProtoField.bytes("ndn.keydigest", "KeyDigest")},
-   [23] = {name = "SignatureValue"               , field = ProtoField.bytes("ndn.signaturevalue", "SignatureValue")},
+   [23] = {name = "SignatureValue"               , field = ProtoField.bytes("ndn.sigvalue", "SignatureValue")},
 
    -- NDNLPv2 headers
    [80] = {name = "Fragment"                     },
@@ -237,10 +236,10 @@ local NDN_DICT = {
    [100] = {name = "LpPacket"                    , summary = true},
    [800] = {name = "Nack"                        , summary = true},
    [801] = {name = "NackReason"                  , field = ProtoField.string("ndn.nack_reason", "NackReason")                      , value = getNackReasonDetail},
-   [816] = {name = "NextHopFaceId"               , field = ProtoField.uint64("ndn.nexthop_faceid", "NextHopFaceId", base.DEC)      , value = getNonNegativeInteger},
-   [817] = {name = "IncomingFaceId"              , field = ProtoField.uint64("ndn.incoming_faceid", "IncomingFaceId", base.DEC)    , value = getNonNegativeInteger},
+   [816] = {name = "NextHopFaceId"               , field = ProtoField.uint64("ndn.nexthop_face", "NextHopFaceId", base.DEC)        , value = getNonNegativeInteger},
+   [817] = {name = "IncomingFaceId"              , field = ProtoField.uint64("ndn.incoming_face", "IncomingFaceId", base.DEC)      , value = getNonNegativeInteger},
    [820] = {name = "CachePolicy"                 , summary = true},
-   [821] = {name = "CachePolicyType"             , field = ProtoField.string("ndn.cachepolicy_type", "CachePolicyType")            , value = getCachePolicyDetail},
+   [821] = {name = "CachePolicyType"             , field = ProtoField.string("ndn.cache_policy", "CachePolicyType")                , value = getCachePolicyDetail},
    [832] = {name = "CongestionMark"              , field = ProtoField.uint64("ndn.congestion_mark", "CongestionMark", base.DEC)    , value = getNonNegativeInteger},
    [836] = {name = "Ack"                         , field = ProtoField.uint64("ndn.ack", "Ack", base.DEC)                           , value = getNonNegativeInteger},
    [840] = {name = "TxSequence"                  , field = ProtoField.uint64("ndn.txseq", "TxSequence", base.DEC)                  , value = getNonNegativeInteger},
