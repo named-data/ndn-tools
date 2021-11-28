@@ -101,11 +101,6 @@ function getUriFromFinalBlockId(b)
    return getUriFromNameComponent(b.elements[1])
 end
 
-function getUriFromExclude(block)
-   -- @todo
-   return ""
-end
-
 function getNackReasonDetail(b)
    local code = getNonNegativeInteger(b)
    if code == UInt64(50) then return "Congestion"
@@ -223,22 +218,11 @@ local NDN_DICT = {
    [821] = {name = "CachePolicyType"             , field = ProtoField.string("ndn.cachepolicy_type", "CachePolicyType")            , value = getCachePolicyDetail},
    [832] = {name = "CongestionMark"              , field = ProtoField.uint64("ndn.congestion_mark", "CongestionMark", base.DEC)    , value = getNonNegativeInteger},
    [836] = {name = "Ack"                         , field = ProtoField.uint64("ndn.ack", "Ack", base.DEC)                           , value = getNonNegativeInteger},
-   [840] = {name = "TxSequence"                  , field = ProtoField.uint64("ndn.tx_sequence", "TxSequence", base.DEC)            , value = getNonNegativeInteger},
-
-   -- Deprecated elements
-   [9]  = {name = "Selectors"                    , summary = true},
-   [13] = {name = "MinSuffixComponents"          , field = ProtoField.uint64("ndn.minsuffix", "MinSuffixComponents")               , value = getNonNegativeInteger},
-   [14] = {name = "MaxSuffixComponents"          , field = ProtoField.uint64("ndn.maxsuffix", "MaxSuffixComponents")               , value = getNonNegativeInteger},
-   [15] = {name = "PublisherPublicKeyLocator"    , summary = true},
-   [16] = {name = "Exclude"                      , field = ProtoField.string("ndn.exclude", "Exclude")                             , value = getUriFromExclude},
-   [17] = {name = "ChildSelector"                , field = ProtoField.uint64("ndn.childselector", "ChildSelector", base.DEC)       , value = getNonNegativeInteger},
-   [19] = {name = "Any"                          , field = ProtoField.string("ndn.any", "Any")                                     , value = getTrue},
-   [32] = {name = "SelectedDelegation"           , field = ProtoField.uint64("ndn.selected_delegation", "SelectedDelegation", base.DEC), value = getNonNegativeInteger},
+   [840] = {name = "TxSequence"                  , field = ProtoField.uint64("ndn.txseq", "TxSequence", base.DEC)                  , value = getNonNegativeInteger},
 }
 
 -- -- Add protofields in NDN protocol
-ndn.fields = {
-}
+ndn.fields = {}
 for key, value in pairs(NDN_DICT) do
    table.insert(ndn.fields, value.field)
 end
