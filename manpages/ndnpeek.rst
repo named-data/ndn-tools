@@ -28,8 +28,9 @@ Options
 ``-f, --fresh``
   If specified, include ``MustBeFresh`` element in the Interest packet.
 
-``--link-file <file>``
-  Read Link object from ``file`` and add it as ``ForwardingHint`` to the Interest packet.
+``-F, --fwhint <name>``
+  Add a delegation name to the ``ForwardingHint`` of the Interest packet.
+  This option may be repeated to specify multiple delegation names.
 
 ``-l, --lifetime <lifetime>``
   Set ``lifetime`` (in milliseconds) as the ``InterestLifetime``.

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2019,  Regents of the University of California,
+ * Copyright (c) 2014-2022,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -63,9 +63,7 @@ NdnPeek::createInterest() const
   Interest interest(m_options.name);
   interest.setCanBePrefix(m_options.canBePrefix);
   interest.setMustBeFresh(m_options.mustBeFresh);
-  if (m_options.link) {
-    interest.setForwardingHint(m_options.link->getDelegationList());
-  }
+  interest.setForwardingHint(m_options.forwardingHint);
   interest.setInterestLifetime(m_options.interestLifetime);
   interest.setHopLimit(m_options.hopLimit);
   if (m_options.applicationParameters) {

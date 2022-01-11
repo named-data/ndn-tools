@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020,  Arizona Board of Regents.
+ * Copyright (c) 2014-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -155,12 +155,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Default, OutputCheck, OutputChecks)
 
   OutputCheck::checkOutput(output, *data);
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getCanBePrefix(), false);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), false);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint().empty(), true);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), DEFAULT_INTEREST_LIFETIME);
-  BOOST_CHECK(face.sentInterests.back().getHopLimit() == nullopt);
-  BOOST_CHECK(!face.sentInterests.back().hasApplicationParameters());
+  const auto& interest = face.sentInterests.back();
+  BOOST_CHECK_EQUAL(interest.getCanBePrefix(), false);
+  BOOST_CHECK_EQUAL(interest.getMustBeFresh(), false);
+  BOOST_CHECK_EQUAL(interest.getForwardingHint().empty(), true);
+  BOOST_CHECK_EQUAL(interest.getInterestLifetime(), DEFAULT_INTEREST_LIFETIME);
+  BOOST_CHECK(interest.getHopLimit() == nullopt);
+  BOOST_CHECK(!interest.hasApplicationParameters());
   BOOST_CHECK(peek->getResult() == NdnPeek::Result::DATA);
 }
 
@@ -169,6 +170,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(NonDefault, OutputCheck, OutputChecks)
   auto options = OutputCheck::makeOptions();
   options.canBePrefix = true;
   options.mustBeFresh = true;
+  options.forwardingHint.emplace_back("/fh");
   options.interestLifetime = 200_ms;
   options.hopLimit = 64;
   initialize(options);
@@ -187,12 +189,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(NonDefault, OutputCheck, OutputChecks)
 
   OutputCheck::checkOutput(output, *data);
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getCanBePrefix(), true);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getMustBeFresh(), true);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getForwardingHint().empty(), true);
-  BOOST_CHECK_EQUAL(face.sentInterests.back().getInterestLifetime(), 200_ms);
-  BOOST_CHECK(face.sentInterests.back().getHopLimit() == 64);
-  BOOST_CHECK(!face.sentInterests.back().hasApplicationParameters());
+  const auto& interest = face.sentInterests.back();
+  BOOST_CHECK_EQUAL(interest.getCanBePrefix(), true);
+  BOOST_CHECK_EQUAL(interest.getMustBeFresh(), true);
+  BOOST_TEST(interest.getForwardingHint() == std::vector<Name>({"/fh"}),
+             boost::test_tools::per_element());
+  BOOST_CHECK_EQUAL(interest.getInterestLifetime(), 200_ms);
+  BOOST_CHECK(interest.getHopLimit() == 64);
+  BOOST_CHECK(!interest.hasApplicationParameters());
   BOOST_CHECK(peek->getResult() == NdnPeek::Result::DATA);
 }
 
