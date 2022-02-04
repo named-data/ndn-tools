@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2011-2019, Regents of the University of California.
+ * Copyright (c) 2011-2022, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -34,6 +34,7 @@
 #include <ndn-cxx/lp/nack.hpp>
 #include <ndn-cxx/lp/packet.hpp>
 #include <ndn-cxx/net/ethernet.hpp>
+#include <ndn-cxx/util/scope.hpp>
 #include <ndn-cxx/util/string-helper.hpp>
 
 #include <boost/endian/conversion.hpp>
@@ -96,13 +97,18 @@ NdnDump::run()
   char errbuf[PCAP_ERRBUF_SIZE] = {};
 
   if (inputFile.empty() && interface.empty()) {
-    const char* defaultDevice = pcap_lookupdev(errbuf);
+    pcap_if_t* allDevs = nullptr;
+    int res = pcap_findalldevs(&allDevs, errbuf);
+    auto freealldevs = ndn::make_scope_exit([=] { pcap_freealldevs(allDevs); });
 
-    if (defaultDevice == nullptr) {
+    if (res != 0) {
       NDN_THROW(Error(errbuf));
     }
+    if (allDevs == nullptr) {
+      NDN_THROW(Error("No network interface found"));
+    }
 
-    interface = defaultDevice;
+    interface = allDevs->name;
   }
 
   std::string action;
@@ -151,9 +157,9 @@ NdnDump::run()
     if (res < 0) {
       NDN_THROW(Error("Cannot compile pcap filter '" + pcapFilter + "': " + pcap_geterr(m_pcap)));
     }
+    auto freecode = ndn::make_scope_exit([&] { pcap_freecode(&program); });
 
     res = pcap_setfilter(m_pcap, &program);
-    pcap_freecode(&program);
     if (res < 0) {
       NDN_THROW(Error("Cannot set pcap filter: "s + pcap_geterr(m_pcap)));
     }
