@@ -207,8 +207,7 @@ NdnDump::printPacket(const pcap_pkthdr* pkthdr, const uint8_t* payload) const
     shouldPrint = printPpp(out, payload, pkthdr->len);
     break;
   default:
-    BOOST_ASSERT(false);
-    return;
+    NDN_CXX_UNREACHABLE;
   }
 
   if (shouldPrint) {
@@ -220,9 +219,9 @@ NdnDump::printPacket(const pcap_pkthdr* pkthdr, const uint8_t* payload) const
 }
 
 void
-NdnDump::printTimestamp(std::ostream& os, const timeval& tv) const
+NdnDump::printTimestamp(std::ostream& os, const timeval& tv)
 {
-  /// \todo Add more timestamp formats (time since previous packet, time since first packet, ...)
+  // TODO: Add more timestamp formats (time since previous packet, time since first packet, ...)
   os << tv.tv_sec
      << "."
      << std::setfill('0') << std::setw(6) << tv.tv_usec
@@ -520,7 +519,7 @@ NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
 
   bool isOk = false;
   Block block;
-  std::tie(isOk, block) = Block::fromBuffer(pkt, len);
+  std::tie(isOk, block) = Block::fromBuffer({pkt, len});
   if (!isOk) {
     // if packet is incomplete, we will not be able to process it
     out << "NDN truncated packet, length " << len;
@@ -549,8 +548,7 @@ NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
       return true;
     }
 
-    bool isOk = false;
-    std::tie(isOk, netPacket) = Block::fromBuffer(&*begin, std::distance(begin, end));
+    std::tie(isOk, netPacket) = Block::fromBuffer({begin, end});
     if (!isOk) {
       // if network packet is fragmented, we will not be able to process it
       out << " fragment";

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2021, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -41,7 +41,7 @@ Producer::Producer(const Name& prefix, Face& face, KeyChain& keyChain, std::istr
   , m_keyChain(keyChain)
   , m_options(opts)
 {
-  if (prefix.size() > 0 && prefix[-1].isVersion()) {
+  if (!prefix.empty() && prefix[-1].isVersion()) {
     m_prefix = prefix.getPrefix(-1);
     m_versionedPrefix = prefix;
   }
@@ -115,7 +115,7 @@ Producer::processDiscoveryInterest(const Interest& interest)
 void
 Producer::processSegmentInterest(const Interest& interest)
 {
-  BOOST_ASSERT(m_store.size() > 0);
+  BOOST_ASSERT(!m_store.empty());
 
   if (m_options.isVerbose)
     std::cerr << "Interest: " << interest << "\n";
@@ -164,7 +164,7 @@ Producer::populateStore(std::istream& is)
     if (nCharsRead > 0) {
       auto data = make_shared<Data>(Name(m_versionedPrefix).appendSegment(m_store.size()));
       data->setFreshnessPeriod(m_options.freshnessPeriod);
-      data->setContent(buffer.data(), static_cast<size_t>(nCharsRead));
+      data->setContent(make_span(buffer).first(nCharsRead));
       m_store.push_back(data);
     }
   }

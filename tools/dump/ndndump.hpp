@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2011-2019, Regents of the University of California.
+ * Copyright (c) 2011-2022, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -66,8 +66,8 @@ public:
   }
 
 private:
-  void
-  printTimestamp(std::ostream& os, const timeval& tv) const;
+  static void
+  printTimestamp(std::ostream& os, const timeval& tv);
 
   bool
   dispatchByEtherType(OutputFormatter& out, const uint8_t* pkt, size_t len, uint16_t etherType) const;

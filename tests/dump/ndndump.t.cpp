@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020, University of Memphis,
+ * Copyright (c) 2014-2022, University of Memphis,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
@@ -87,9 +87,9 @@ protected:
     ethernet::Address host;
 
     // Ethernet header
-    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(&ethertype), ethernet::TYPE_LEN);
-    buffer.prependByteArray(host.data(), host.size());
-    buffer.prependByteArray(host.data(), host.size());
+    buffer.prependBytes({reinterpret_cast<const uint8_t*>(&ethertype), ethernet::TYPE_LEN});
+    buffer.prependBytes(host);
+    buffer.prependBytes(host);
 
     // pcap header
     pcap_pkthdr pkthdr{};
@@ -97,28 +97,28 @@ protected:
 
     {
       StdCoutRedirector redirect(output);
-      dump.printPacket(&pkthdr, buffer.buf());
+      dump.printPacket(&pkthdr, buffer.data());
     }
   }
 
   void
   receiveIp4(EncodingBuffer& buffer, const ip* ipHeader)
   {
-    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(ipHeader), sizeof(ip));
+    buffer.prependBytes({reinterpret_cast<const uint8_t*>(ipHeader), sizeof(ip)});
     receiveEthernet(buffer, s_ethertypeIp4);
   }
 
   void
   receiveIp6(EncodingBuffer& buffer, const ip6_hdr* ip6Header)
   {
-    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(ip6Header), sizeof(ip6_hdr));
+    buffer.prependBytes({reinterpret_cast<const uint8_t*>(ip6Header), sizeof(ip6_hdr)});
     receiveEthernet(buffer, s_ethertypeIp6);
   }
 
   void
   receiveTcp4(EncodingBuffer& buffer, const tcphdr* tcpHeader)
   {
-    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(tcpHeader), sizeof(tcphdr));
+    buffer.prependBytes({reinterpret_cast<const uint8_t*>(tcpHeader), sizeof(tcphdr)});
 
     ip ipHeader{};
     ipHeader.ip_v = 4;
@@ -133,7 +133,7 @@ protected:
   void
   receiveUdp4(EncodingBuffer& buffer, const udphdr* udpHeader)
   {
-    buffer.prependByteArray(reinterpret_cast<const uint8_t*>(udpHeader), sizeof(udphdr));
+    buffer.prependBytes({reinterpret_cast<const uint8_t*>(udpHeader), sizeof(udphdr)});
 
     ip ipHeader{};
     ipHeader.ip_v = 4;
@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE(IncompleteNdnPacket)
       0x00, 0x00, 0x00, 0x01
   };
   EncodingBuffer buffer;
-  buffer.prependByteArray(interest, 4);
+  buffer.prependBytes(make_span(interest).first(4));
 
   this->receiveEthernet(buffer);
   BOOST_CHECK(output.is_equal("0.000000 Ethernet, NDN truncated packet, length 4\n"));
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE(MalformedIpv4Header)
   uint8_t theAnswer = 42;
 
   EncodingBuffer pkt1;
-  pkt1.prependByte(theAnswer);
+  pkt1.prependBytes({theAnswer});
   this->receiveEthernet(pkt1, s_ethertypeIp4);
   BOOST_CHECK(output.is_equal("IP truncated header, length 1\n"));
 
@@ -315,7 +315,7 @@ BOOST_AUTO_TEST_CASE(MalformedIpv6Header)
   uint8_t theAnswer = 42;
 
   EncodingBuffer pkt1;
-  pkt1.prependByte(theAnswer);
+  pkt1.prependBytes({theAnswer});
   this->receiveEthernet(pkt1, s_ethertypeIp6);
   BOOST_CHECK(output.is_equal("IP6 truncated header, length 1\n"));
 

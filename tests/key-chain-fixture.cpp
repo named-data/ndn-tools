@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020,  Regents of the University of California.
+ * Copyright (c) 2014-2022,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -54,7 +54,7 @@ KeyChainFixture::makeCert(const Key& key, const std::string& issuer, const Key& 
   cert.setFreshnessPeriod(1_h);
 
   // set content
-  cert.setContent(key.getPublicKey().data(), key.getPublicKey().size());
+  cert.setContent(key.getPublicKey());
 
   // set signature info
   ndn::SignatureInfo info;

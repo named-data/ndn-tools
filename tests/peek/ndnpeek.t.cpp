@@ -143,8 +143,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Default, OutputCheck, OutputChecks)
   initialize(options);
 
   auto data = makeData(options.name);
-  const std::string payload = "NdnPeekTest";
-  data->setContent(reinterpret_cast<const uint8_t*>(payload.data()), payload.size());
+  data->setContent({'n', 'd', 'n', 'p', 'e', 'e', 'k'});
 
   {
     CoutRedirector redir(output);
@@ -177,8 +176,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(NonDefault, OutputCheck, OutputChecks)
 
   auto data = makeData(Name(options.name).append("suffix"));
   data->setFreshnessPeriod(1_s);
-  const std::string payload = "NdnPeekTest";
-  data->setContent(reinterpret_cast<const uint8_t*>(payload.data()), payload.size());
+  data->setContent({'n', 'd', 'n', 'p', 'e', 'e', 'k'});
 
   {
     CoutRedirector redir(output);

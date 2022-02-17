@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2020, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -75,8 +75,8 @@ BOOST_AUTO_TEST_CASE(InOrderData)
     output.flush();
 
     auto data = makeData(Name(name).appendVersion(1).appendSegment(i));
-    data->setContent(reinterpret_cast<const uint8_t*>(testStrings[i].data()),
-                     testStrings[i].size());
+    data->setContent(make_span(reinterpret_cast<const uint8_t*>(testStrings[i].data()),
+                               testStrings[i].size()));
 
     cons.m_bufferedData[i] = data;
     cons.writeInOrderData();
@@ -109,8 +109,8 @@ BOOST_AUTO_TEST_CASE(OutOfOrderData)
 
   for (size_t i = 0; i < testStrings.size(); ++i) {
     auto data = makeData(Name(name).appendVersion(1).appendSegment(i));
-    data->setContent(reinterpret_cast<const uint8_t*>(testStrings[i].data()),
-                     testStrings[i].size());
+    data->setContent(make_span(reinterpret_cast<const uint8_t*>(testStrings[i].data()),
+                               testStrings[i].size()));
 
     dataStore.push_back(data);
   }
