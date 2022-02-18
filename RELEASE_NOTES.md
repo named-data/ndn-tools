@@ -1,5 +1,42 @@
 # Release Notes
 
+## Version 22.02
+
+Starting with this release, ndn-tools switched to a new versioning scheme:
+`YEAR.MONTH[.REVISION]`.
+
+chunks:
+- Add `--naming-convention` command-line option (Issue #5109)
+- Increase the default segment size to 8000 bytes
+
+dissect:
+- Support `InterestSignature` fields and more types of name components
+- The `Content` field is no longer dissected by default; use the new `--content` option
+  to enable it
+- Minor cosmetic improvements to the tool output
+
+dissect-wireshark:
+- Remove support for obsolete TLV elements
+- Recognize `ForwardingHint` (Issue #4185)
+- Recognize `ParametersSha256DigestComponent`
+- Fix decoding of several TLV elements such as `HopLimit` and `PitToken`
+- Update the TLV type of `IncomingFaceId` (Issue #5185)
+
+peek:
+- Replace `--link-file` option with `--fwhint` and adapt to the new `ForwardingHint`
+  format (Issues #4207, #5187)
+
+poke:
+- Remove deprecated `--force` option; use `--unsolicited` instead
+- Remove deprecated `--identity` and `--digest` options; use `--signing-info` instead
+- Change the short form of `--freshness` to `-f`
+
+pingserver:
+- Remove deprecated `-x` alias for the `--freshness` option
+
+build system:
+- Upgrade `waf` to version 2.0.23
+
 ## Version 0.7.1
 
 The build requirements have been increased to require Clang >= 4.0, Xcode >= 9.0, and Python >= 3.6.
@@ -71,7 +108,8 @@ ping:
 poke:
 - Use `PendingInterestHandle` and `RegisteredPrefixHandle` (Issues #4316, #3919)
 
-Various build system and build script improvements.
+build system:
+- Upgrade `waf` to version 2.0.14 and other improvements
 
 ## Version 0.6.2
 
@@ -126,8 +164,8 @@ peek:
 - Drop `Selectors` support (Issue #4571)
 - Add `-P/--prefix` option to set `CanBePrefix` in the Interest packet
 
-build scripts:
-- Upgrade `waf` to the latest version and other improvements
+build system:
+- Upgrade `waf` to version 2.0.6 and other improvements
 
 ## Version 0.6
 
@@ -146,15 +184,15 @@ all:
 - Switch to version 2 of certificates, `KeyChain`, and `Validator` (Issue #4089)
 - Compilation fixes (Issue #4259)
 
-peek:
-- Convert use of `Link` into `ForwardingHint` (Issue #4055)
-
 chunks:
-- Make `ndnputchunks` display some output by default. A new `-q` flag makes output
+- Make `ndnputchunks` display some output by default; a new `-q` flag makes the tool
   completely silent, except for errors (Issue #4286)
 - Refactor `ndnputchunks` options handling
 - Reduce initial timeout of iterative version discovery in `ndncatchunks` (Issue #4291)
 - Fix potential `ndncatchunks` crash on exit
+
+peek:
+- Convert use of `Link` into `ForwardingHint` (Issue #4055)
 
 ## Version 0.4
 
@@ -210,7 +248,7 @@ dump:
 - Capture and print network NACK packets
 - Update docs to include NACK capture feature
 
-build scripts:
+build system:
 - Enable `-Wextra` by default
 - Fix missing tool name in `configure --help` output
 - Fix compatibility with Python 3

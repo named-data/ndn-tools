@@ -3,7 +3,7 @@
 from waflib import Context, Logs, Utils
 import os, subprocess
 
-VERSION = '0.7.1'
+VERSION = '22.02'
 APPNAME = 'ndn-tools'
 GIT_TAG_PREFIX = 'ndn-tools-'
 
@@ -64,11 +64,15 @@ def build(bld):
         target='core/version.cpp',
         VERSION_BUILD=VERSION)
 
-    bld.objects(target='core-objects',
-                source=bld.path.ant_glob('core/*.cpp') + ['core/version.cpp'],
-                use='NDN_CXX BOOST',
-                includes='.',
-                export_includes='.')
+    bld.objects(
+        target='core-objects',
+        source=bld.path.find_node('core').ant_glob('*.cpp') + ['core/version.cpp'],
+        use='NDN_CXX BOOST',
+        includes='.',
+        export_includes='.')
+
+    bld.recurse('tools')
+    bld.recurse('tests')
 
     if Utils.unversioned_sys_platform() == 'linux':
         systemd_units = bld.path.ant_glob('systemd/*.in')
@@ -76,9 +80,6 @@ def build(bld):
             name='systemd-units',
             source=systemd_units,
             target=[u.change_ext('') for u in systemd_units])
-
-    bld.recurse('tools')
-    bld.recurse('tests')
 
     if bld.env.SPHINX_BUILD:
         bld(features='sphinx',
