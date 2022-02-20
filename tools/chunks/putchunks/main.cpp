@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2021, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -34,13 +34,12 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 namespace po = boost::program_options;
 
 static void
-usage(std::ostream& os, const std::string& programName, const po::options_description& desc)
+usage(std::ostream& os, std::string_view programName, const po::options_description& desc)
 {
   os << "Usage: " << programName << " [options] ndn:/name\n"
      << "\n"
@@ -163,8 +162,7 @@ main(int argc, char* argv[])
   return 0;
 }
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks
 
 int
 main(int argc, char* argv[])

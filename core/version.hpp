@@ -22,15 +22,13 @@
 
 #include "core/common.hpp"
 
-namespace ndn {
-namespace tools {
+namespace ndn::tools {
 
 /**
  * \brief The version of ndn-tools.
  */
 extern const char VERSION[];
 
-} // namespace tools
-} // namespace ndn
+} // namespace ndn::tools
 
 #endif // NDN_TOOLS_CORE_VERSION_HPP

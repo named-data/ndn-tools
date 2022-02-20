@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2019,  Regents of the University of California,
+ * Copyright (c) 2014-2022,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -33,8 +33,7 @@
 
 #include <ndn-cxx/util/scheduler.hpp>
 
-namespace ndn {
-namespace peek {
+namespace ndn::peek {
 
 /**
  * \brief options for NdnPoke
@@ -53,7 +52,7 @@ struct PokeOptions
   optional<time::milliseconds> timeout;
 };
 
-class NdnPoke : boost::noncopyable
+class NdnPoke : noncopyable
 {
 public:
   NdnPoke(Face& face, KeyChain& keyChain, std::istream& input, const PokeOptions& options);
@@ -93,7 +92,7 @@ private:
   onRegSuccess();
 
   void
-  onRegFailure(const std::string& reason);
+  onRegFailure(std::string_view reason);
 
 private:
   const PokeOptions m_options;
@@ -106,7 +105,6 @@ private:
   Result m_result = Result::UNKNOWN;
 };
 
-} // namespace peek
-} // namespace ndn
+} // namespace ndn::peek
 
 #endif // NDN_TOOLS_NDNPOKE_NDNPOKE_HPP

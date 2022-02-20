@@ -23,8 +23,7 @@
 
 #include <boost/filesystem.hpp>
 
-namespace ndn {
-namespace tests {
+namespace ndn::tests {
 
 using namespace ndn::security;
 
@@ -113,5 +112,4 @@ KeyChainFixture::saveIdentityCert(const Name& identityName, const std::string& f
   return saveIdentityCert(id, filename);
 }
 
-} // namespace tests
-} // namespace ndn
+} // namespace ndn::tests

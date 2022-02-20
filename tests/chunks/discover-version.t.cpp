@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2020, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -32,9 +32,7 @@
 #include <ndn-cxx/metadata-object.hpp>
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
-namespace ndn {
-namespace chunks {
-namespace tests {
+namespace ndn::chunks::tests {
 
 using namespace ndn::tests;
 
@@ -215,6 +213,4 @@ BOOST_AUTO_TEST_CASE(SuccessAfterNackAndTimeout)
 BOOST_AUTO_TEST_SUITE_END() // TestDiscoverVersion
 BOOST_AUTO_TEST_SUITE_END() // Chunks
 
-} // namespace tests
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks::tests

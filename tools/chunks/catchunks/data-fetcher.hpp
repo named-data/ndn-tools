@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -29,11 +29,10 @@
 
 #include "core/common.hpp"
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 /**
- * @brief fetch data for a given interest and handle timeout or nack error with retries
+ * @brief Fetch data for a given interest and handle timeout or nack error with retries.
  *
  * To instantiate a DataFetcher you need to use the static method fetch, this will also express the
  * interest. After a timeout or nack is received, the same interest with a different nonce will be
@@ -53,12 +52,12 @@ public:
    * @brief means that there is no maximum number of retries,
    *        i.e. fetching must be retried indefinitely
    */
-  static const int MAX_RETRIES_INFINITE;
+  static constexpr int MAX_RETRIES_INFINITE = -1;
 
   /**
    * @brief ceiling value for backoff time used in congestion handling
    */
-  static const time::milliseconds MAX_CONGESTION_BACKOFF_TIME;
+  static constexpr time::milliseconds MAX_CONGESTION_BACKOFF_TIME = 10_s;
 
   using FailureCallback = std::function<void(const Interest& interest, const std::string& reason)>;
 
@@ -117,16 +116,15 @@ private:
 
   int m_maxNackRetries;
   int m_maxTimeoutRetries;
-  int m_nNacks;
-  int m_nTimeouts;
-  uint32_t m_nCongestionRetries;
+  int m_nNacks = 0;
+  int m_nTimeouts = 0;
+  uint32_t m_nCongestionRetries = 0;
 
-  bool m_isVerbose;
-  bool m_isStopped;
-  bool m_hasError;
+  bool m_isVerbose = false;
+  bool m_isStopped = false;
+  bool m_hasError = false;
 };
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks
 
 #endif // NDN_TOOLS_CHUNKS_CATCHUNKS_DATA_FETCHER_HPP

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020,  Regents of the University of California.
+ * Copyright (c) 2014-2022,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -25,8 +25,7 @@
 #include <fstream>
 #include <stdlib.h>
 
-namespace ndn {
-namespace tests {
+namespace ndn::tests {
 
 class GlobalConfiguration
 {
@@ -68,5 +67,4 @@ BOOST_GLOBAL_FIXTURE(GlobalConfiguration);
 BOOST_GLOBAL_FIXTURE(GlobalConfiguration)
 #endif
 
-} // namespace tests
-} // namespace ndn
+} // namespace ndn::tests

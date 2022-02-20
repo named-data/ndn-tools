@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2021,  Regents of the University of California.
+ * Copyright (c) 2014-2022,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -26,13 +26,12 @@
 
 #include <fstream>
 
-namespace ndn {
-namespace dissect {
+namespace ndn::dissect {
 
 namespace po = boost::program_options;
 
 static void
-usage(std::ostream& os, const std::string& programName, const po::options_description& options)
+usage(std::ostream& os, std::string_view programName, const po::options_description& options)
 {
   os << "Usage: " << programName << " [options] [input-file]\n"
      << "\n"
@@ -99,8 +98,7 @@ main(int argc, char* argv[])
   return 0;
 }
 
-} // namespace dissect
-} // namespace ndn
+} // namespace ndn::dissect
 
 int
 main(int argc, char* argv[])

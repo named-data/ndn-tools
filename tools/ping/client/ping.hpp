@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2021,  Arizona Board of Regents.
+ * Copyright (c) 2015-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -28,14 +28,12 @@
 
 #include <ndn-cxx/util/signal.hpp>
 
-namespace ndn {
-namespace ping {
-namespace client {
+namespace ndn::ping::client {
 
-typedef time::duration<double, time::milliseconds::period> Rtt;
+using Rtt = time::duration<double, time::milliseconds::period>;
 
 /**
- * @brief options for ndnping client
+ * @brief %Options for ndnping client.
  */
 struct Options
 {
@@ -144,16 +142,14 @@ private:
 
 private:
   const Options& m_options;
-  int m_nSent;
+  int m_nSent = 0;
   uint64_t m_nextSeq;
-  int m_nOutstanding;
+  int m_nOutstanding = 0;
   Face& m_face;
   Scheduler m_scheduler;
   scheduler::ScopedEventId m_nextPingEvent;
 };
 
-} // namespace client
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::client
 
 #endif // NDN_TOOLS_PING_CLIENT_PING_HPP

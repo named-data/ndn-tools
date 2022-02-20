@@ -19,10 +19,8 @@
 
 #include "core/version.hpp"
 
-namespace ndn {
-namespace tools {
+namespace ndn::tools {
 
 const char VERSION[] = "@VERSION_BUILD@";
 
-} // namespace tools
-} // namespace ndn
+} // namespace ndn::tools

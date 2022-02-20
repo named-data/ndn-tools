@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2021,  Arizona Board of Regents.
+ * Copyright (c) 2014-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -24,10 +24,7 @@
 
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
-namespace ndn {
-namespace ping {
-namespace client {
-namespace tests {
+namespace ndn::ping::client::tests {
 
 using namespace ndn::tests;
 
@@ -96,7 +93,4 @@ BOOST_FIXTURE_TEST_CASE(Basic, IoFixture)
 BOOST_AUTO_TEST_SUITE_END() // TestClient
 BOOST_AUTO_TEST_SUITE_END() // Ping
 
-} // namespace tests
-} // namespace client
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::client::tests

@@ -39,9 +39,7 @@
 #include <boost/test/output_test_stream.hpp>
 #endif
 
-namespace ndn {
-namespace chunks {
-namespace tests {
+namespace ndn::chunks::tests {
 
 using namespace ndn::tests;
 using boost::test_tools::output_test_stream;
@@ -175,6 +173,4 @@ BOOST_FIXTURE_TEST_CASE(RunBasic, IoFixture)
 BOOST_AUTO_TEST_SUITE_END() // TestConsumer
 BOOST_AUTO_TEST_SUITE_END() // Chunks
 
-} // namespace tests
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks::tests

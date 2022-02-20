@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2021, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -31,8 +31,7 @@
 
 #include <ndn-cxx/metadata-object.hpp>
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 DiscoverVersion::DiscoverVersion(Face& face, const Name& prefix, const Options& options)
   : m_face(face)
@@ -93,5 +92,4 @@ DiscoverVersion::handleData(const Interest& interest, const Data& data)
   onDiscoverySuccess(mobject.getVersionedName());
 }
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks

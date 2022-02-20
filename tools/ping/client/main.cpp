@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2021,  Arizona Board of Regents.
+ * Copyright (c) 2014-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -32,9 +32,7 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-namespace ndn {
-namespace ping {
-namespace client {
+namespace ndn::ping::client {
 
 class Runner : noncopyable
 {
@@ -115,25 +113,7 @@ private:
   boost::asio::signal_set m_signalSetQuit;
 };
 
-static time::milliseconds
-getMinimumPingInterval()
-{
-  return time::milliseconds(1);
-}
-
-static time::milliseconds
-getDefaultPingInterval()
-{
-  return time::milliseconds(1000);
-}
-
-static time::milliseconds
-getDefaultPingTimeoutThreshold()
-{
-  return time::milliseconds(4000);
-}
-
-static void
+[[noreturn]] static void
 usage(const boost::program_options::options_description& options)
 {
   std::cout << "Usage: ndnping [options] ndn:/name/prefix\n"
@@ -151,8 +131,8 @@ main(int argc, char* argv[])
   Options options;
   options.shouldAllowStaleData = false;
   options.nPings = -1;
-  options.interval = time::milliseconds(getDefaultPingInterval());
-  options.timeout = time::milliseconds(getDefaultPingTimeoutThreshold());
+  options.interval = 1_s;
+  options.timeout = 4_s;
   options.startSeq = 0;
   options.shouldGenerateRandomSeq = true;
   options.shouldPrintTimestamp = false;
@@ -165,9 +145,9 @@ main(int argc, char* argv[])
   visibleOptDesc.add_options()
     ("help,h",      "print this message and exit")
     ("version,V",   "display version and exit")
-    ("interval,i",  po::value<time::milliseconds::rep>()->default_value(getDefaultPingInterval().count()),
+    ("interval,i",  po::value<time::milliseconds::rep>()->default_value(options.interval.count()),
                     "ping interval, in milliseconds")
-    ("timeout,o",   po::value<time::milliseconds::rep>()->default_value(getDefaultPingTimeoutThreshold().count()),
+    ("timeout,o",   po::value<time::milliseconds::rep>()->default_value(options.timeout.count()),
                     "ping timeout, in milliseconds")
     ("count,c",     po::value<int>(&options.nPings), "number of pings to send (default = no limit)")
     ("start,n",     po::value<uint64_t>(&options.startSeq),
@@ -212,9 +192,8 @@ main(int argc, char* argv[])
     }
 
     options.interval = time::milliseconds(optVm["interval"].as<time::milliseconds::rep>());
-    if (options.interval < getMinimumPingInterval()) {
-      std::cerr << "ERROR: Specified ping interval is less than the minimum "
-                << getMinimumPingInterval() << "\n";
+    if (options.interval < 1_ms) {
+      std::cerr << "ERROR: Specified ping interval is less than the minimum (1 ms)\n";
       usage(visibleOptDesc);
     }
 
@@ -258,9 +237,7 @@ main(int argc, char* argv[])
   return Runner(options).run();
 }
 
-} // namespace client
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::client
 
 int
 main(int argc, char* argv[])

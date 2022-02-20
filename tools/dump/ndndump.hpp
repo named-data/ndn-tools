@@ -37,8 +37,7 @@
 #define UH_LEN len
 #endif
 
-namespace ndn {
-namespace dump {
+namespace ndn::dump {
 
 class OutputFormatter;
 
@@ -59,7 +58,7 @@ public:
   void
   printPacket(const pcap_pkthdr* pkthdr, const uint8_t* payload) const;
 
-  static constexpr const char*
+  static constexpr std::string_view
   getDefaultPcapFilter() noexcept
   {
     return "(ether proto 0x8624) or (tcp port 6363) or (udp port 6363) or (udp port 56363)";
@@ -99,13 +98,13 @@ private:
   bool
   printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const;
 
-  bool
+  [[nodiscard]] bool
   matchesFilter(const Name& name) const;
 
 public: // options
   std::string interface;
   std::string inputFile;
-  std::string pcapFilter = getDefaultPcapFilter();
+  std::string pcapFilter{getDefaultPcapFilter()};
   optional<std::regex> nameFilter;
   bool wantPromisc = true;
   bool wantTimestamp = true;
@@ -118,7 +117,6 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   int m_dataLinkType = -1;
 };
 
-} // namespace dump
-} // namespace ndn
+} // namespace ndn::dump
 
 #endif // NDN_TOOLS_DUMP_NDNDUMP_HPP

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2021, Arizona Board of Regents.
+ * Copyright (c) 2015-2022, Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -31,9 +31,7 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-namespace ndn {
-namespace ping {
-namespace server {
+namespace ndn::ping::server {
 
 namespace po = boost::program_options;
 
@@ -90,7 +88,7 @@ private:
 };
 
 static void
-usage(std::ostream& os, const std::string& programName, const po::options_description& options)
+usage(std::ostream& os, std::string_view programName, const po::options_description& options)
 {
   os << "Usage: " << programName << " [options] <prefix>\n"
      << "\n"
@@ -187,9 +185,7 @@ main(int argc, char* argv[])
   return Runner(options).run();
 }
 
-} // namespace server
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::server
 
 int
 main(int argc, char* argv[])

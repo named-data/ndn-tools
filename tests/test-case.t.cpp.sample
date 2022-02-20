@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020  Arizona Board of Regents.
+ * Copyright (c) 2014-2022  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -26,15 +26,14 @@
 #include "tests/io-fixture.hpp"           // optional, for IoFixture
 //#include "tests/key-chain-fixture.hpp"  // optional, for KeyChainFixture
 
-namespace ndn {
-namespace tool_name {
-namespace tests {
 // Unit tests should go inside the ndn::tool_name::tests namespace.
+namespace ndn::tool_name::tests {
 
 // Common fixtures in ndn::tests can be imported if needed.
 using namespace ndn::tests;
 
-// See https://redmine.named-data.net/projects/nfd/wiki/UnitTesting for a guide on how to name a test suite.
+// See https://redmine.named-data.net/projects/nfd/wiki/UnitTesting
+// for a guide on how to name a test suite.
 BOOST_AUTO_TEST_SUITE(TestSkeleton)
 
 BOOST_AUTO_TEST_CASE(Test1)
@@ -55,8 +54,6 @@ BOOST_FIXTURE_TEST_CASE(Test2, IoFixture)
   advanceClocks(500_ms);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // TestSkeleton
 
-} // namespace tests
-} // namespace tool_name
-} // namespace ndn
+} // namespace ndn::tool_name::tests

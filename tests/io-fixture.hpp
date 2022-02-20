@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020,  Regents of the University of California,
+ * Copyright (c) 2014-2022,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -30,8 +30,7 @@
 
 #include <boost/asio/io_service.hpp>
 
-namespace ndn {
-namespace tests {
+namespace ndn::tests {
 
 class IoFixture : public ClockFixture
 {
@@ -53,7 +52,6 @@ protected:
   boost::asio::io_service m_io;
 };
 
-} // namespace tests
-} // namespace ndn
+} // namespace ndn::tests
 
 #endif // NDN_TOOLS_TESTS_IO_FIXTURE_HPP

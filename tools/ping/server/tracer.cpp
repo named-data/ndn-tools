@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2021,  Arizona Board of Regents.
+ * Copyright (c) 2015-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -21,9 +21,7 @@
 
 #include "tracer.hpp"
 
-namespace ndn {
-namespace ping {
-namespace server {
+namespace ndn::ping::server {
 
 Tracer::Tracer(PingServer& pingServer, const Options& options)
   : m_options(options)
@@ -38,6 +36,4 @@ Tracer::Tracer(PingServer& pingServer, const Options& options)
   }
 }
 
-} // namespace server
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::server

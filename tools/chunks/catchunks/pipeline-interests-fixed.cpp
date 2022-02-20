@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2021, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -30,8 +30,7 @@
 #include "pipeline-interests-fixed.hpp"
 #include "data-fetcher.hpp"
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 PipelineInterestsFixed::PipelineInterestsFixed(Face& face, const Options& opts)
   : PipelineInterests(face, opts)
@@ -83,7 +82,6 @@ PipelineInterestsFixed::fetchNextSegment(std::size_t pipeNo)
 
   auto interest = Interest()
                   .setName(Name(m_prefix).appendSegment(nextSegmentNo))
-                  .setCanBePrefix(false)
                   .setMustBeFresh(m_options.mustBeFresh)
                   .setInterestLifetime(m_options.interestLifetime);
 
@@ -194,5 +192,4 @@ void PipelineInterestsFixed::handleFail(const std::string& reason, std::size_t p
   }
 }
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks

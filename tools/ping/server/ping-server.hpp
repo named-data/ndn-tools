@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2021,  Arizona Board of Regents.
+ * Copyright (c) 2015-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -27,9 +27,7 @@
 
 #include <ndn-cxx/util/signal.hpp>
 
-namespace ndn {
-namespace ping {
-namespace server {
+namespace ndn::ping::server {
 
 /**
  * @brief Options for PingServer
@@ -105,13 +103,11 @@ private:
   const Options& m_options;
   Face& m_face;
   KeyChain& m_keyChain;
-  size_t m_nPings;
+  size_t m_nPings = 0;
   Block m_payload;
   RegisteredPrefixHandle m_registeredPrefix;
 };
 
-} // namespace server
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::server
 
 #endif // NDN_TOOLS_PING_SERVER_PING_SERVER_HPP

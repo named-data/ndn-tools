@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020,  Regents of the University of California,
+ * Copyright (c) 2014-2022,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -25,8 +25,7 @@
 
 #include "tests/test-common.hpp"
 
-namespace ndn {
-namespace tests {
+namespace ndn::tests {
 
 shared_ptr<Interest>
 makeInterest(const Name& name, bool canBePrefix, optional<time::milliseconds> lifetime,
@@ -65,5 +64,4 @@ makeNack(Interest interest, lp::NackReason reason)
   return nack;
 }
 
-} // namespace tests
-} // namespace ndn
+} // namespace ndn::tests

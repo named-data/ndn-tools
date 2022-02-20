@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2020,  Regents of the University of California.
+ * Copyright (c) 2014-2022,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -23,8 +23,7 @@
 #include <ndn-cxx/security/key-chain.hpp>
 #include <ndn-cxx/security/signing-helpers.hpp>
 
-namespace ndn {
-namespace tests {
+namespace ndn::tests {
 
 /**
  * @brief A fixture providing an in-memory KeyChain.
@@ -87,7 +86,6 @@ private:
   std::vector<std::string> m_certFiles;
 };
 
-} // namespace tests
-} // namespace ndn
+} // namespace ndn::tests
 
 #endif // NDN_TOOLS_TESTS_KEY_CHAIN_FIXTURE_HPP

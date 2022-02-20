@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2020,  Arizona Board of Regents.
+ * Copyright (c) 2015-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -26,53 +26,60 @@
 
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
-namespace ndn {
-namespace ping {
-namespace tests {
+namespace ndn::ping::tests {
 
 using namespace ndn::tests;
 
 class PingIntegratedFixture : public IoFixture, public KeyChainFixture
 {
-public:
+protected:
   PingIntegratedFixture()
-    : serverFace(m_io, m_keyChain, {false, true})
-    , clientFace(m_io, m_keyChain, {false, true})
-    , wantLoss(false)
   {
-    serverFace.onSendInterest.connect([this] (const Interest& interest) {
-      m_io.post([=] { if (!wantLoss) { clientFace.receive(interest); } });
+    serverFace.onSendInterest.connect([this] (const auto& interest) {
+      receive(clientFace, interest);
     });
-    clientFace.onSendInterest.connect([this] (const Interest& interest) {
-      m_io.post([=] { if (!wantLoss) { serverFace.receive(interest); } });
+    clientFace.onSendInterest.connect([this] (const auto& interest) {
+      receive(serverFace, interest);
     });
-    serverFace.onSendData.connect([this] (const Data& data) {
-      m_io.post([=] { if (!wantLoss) { clientFace.receive(data); } });
+    serverFace.onSendData.connect([this] (const auto& data) {
+      receive(clientFace, data);
     });
-    clientFace.onSendData.connect([this] (const Data& data) {
-      m_io.post([=] { if (!wantLoss) { serverFace.receive(data); } });
+    clientFace.onSendData.connect([this] (const auto& data) {
+      receive(serverFace, data);
     });
   }
 
-  void onFinish()
+  template<typename Packet>
+  void
+  receive(util::DummyClientFace& face, const Packet& pkt)
+  {
+    m_io.post([=, &face] {
+      if (!wantLoss) {
+        face.receive(pkt);
+      }
+    });
+  }
+
+  void
+  onFinish()
   {
     serverFace.shutdown();
     clientFace.shutdown();
     m_io.stop();
   }
 
-public:
-  util::DummyClientFace serverFace;
-  util::DummyClientFace clientFace;
+protected:
+  util::DummyClientFace serverFace{m_io, m_keyChain, {false, true}};
+  util::DummyClientFace clientFace{m_io, m_keyChain, {false, true}};
   std::unique_ptr<server::PingServer> server;
   std::unique_ptr<client::Ping> client;
-  bool wantLoss;
+  bool wantLoss = false;
 };
 
 BOOST_AUTO_TEST_SUITE(Ping)
-BOOST_AUTO_TEST_SUITE(TestIntegrated)
+BOOST_FIXTURE_TEST_SUITE(TestIntegrated, PingIntegratedFixture)
 
-BOOST_FIXTURE_TEST_CASE(Normal, PingIntegratedFixture)
+BOOST_AUTO_TEST_CASE(Normal)
 {
   server::Options serverOpts;
   serverOpts.prefix = "ndn:/test-prefix";
@@ -103,7 +110,7 @@ BOOST_FIXTURE_TEST_CASE(Normal, PingIntegratedFixture)
   BOOST_CHECK_EQUAL(4, server->getNPings());
 }
 
-BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
+BOOST_AUTO_TEST_CASE(Timeout)
 {
   wantLoss = true;
 
@@ -139,6 +146,4 @@ BOOST_FIXTURE_TEST_CASE(Timeout, PingIntegratedFixture)
 BOOST_AUTO_TEST_SUITE_END() // TestIntegrated
 BOOST_AUTO_TEST_SUITE_END() // Ping
 
-} // namespace tests
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::tests

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2021, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -37,8 +37,7 @@
 #include <queue>
 #include <unordered_map>
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 using util::RttEstimatorWithStats;
 
@@ -199,20 +198,20 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   Scheduler m_scheduler;
   scheduler::ScopedEventId m_checkRtoEvent;
 
-  uint64_t m_highData; ///< the highest segment number of the Data packet the consumer has received so far
-  uint64_t m_highInterest; ///< the highest segment number of the Interests the consumer has sent so far
-  uint64_t m_recPoint; ///< the value of m_highInterest when a packet loss event occurred,
-                       ///< it remains fixed until the next packet loss event happens
+  uint64_t m_highData = 0; ///< the highest segment number of the Data packet the consumer has received so far
+  uint64_t m_highInterest = 0; ///< the highest segment number of the Interests the consumer has sent so far
+  uint64_t m_recPoint = 0; ///< the value of m_highInterest when a packet loss event occurred,
+                           ///< it remains fixed until the next packet loss event happens
 
-  int64_t m_nInFlight; ///< # of segments in flight
-  int64_t m_nLossDecr; ///< # of window decreases caused by packet loss
-  int64_t m_nMarkDecr; ///< # of window decreases caused by congestion marks
-  int64_t m_nTimeouts; ///< # of timed out segments
-  int64_t m_nSkippedRetx; ///< # of segments queued for retransmission but received before the
-                          ///< retransmission occurred
-  int64_t m_nRetransmitted; ///< # of retransmitted segments
-  int64_t m_nCongMarks; ///< # of data packets with congestion mark
-  int64_t m_nSent; ///< # of interest packets sent out (including retransmissions)
+  int64_t m_nInFlight = 0; ///< # of segments in flight
+  int64_t m_nLossDecr = 0; ///< # of window decreases caused by packet loss
+  int64_t m_nMarkDecr = 0; ///< # of window decreases caused by congestion marks
+  int64_t m_nTimeouts = 0; ///< # of timed out segments
+  int64_t m_nSkippedRetx = 0; ///< # of segments queued for retransmission but received before the
+                              ///< retransmission occurred
+  int64_t m_nRetransmitted = 0; ///< # of retransmitted segments
+  int64_t m_nCongMarks = 0; ///< # of data packets with congestion mark
+  int64_t m_nSent = 0; ///< # of interest packets sent out (including retransmissions)
 
   std::unordered_map<uint64_t, SegmentInfo> m_segmentInfo; ///< keeps all the internal information
                                                            ///< on sent but not acked segments
@@ -221,12 +220,11 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
                                                  ///< timeout/nack retries, the pipeline will be aborted
   std::queue<uint64_t> m_retxQueue;
 
-  bool m_hasFailure;
-  uint64_t m_failedSegNo;
+  bool m_hasFailure = false;
+  uint64_t m_failedSegNo = 0;
   std::string m_failureReason;
 };
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks
 
 #endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_ADAPTIVE_HPP

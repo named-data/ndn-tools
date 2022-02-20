@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2021, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -27,8 +27,7 @@
 
 #include "consumer.hpp"
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 Consumer::Consumer(security::Validator& validator, std::ostream& os)
   : m_validator(validator)
@@ -86,5 +85,4 @@ Consumer::writeInOrderData()
   }
 }
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks

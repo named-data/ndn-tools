@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2021,  Arizona Board of Regents.
+ * Copyright (c) 2015-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -23,21 +23,11 @@
 
 #include "statistics-collector.hpp"
 
-namespace ndn {
-namespace ping {
-namespace client {
+namespace ndn::ping::client {
 
 StatisticsCollector::StatisticsCollector(Ping& ping, const Options& options)
   : m_ping(ping)
   , m_options(options)
-  , m_nSent(0)
-  , m_nReceived(0)
-  , m_nNacked(0)
-  , m_pingStartTime(time::steady_clock::now())
-  , m_minRtt(std::numeric_limits<double>::max())
-  , m_maxRtt(0.0)
-  , m_sumRtt(0.0)
-  , m_sumRttSquared(0.0)
 {
   m_ping.afterData.connect([this] (auto&&, Rtt rtt) { recordData(rtt); });
   m_ping.afterNack.connect([this] (auto&&...) { recordNack(); });
@@ -153,6 +143,4 @@ operator<<(std::ostream& os, const Statistics& statistics)
   return os;
 }
 
-} // namespace client
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::client

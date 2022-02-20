@@ -35,8 +35,7 @@
 #include <ndn-cxx/link.hpp>
 #include <ndn-cxx/util/scheduler.hpp>
 
-namespace ndn {
-namespace peek {
+namespace ndn::peek {
 
 /**
  * @brief options for NdnPeek
@@ -58,7 +57,7 @@ struct PeekOptions
   optional<time::milliseconds> timeout;
 };
 
-class NdnPeek : boost::noncopyable
+class NdnPeek : noncopyable
 {
 public:
   NdnPeek(Face& face, const PeekOptions& options);
@@ -119,7 +118,6 @@ private:
   Result m_result = Result::UNKNOWN;
 };
 
-} // namespace peek
-} // namespace ndn
+} // namespace ndn::peek
 
 #endif // NDN_TOOLS_NDNPEEK_NDNPEEK_HPP

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2021,  Arizona Board of Regents.
+ * Copyright (c) 2014-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -25,26 +25,13 @@
 
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
-namespace ndn {
-namespace ping {
-namespace server {
-namespace tests {
+namespace ndn::ping::server::tests {
 
 using namespace ndn::tests;
-
-BOOST_AUTO_TEST_SUITE(Ping)
-BOOST_AUTO_TEST_SUITE(TestServer)
 
 class PingServerFixture : public IoFixture, public KeyChainFixture
 {
 protected:
-  PingServerFixture()
-    : face(m_io, m_keyChain, {false, true})
-    , pingOptions(makeOptions())
-    , pingServer(face, m_keyChain, pingOptions)
-  {
-  }
-
   Interest
   makePingInterest(int seq) const
   {
@@ -53,7 +40,6 @@ protected:
         .append(to_string(seq));
 
     return Interest(name)
-           .setCanBePrefix(false)
            .setMustBeFresh(true)
            .setInterestLifetime(2_s);
   }
@@ -73,10 +59,13 @@ private:
   }
 
 protected:
-  util::DummyClientFace face;
-  Options pingOptions;
-  PingServer pingServer;
+  util::DummyClientFace face{m_io, m_keyChain, {false, true}};
+  Options pingOptions{makeOptions()};
+  PingServer pingServer{face, m_keyChain, pingOptions};
 };
+
+BOOST_AUTO_TEST_SUITE(Ping)
+BOOST_AUTO_TEST_SUITE(TestServer)
 
 BOOST_FIXTURE_TEST_CASE(Receive, PingServerFixture)
 {
@@ -96,7 +85,4 @@ BOOST_FIXTURE_TEST_CASE(Receive, PingServerFixture)
 BOOST_AUTO_TEST_SUITE_END() // TestServer
 BOOST_AUTO_TEST_SUITE_END() // Ping
 
-} // namespace tests
-} // namespace server
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::server::tests

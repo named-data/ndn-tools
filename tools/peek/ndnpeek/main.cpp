@@ -41,13 +41,12 @@
 #include <cstring>
 #include <fstream>
 
-namespace ndn {
-namespace peek {
+namespace ndn::peek {
 
 namespace po = boost::program_options;
 
 static void
-usage(std::ostream& os, const std::string& program, const po::options_description& options)
+usage(std::ostream& os, std::string_view program, const po::options_description& options)
 {
   os << "Usage: " << program << " [options] /name\n"
      << "\n"
@@ -203,8 +202,7 @@ main(int argc, char* argv[])
   }
 }
 
-} // namespace peek
-} // namespace ndn
+} // namespace ndn::peek
 
 int
 main(int argc, char* argv[])

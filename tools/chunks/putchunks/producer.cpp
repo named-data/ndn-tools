@@ -32,8 +32,7 @@
 
 #include <ndn-cxx/metadata-object.hpp>
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 Producer::Producer(const Name& prefix, Face& face, KeyChain& keyChain, std::istream& is,
                    const Options& opts)
@@ -185,5 +184,4 @@ Producer::populateStore(std::istream& is)
     std::cerr << "Created " << m_store.size() << " chunks for prefix " << m_prefix << "\n";
 }
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks

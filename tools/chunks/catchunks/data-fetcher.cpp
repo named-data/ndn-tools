@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2021, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -28,11 +28,7 @@
 
 #include <cmath>
 
-namespace ndn {
-namespace chunks {
-
-const int DataFetcher::MAX_RETRIES_INFINITE = -1;
-const time::milliseconds DataFetcher::MAX_CONGESTION_BACKOFF_TIME = time::seconds(10);
+namespace ndn::chunks {
 
 shared_ptr<DataFetcher>
 DataFetcher::fetch(Face& face, const Interest& interest, int maxNackRetries, int maxTimeoutRetries,
@@ -60,12 +56,7 @@ DataFetcher::DataFetcher(Face& face, int maxNackRetries, int maxTimeoutRetries,
   , m_onTimeout(std::move(onTimeout))
   , m_maxNackRetries(maxNackRetries)
   , m_maxTimeoutRetries(maxTimeoutRetries)
-  , m_nNacks(0)
-  , m_nTimeouts(0)
-  , m_nCongestionRetries(0)
   , m_isVerbose(isVerbose)
-  , m_isStopped(false)
-  , m_hasError(false)
 {
   BOOST_ASSERT(m_onData != nullptr);
 }
@@ -177,5 +168,4 @@ DataFetcher::handleTimeout(const Interest& interest, const shared_ptr<DataFetche
   }
 }
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks

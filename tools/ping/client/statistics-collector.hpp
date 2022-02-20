@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2021,  Arizona Board of Regents.
+ * Copyright (c) 2015-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -28,9 +28,7 @@
 
 #include "ping.hpp"
 
-namespace ndn {
-namespace ping {
-namespace client {
+namespace ndn::ping::client {
 
 /**
  * @brief statistics data
@@ -52,6 +50,9 @@ struct Statistics
 
   std::ostream&
   printSummary(std::ostream& os) const;
+
+  friend std::ostream&
+  operator<<(std::ostream& os, const Statistics& statistics);
 };
 
 /**
@@ -69,7 +70,7 @@ public:
   /**
    * @brief Compute and return ping statistics as structure
    */
-  Statistics
+  [[nodiscard]] Statistics
   computeStatistics() const;
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
@@ -94,21 +95,16 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
 private:
   Ping& m_ping;
   const Options& m_options;
-  int m_nSent;
-  int m_nReceived;
-  int m_nNacked;
-  time::steady_clock::time_point m_pingStartTime;
-  double m_minRtt;
-  double m_maxRtt;
-  double m_sumRtt;
-  double m_sumRttSquared;
+  time::steady_clock::time_point m_pingStartTime = time::steady_clock::now();
+  int m_nSent = 0;
+  int m_nReceived = 0;
+  int m_nNacked = 0;
+  double m_minRtt = std::numeric_limits<double>::max();
+  double m_maxRtt = 0.0;
+  double m_sumRtt = 0.0;
+  double m_sumRttSquared = 0.0;
 };
 
-std::ostream&
-operator<<(std::ostream& os, const Statistics& statistics);
-
-} // namespace client
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::client
 
 #endif // NDN_TOOLS_PING_CLIENT_STATISTICS_COLLECTOR_HPP

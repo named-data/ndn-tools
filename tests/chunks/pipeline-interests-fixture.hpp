@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2020, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -36,9 +36,7 @@
 
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
-namespace ndn {
-namespace chunks {
-namespace tests {
+namespace ndn::chunks::tests {
 
 using namespace ndn::tests;
 
@@ -88,8 +86,6 @@ private:
   unique_ptr<PipelineInterests> m_pipeline;
 };
 
-} // namespace tests
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks::tests
 
 #endif // NDN_TOOLS_TESTS_CHUNKS_PIPELINE_INTERESTS_FIXTURE_HPP

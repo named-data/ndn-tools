@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019,  Regents of the University of California,
+ * Copyright (c) 2016-2022,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -32,8 +32,7 @@
 
 #include "pipeline-interests.hpp"
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 class DataFetcher;
 
@@ -91,7 +90,6 @@ private:
   bool m_hasFailure = false;
 };
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks
 
 #endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_HPP

@@ -39,8 +39,7 @@
 
 #include <boost/endian/conversion.hpp>
 
-namespace ndn {
-namespace dump {
+namespace ndn::dump {
 
 namespace endian = boost::endian;
 
@@ -517,9 +516,7 @@ NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
   }
   out.addDelimiter();
 
-  bool isOk = false;
-  Block block;
-  std::tie(isOk, block) = Block::fromBuffer({pkt, len});
+  auto [isOk, block] = Block::fromBuffer({pkt, len});
   if (!isOk) {
     // if packet is incomplete, we will not be able to process it
     out << "NDN truncated packet, length " << len;
@@ -539,15 +536,12 @@ NdnDump::printNdn(OutputFormatter& out, const uint8_t* pkt, size_t len) const
       return true;
     }
 
-    Buffer::const_iterator begin, end;
-    if (lpPacket.has<lp::FragmentField>()) {
-      std::tie(begin, end) = lpPacket.get<lp::FragmentField>();
-    }
-    else {
+    if (!lpPacket.has<lp::FragmentField>()) {
       out << " idle";
       return true;
     }
 
+    auto [begin, end] = lpPacket.get<lp::FragmentField>();
     std::tie(isOk, netPacket) = Block::fromBuffer({begin, end});
     if (!isOk) {
       // if network packet is fragmented, we will not be able to process it
@@ -610,5 +604,4 @@ NdnDump::matchesFilter(const Name& name) const
   return std::regex_match(name.toUri(), *nameFilter);
 }
 
-} // namespace dump
-} // namespace ndn
+} // namespace ndn::dump

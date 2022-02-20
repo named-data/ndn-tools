@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/**
- * Copyright (c) 2014-2016,  Arizona Board of Regents.
+/*
+ * Copyright (c) 2014-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -20,46 +20,34 @@
 #include "tools/ping/client/statistics-collector.hpp"
 
 #include "tests/test-common.hpp"
+
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
-namespace ndn {
-namespace ping {
-namespace client {
-namespace tests {
-
-using namespace ndn::tests;
+namespace ndn::ping::client::tests {
 
 class StatisticsCollectorFixture
 {
-protected:
-  StatisticsCollectorFixture()
-    : pingOptions(makeOptions())
-    , pingProgram(face, pingOptions)
-    , sc(pingProgram, pingOptions)
-  {
-  }
-
 private:
   static Options
   makeOptions()
   {
     Options opt;
-    opt.prefix = "ndn:/ping-prefix";
+    opt.prefix = "/ping-prefix";
     opt.shouldAllowStaleData = false;
     opt.shouldGenerateRandomSeq = false;
     opt.shouldPrintTimestamp = false;
     opt.nPings = 5;
-    opt.interval = time::milliseconds(100);
-    opt.timeout = time::milliseconds(2000);
+    opt.interval = 100_ms;
+    opt.timeout = 2_s;
     opt.startSeq = 1;
     return opt;
   }
 
 protected:
   util::DummyClientFace face;
-  Options pingOptions;
-  Ping pingProgram;
-  StatisticsCollector sc;
+  Options pingOptions{makeOptions()};
+  Ping pingProgram{face, pingOptions};
+  StatisticsCollector sc{pingProgram, pingOptions};
 };
 
 BOOST_AUTO_TEST_SUITE(Ping)
@@ -211,7 +199,4 @@ BOOST_AUTO_TEST_CASE(NoneSent)
 BOOST_AUTO_TEST_SUITE_END() // TestStatisticsCollector
 BOOST_AUTO_TEST_SUITE_END() // Ping
 
-} // namespace tests
-} // namespace client
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::client::tests

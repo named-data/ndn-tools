@@ -39,9 +39,7 @@
 #include <ndn-cxx/lp/packet.hpp>
 #include <ndn-cxx/net/ethernet.hpp>
 
-namespace ndn {
-namespace dump {
-namespace tests {
+namespace ndn::dump::tests {
 
 namespace endian = boost::endian;
 using namespace ndn::tests;
@@ -157,14 +155,10 @@ protected:
   NdnDump dump;
   boost::test_tools::output_test_stream output;
 
-  static const uint16_t s_ethertypeNdn;
-  static const uint16_t s_ethertypeIp4;
-  static const uint16_t s_ethertypeIp6;
+  static inline const uint16_t s_ethertypeNdn = endian::native_to_big(ethernet::ETHERTYPE_NDN);
+  static inline const uint16_t s_ethertypeIp4 = endian::native_to_big(uint16_t(ETHERTYPE_IP));
+  static inline const uint16_t s_ethertypeIp6 = endian::native_to_big(uint16_t(ETHERTYPE_IPV6));
 };
-
-const uint16_t NdnDumpFixture::s_ethertypeNdn = endian::native_to_big(ethernet::ETHERTYPE_NDN);
-const uint16_t NdnDumpFixture::s_ethertypeIp4 = endian::native_to_big(uint16_t(ETHERTYPE_IP));
-const uint16_t NdnDumpFixture::s_ethertypeIp6 = endian::native_to_big(uint16_t(ETHERTYPE_IPV6));
 
 BOOST_AUTO_TEST_SUITE(Dump)
 BOOST_FIXTURE_TEST_SUITE(TestNdnDump, NdnDumpFixture)
@@ -500,6 +494,4 @@ BOOST_AUTO_TEST_CASE(LinuxSllUdp6)
 BOOST_AUTO_TEST_SUITE_END() // TestNdnDump
 BOOST_AUTO_TEST_SUITE_END() // Dump
 
-} // namespace tests
-} // namespace dump
-} // namespace ndn
+} // namespace ndn::dump::tests

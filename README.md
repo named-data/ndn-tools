@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/named-data/ndn-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/named-data/ndn-tools/actions/workflows/ci.yml)
 [![Docs](https://github.com/named-data/ndn-tools/actions/workflows/docs.yml/badge.svg)](https://github.com/named-data/ndn-tools/actions/workflows/docs.yml)
-![Language](https://img.shields.io/badge/C%2B%2B-14-blue)
+![Language](https://img.shields.io/badge/C%2B%2B-17-blue)
 ![Latest version](https://img.shields.io/github/v/tag/named-data/ndn-tools?label=Latest%20version)
 
 **ndn-tools** is a collection of basic tools for [Named Data Networking](https://named-data.net/).

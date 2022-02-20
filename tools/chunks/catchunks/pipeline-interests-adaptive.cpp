@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2021, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -32,8 +32,7 @@
 #include <cmath>
 #include <iomanip>
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 constexpr double PipelineInterestsAdaptive::MIN_SSTHRESH;
 
@@ -45,19 +44,6 @@ PipelineInterestsAdaptive::PipelineInterestsAdaptive(Face& face,
   , m_ssthresh(m_options.initSsthresh)
   , m_rttEstimator(rttEstimator)
   , m_scheduler(m_face.getIoService())
-  , m_highData(0)
-  , m_highInterest(0)
-  , m_recPoint(0)
-  , m_nInFlight(0)
-  , m_nLossDecr(0)
-  , m_nMarkDecr(0)
-  , m_nTimeouts(0)
-  , m_nSkippedRetx(0)
-  , m_nRetransmitted(0)
-  , m_nCongMarks(0)
-  , m_nSent(0)
-  , m_hasFailure(false)
-  , m_failedSegNo(0)
 {
 }
 
@@ -139,7 +125,7 @@ PipelineInterestsAdaptive::sendInterest(uint64_t segNo, bool isRetransmission)
   if (isRetransmission) {
     // keep track of retx count for this segment
     auto ret = m_retxCount.emplace(segNo, 1);
-    if (ret.second == false) { // not the first retransmission
+    if (!ret.second) { // not the first retransmission
       m_retxCount[segNo] += 1;
       if (m_options.maxRetriesOnTimeoutOrNack != DataFetcher::MAX_RETRIES_INFINITE &&
           m_retxCount[segNo] > m_options.maxRetriesOnTimeoutOrNack) {
@@ -157,7 +143,6 @@ PipelineInterestsAdaptive::sendInterest(uint64_t segNo, bool isRetransmission)
 
   auto interest = Interest()
                   .setName(Name(m_prefix).appendSegment(segNo))
-                  .setCanBePrefix(false)
                   .setMustBeFresh(m_options.mustBeFresh)
                   .setInterestLifetime(m_options.interestLifetime);
 
@@ -471,5 +456,4 @@ operator<<(std::ostream& os, SegmentState state)
   return os;
 }
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks

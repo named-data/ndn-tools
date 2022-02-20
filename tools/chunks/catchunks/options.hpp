@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2019, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -29,8 +29,7 @@
 
 #include "core/common.hpp"
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 struct Options : noncopyable
 {
@@ -62,7 +61,6 @@ struct Options : noncopyable
   bool enableFastConv = false;  ///< use cubic fast convergence
 };
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks
 
 #endif // NDN_TOOLS_CHUNKS_CATCHUNKS_OPTIONS_HPP

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2021, Regents of the University of California,
+ * Copyright (c) 2016-2022, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -33,8 +33,7 @@
 
 #include "options.hpp"
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 /**
  * @brief Service for retrieving Data via an Interest pipeline
@@ -46,7 +45,7 @@ namespace chunks {
  * No guarantees are made as to the order in which segments are fetched or callbacks are invoked,
  * i.e. out-of-order delivery is possible.
  */
-class PipelineInterests
+class PipelineInterests : noncopyable
 {
 public:
   /**
@@ -96,7 +95,7 @@ protected:
    * @brief check if the transfer is complete
    * @return true if all segments have been received, false otherwise
    */
-  bool
+  [[nodiscard]] bool
   allSegmentsReceived() const;
 
   /**
@@ -157,17 +156,17 @@ protected:
   Name m_prefix;
 
 PUBLIC_WITH_TESTS_ELSE_PROTECTED:
-  bool m_hasFinalBlockId;   ///< true if the last segment number is known
-  uint64_t m_lastSegmentNo; ///< valid only if m_hasFinalBlockId == true
-  int64_t m_nReceived;      ///< number of segments received
-  size_t m_receivedSize;    ///< size of received data in bytes
+  bool m_hasFinalBlockId = false; ///< true if the last segment number is known
+  uint64_t m_lastSegmentNo = 0;   ///< valid only if m_hasFinalBlockId == true
+  int64_t m_nReceived = 0;        ///< number of segments received
+  size_t m_receivedSize = 0;      ///< size of received data in bytes
 
 private:
   DataCallback m_onData;
   FailureCallback m_onFailure;
-  uint64_t m_nextSegmentNo;
+  uint64_t m_nextSegmentNo = 0;
   time::steady_clock::time_point m_startTime;
-  bool m_isStopping;
+  bool m_isStopping = false;
 };
 
 template<typename Packet>
@@ -177,7 +176,6 @@ getSegmentFromPacket(const Packet& packet)
   return packet.getName().at(-1).toSegment();
 }
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks
 
 #endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_HPP

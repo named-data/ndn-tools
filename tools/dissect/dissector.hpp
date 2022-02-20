@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2021,  Regents of the University of California.
+ * Copyright (c) 2014-2022,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -24,8 +24,7 @@
 
 #include <ndn-cxx/encoding/block.hpp>
 
-namespace ndn {
-namespace dissect {
+namespace ndn::dissect {
 
 struct Options
 {
@@ -59,7 +58,6 @@ private:
   std::vector<bool> m_branches;
 };
 
-} // namespace dissect
-} // namespace ndn
+} // namespace ndn::dissect
 
 #endif // NDN_TOOLS_DISSECT_DISSECTOR_HPP

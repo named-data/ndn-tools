@@ -31,9 +31,7 @@
 #include <boost/test/output_test_stream.hpp>
 #endif
 
-namespace ndn {
-namespace peek {
-namespace tests {
+namespace ndn::peek::tests {
 
 using namespace ndn::tests;
 using boost::test_tools::output_test_stream;
@@ -324,6 +322,4 @@ BOOST_AUTO_TEST_CASE(OversizedPacket)
 BOOST_AUTO_TEST_SUITE_END() // TestNdnPeek
 BOOST_AUTO_TEST_SUITE_END() // Peek
 
-} // namespace tests
-} // namespace peek
-} // namespace ndn
+} // namespace ndn::peek::tests

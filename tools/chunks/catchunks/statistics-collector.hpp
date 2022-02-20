@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019,  Regents of the University of California,
+ * Copyright (c) 2016-2022,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -27,8 +27,7 @@
 
 #include "pipeline-interests-adaptive.hpp"
 
-namespace ndn {
-namespace chunks {
+namespace ndn::chunks {
 
 /**
  * @brief Statistics collector for Adaptive pipelines
@@ -44,7 +43,6 @@ private:
   std::ostream& m_osRtt;
 };
 
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks
 
 #endif // NDN_TOOLS_CHUNKS_CATCHUNKS_STATISTICS_COLLECTOR_HPP

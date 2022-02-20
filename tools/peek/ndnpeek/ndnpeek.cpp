@@ -29,8 +29,7 @@
 
 #include "ndnpeek.hpp"
 
-namespace ndn {
-namespace peek {
+namespace ndn::peek {
 
 NdnPeek::NdnPeek(Face& face, const PeekOptions& options)
   : m_options(options)
@@ -132,5 +131,4 @@ NdnPeek::onTimeout()
   }
 }
 
-} // namespace peek
-} // namespace ndn
+} // namespace ndn::peek

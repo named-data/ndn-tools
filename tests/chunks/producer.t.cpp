@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2021,  Regents of the University of California,
+ * Copyright (c) 2016-2022,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -37,9 +37,7 @@
 #include <cmath>
 #include <sstream>
 
-namespace ndn {
-namespace chunks {
-namespace tests {
+namespace ndn::chunks::tests {
 
 using namespace ndn::tests;
 
@@ -222,6 +220,4 @@ BOOST_AUTO_TEST_CASE(RequestMetadata)
 BOOST_AUTO_TEST_SUITE_END() // TestProducer
 BOOST_AUTO_TEST_SUITE_END() // Chunks
 
-} // namespace tests
-} // namespace chunks
-} // namespace ndn
+} // namespace ndn::chunks::tests

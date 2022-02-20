@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2013-2021, Regents of the University of California.
+ * Copyright (c) 2013-2022, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -29,8 +29,7 @@
 #include <ndn-cxx/encoding/tlv.hpp>
 #include <ndn-cxx/name-component.hpp>
 
-namespace ndn {
-namespace dissect {
+namespace ndn::dissect {
 
 Dissector::Dissector(std::istream& input, std::ostream& output, const Options& options)
   : m_options(options)
@@ -74,7 +73,7 @@ Dissector::printBranches()
   }
 }
 
-static const std::map<uint32_t, const char*> TLV_DICT = {
+static const std::map<uint32_t, std::string_view> TLV_DICT = {
   {tlv::Interest                     , "Interest"},
   {tlv::Data                         , "Data"},
   {tlv::Name                         , "Name"},
@@ -185,5 +184,4 @@ Dissector::printBlock(const Block& block)
   m_branches.pop_back();
 }
 
-} // namespace dissect
-} // namespace ndn
+} // namespace ndn::dissect

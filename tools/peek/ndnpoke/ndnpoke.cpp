@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2019,  Regents of the University of California,
+ * Copyright (c) 2014-2022,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -30,8 +30,7 @@
 
 #include <ndn-cxx/encoding/buffer-stream.hpp>
 
-namespace ndn {
-namespace peek {
+namespace ndn::peek {
 
 NdnPoke::NdnPoke(Face& face, KeyChain& keyChain, std::istream& input, const PokeOptions& options)
   : m_options(options)
@@ -123,11 +122,10 @@ NdnPoke::onRegSuccess()
 }
 
 void
-NdnPoke::onRegFailure(const std::string& reason)
+NdnPoke::onRegFailure(std::string_view reason)
 {
   m_result = Result::PREFIX_REG_FAIL;
   std::cerr << "Prefix registration failure (" << reason << ")" << std::endl;
 }
 
-} // namespace peek
-} // namespace ndn
+} // namespace ndn::peek

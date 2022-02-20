@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2021,  Arizona Board of Regents.
+ * Copyright (c) 2015-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -24,15 +24,12 @@
 
 #include <ndn-cxx/security/signing-helpers.hpp>
 
-namespace ndn {
-namespace ping {
-namespace server {
+namespace ndn::ping::server {
 
 PingServer::PingServer(Face& face, KeyChain& keyChain, const Options& options)
   : m_options(options)
   , m_face(face)
   , m_keyChain(keyChain)
-  , m_nPings(0)
 {
   auto b = make_shared<Buffer>();
   b->assign(m_options.payloadSize, 'a');
@@ -78,6 +75,4 @@ PingServer::onInterest(const Interest& interest)
   }
 }
 
-} // namespace server
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::server

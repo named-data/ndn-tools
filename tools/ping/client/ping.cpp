@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2021,  Arizona Board of Regents.
+ * Copyright (c) 2014-2022,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -25,15 +25,11 @@
 
 #include <ndn-cxx/util/random.hpp>
 
-namespace ndn {
-namespace ping {
-namespace client {
+namespace ndn::ping::client {
 
 Ping::Ping(Face& face, const Options& options)
   : m_options(options)
-  , m_nSent(0)
   , m_nextSeq(options.startSeq)
-  , m_nOutstanding(0)
   , m_face(face)
   , m_scheduler(m_face.getIoService())
 {
@@ -60,7 +56,6 @@ Ping::performPing()
   BOOST_ASSERT((m_options.nPings < 0) || (m_nSent < m_options.nPings));
 
   Interest interest(makePingName(m_nextSeq));
-  interest.setCanBePrefix(false);
   interest.setMustBeFresh(!m_options.shouldAllowStaleData);
   interest.setInterestLifetime(m_options.timeout);
 
@@ -126,6 +121,4 @@ Ping::makePingName(uint64_t seq) const
   return name;
 }
 
-} // namespace client
-} // namespace ping
-} // namespace ndn
+} // namespace ndn::ping::client
