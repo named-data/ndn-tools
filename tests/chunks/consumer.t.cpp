@@ -33,11 +33,7 @@
 #include <ndn-cxx/security/validator-null.hpp>
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
-#if BOOST_VERSION >= 105900
 #include <boost/test/tools/output_test_stream.hpp>
-#else
-#include <boost/test/output_test_stream.hpp>
-#endif
 
 namespace ndn::chunks::tests {
 

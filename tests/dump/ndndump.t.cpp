@@ -29,11 +29,7 @@
 #include <netinet/udp.h>
 
 #include <boost/endian/conversion.hpp>
-#if BOOST_VERSION >= 105900
 #include <boost/test/tools/output_test_stream.hpp>
-#else
-#include <boost/test/output_test_stream.hpp>
-#endif
 
 #include <ndn-cxx/encoding/encoding-buffer.hpp>
 #include <ndn-cxx/lp/packet.hpp>

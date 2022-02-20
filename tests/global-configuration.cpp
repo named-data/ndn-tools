@@ -59,12 +59,6 @@ private:
   std::string m_home;
 };
 
-#if BOOST_VERSION >= 106500
 BOOST_TEST_GLOBAL_CONFIGURATION(GlobalConfiguration);
-#elif BOOST_VERSION >= 105900
-BOOST_GLOBAL_FIXTURE(GlobalConfiguration);
-#else
-BOOST_GLOBAL_FIXTURE(GlobalConfiguration)
-#endif
 
 } // namespace ndn::tests
