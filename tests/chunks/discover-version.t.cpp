@@ -63,8 +63,8 @@ protected:
   util::DummyClientFace face{m_io};
   Options opt;
   unique_ptr<DiscoverVersion> discover;
-  optional<Name> discoveredName;
-  optional<uint64_t> discoveredVersion;
+  std::optional<Name> discoveredName;
+  std::optional<uint64_t> discoveredVersion;
   bool isDiscoveryFinished = false;
 };
 

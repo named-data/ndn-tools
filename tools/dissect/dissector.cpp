@@ -27,7 +27,7 @@
 #include <map>
 
 #include <ndn-cxx/encoding/tlv.hpp>
-#include <ndn-cxx/name-component.hpp>
+#include <ndn-cxx/util/string-helper.hpp>
 
 namespace ndn::dissect {
 
@@ -168,7 +168,7 @@ Dissector::printBlock(const Block& block)
   const auto& elements = block.elements();
   if (elements.empty()) {
     m_out << " [[";
-    name::Component(block.value(), block.value_size()).toUri(m_out);
+    escape(m_out, reinterpret_cast<const char*>(block.value()), block.value_size());
     m_out << "]]";
   }
   m_out << "\n";

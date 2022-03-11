@@ -86,7 +86,7 @@ public:
   checkOutput(output_test_stream& output, const Data& data)
   {
     const Block& block = data.wireEncode();
-    std::string expected(reinterpret_cast<const char*>(block.wire()), block.size());
+    std::string expected(reinterpret_cast<const char*>(block.data()), block.size());
     BOOST_CHECK(output.is_equal(expected));
   }
 
@@ -94,7 +94,7 @@ public:
   checkOutput(output_test_stream& output, const lp::Nack& nack)
   {
     const Block& block = nack.getHeader().wireEncode();
-    std::string expected(reinterpret_cast<const char*>(block.wire()), block.size());
+    std::string expected(reinterpret_cast<const char*>(block.data()), block.size());
     BOOST_CHECK(output.is_equal(expected));
   }
 };
@@ -252,7 +252,7 @@ BOOST_AUTO_TEST_CASE(NoTimeout)
 {
   auto options = makeDefaultOptions();
   options.interestLifetime = 1_s;
-  options.timeout = nullopt;
+  options.timeout = std::nullopt;
   initialize(options);
 
   BOOST_CHECK_EQUAL(face.sentInterests.size(), 0);

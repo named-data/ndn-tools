@@ -105,7 +105,7 @@ public: // options
   std::string interface;
   std::string inputFile;
   std::string pcapFilter{getDefaultPcapFilter()};
-  optional<std::regex> nameFilter;
+  std::optional<std::regex> nameFilter;
   bool wantPromisc = true;
   bool wantTimestamp = true;
   bool wantVerbose = false;

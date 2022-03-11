@@ -49,7 +49,7 @@ struct PokeOptions
   // program behavior options
   bool isVerbose = false;
   bool wantUnsolicited = false;
-  optional<time::milliseconds> timeout;
+  std::optional<time::milliseconds> timeout;
 };
 
 class NdnPoke : noncopyable

@@ -48,13 +48,13 @@ struct PeekOptions
   bool mustBeFresh = false;
   std::vector<Name> forwardingHint;
   time::milliseconds interestLifetime = DEFAULT_INTEREST_LIFETIME;
-  optional<uint8_t> hopLimit;
+  std::optional<uint8_t> hopLimit;
   shared_ptr<Buffer> applicationParameters;
 
   // program behavior options
   bool isVerbose = false;
   bool wantPayloadOnly = false;
-  optional<time::milliseconds> timeout;
+  std::optional<time::milliseconds> timeout;
 };
 
 class NdnPeek : noncopyable

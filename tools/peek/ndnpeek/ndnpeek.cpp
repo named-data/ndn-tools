@@ -64,7 +64,9 @@ NdnPeek::createInterest() const
   interest.setMustBeFresh(m_options.mustBeFresh);
   interest.setForwardingHint(m_options.forwardingHint);
   interest.setInterestLifetime(m_options.interestLifetime);
-  interest.setHopLimit(m_options.hopLimit);
+  if (m_options.hopLimit) {
+    interest.setHopLimit(*m_options.hopLimit);
+  }
   if (m_options.applicationParameters) {
     interest.setApplicationParameters(m_options.applicationParameters);
   }
@@ -74,6 +76,12 @@ NdnPeek::createInterest() const
   }
 
   return interest;
+}
+
+static void
+writeToCout(span<const uint8_t> bytes)
+{
+  std::cout.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
 }
 
 void
@@ -89,12 +97,10 @@ NdnPeek::onData(const Data& data)
   }
 
   if (m_options.wantPayloadOnly) {
-    const Block& block = data.getContent();
-    std::cout.write(reinterpret_cast<const char*>(block.value()), block.value_size());
+    writeToCout(data.getContent().value_bytes());
   }
   else {
-    const Block& block = data.wireEncode();
-    std::cout.write(reinterpret_cast<const char*>(block.wire()), block.size());
+    writeToCout(data.wireEncode());
   }
 }
 
@@ -104,7 +110,7 @@ NdnPeek::onNack(const lp::Nack& nack)
   m_result = Result::NACK;
   m_timeoutEvent.cancel();
 
-  lp::NackHeader header = nack.getHeader();
+  const auto& header = nack.getHeader();
   if (m_options.isVerbose) {
     std::cerr << "NACK: " << header.getReason() << "\nRTT: "
               << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_sendTime).count()
@@ -115,8 +121,7 @@ NdnPeek::onNack(const lp::Nack& nack)
     std::cout << header.getReason() << std::endl;
   }
   else {
-    const Block& block = header.wireEncode();
-    std::cout.write(reinterpret_cast<const char*>(block.wire()), block.size());
+    writeToCout(header.wireEncode());
   }
 }
 
