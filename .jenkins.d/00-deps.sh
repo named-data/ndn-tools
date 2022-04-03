@@ -33,7 +33,7 @@ elif has Ubuntu $NODE_LABELS; then
     case $JOB_NAME in
         *code-coverage)
             sudo apt-get -qy install lcov python3-pip
-            pip3 install --user --upgrade --upgrade-strategy=eager 'gcovr~=5.0'
+            pip3 install --user --upgrade --upgrade-strategy=eager 'gcovr~=5.1'
             ;;
         *Docs)
             sudo apt-get -qy install python3-pip
