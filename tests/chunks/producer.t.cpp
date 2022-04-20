@@ -55,7 +55,8 @@ protected:
   Name prefix = "/ndn/chunks/test";
   Producer::Options options;
   uint64_t version = 1449227841747;
-  Name keyLocatorName = m_keyChain.createIdentity("/ProducerFixture").getDefaultKey().getName();
+  Name keyLocatorName = m_keyChain.createIdentity("/putchunks/producer")
+                        .getDefaultKey().getDefaultCertificate().getName();
   std::istringstream testString{
     "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget "
     "dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, "
@@ -68,7 +69,7 @@ BOOST_FIXTURE_TEST_SUITE(TestProducer, ProducerFixture)
 
 BOOST_AUTO_TEST_CASE(InputData)
 {
-  std::vector<std::string> testStrings{
+  const std::vector<std::string> testStrings{
       "",
 
       "a1b2c3%^&(#$&%^$$/><",
@@ -82,15 +83,10 @@ BOOST_AUTO_TEST_CASE(InputData)
       "consequat massa Donec pede justo,"
   };
 
-  for (size_t i = 0; i < testStrings.size(); ++i) {
-    std::istringstream input(testStrings[i]);
+  for (const auto& str : testStrings) {
+    std::istringstream input(str);
     Producer prod(prefix, face, m_keyChain, input, options);
-
-    size_t expectedSize = std::ceil(static_cast<double>(testStrings[i].size()) / options.maxSegmentSize);
-    if (testStrings[i].empty()) {
-      expectedSize = 1;
-    }
-
+    size_t expectedSize = str.empty() ? 1 : std::ceil(static_cast<double>(str.size()) / options.maxSegmentSize);
     BOOST_CHECK_EQUAL(prod.m_store.size(), expectedSize);
   }
 }
