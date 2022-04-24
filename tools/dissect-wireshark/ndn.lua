@@ -200,7 +200,9 @@ local NDN_DICT = {
    [1]  = {name = "ImplicitSha256DigestComponent"  , field = ProtoField.string("ndn.implicit_sha256", "ImplicitSha256DigestComponent"), value = getUriFromNameComponent},
    [2]  = {name = "ParametersSha256DigestComponent", field = ProtoField.string("ndn.params_sha256", "ParametersSha256DigestComponent"), value = getUriFromNameComponent},
    [8]  = {name = "GenericNameComponent"           , field = ProtoField.string("ndn.namecomponent", "GenericNameComponent")           , value = getUriFromNameComponent},
-
+   [54] = {name = "versionComponent"               , field = ProtoField.string("ndn.versioncomponent", "VersionComponent")            , value = getUriFromNameComponent},
+   [50] = {name = "segmentComponent"               , field = ProtoField.string("ndn.segmentcomponent", "SegmentComponent")            , value = getUriFromNameComponent},
+   
    -- Interest and its sub-elements in Packet Format v0.3
    [5]  = {name = "Interest"                     , summary = true},
    [33] = {name = "CanBePrefix"                  , field = ProtoField.string("ndn.canbeprefix", "CanBePrefix")                     , value = getTrue},
