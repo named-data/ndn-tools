@@ -339,8 +339,8 @@ function readVarNumber(tvb, offset)
       return tvb(offset + 1, 2):uint(), 3
    elseif (firstOctet == 254) and (offset + 5 < tvb:len()) then
       return tvb(offset + 1, 4):uint(), 5
-   elseif (firstOctet == 255) and (offset + 9 < tvb:len()) then
-      return tvb(offset + 1, 8):uint64(), 9
+   elseif (firstOctet == 255) and (offset + 7 < tvb:len()) then
+      return tvb(offset + 1, 6):uint64(), 7
    end
 
    return 0, 0
