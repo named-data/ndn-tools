@@ -172,7 +172,7 @@ private:
   handleLifetimeExpiration(const Interest& interest);
 
   void
-  recordTimeout();
+  recordTimeout(uint64_t segNo);
 
   void
   enqueueForRetransmission(uint64_t segNo);

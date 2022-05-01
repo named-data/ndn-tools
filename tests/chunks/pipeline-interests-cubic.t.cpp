@@ -72,8 +72,6 @@ protected:
   static constexpr double MARGIN = 0.001;
 };
 
-constexpr double PipelineInterestCubicFixture::MARGIN;
-
 BOOST_AUTO_TEST_SUITE(Chunks)
 BOOST_FIXTURE_TEST_SUITE(TestPipelineInterestsCubic, PipelineInterestCubicFixture)
 

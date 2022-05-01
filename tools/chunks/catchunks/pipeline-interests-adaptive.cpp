@@ -34,8 +34,6 @@
 
 namespace ndn::chunks {
 
-constexpr double PipelineInterestsAdaptive::MIN_SSTHRESH;
-
 PipelineInterestsAdaptive::PipelineInterestsAdaptive(Face& face,
                                                      RttEstimatorWithStats& rttEstimator,
                                                      const Options& opts)
@@ -83,6 +81,7 @@ PipelineInterestsAdaptive::checkRto()
     return;
 
   bool hasTimeout = false;
+  uint64_t highTimeoutSeg = 0;
 
   for (auto& entry : m_segmentInfo) {
     SegmentInfo& segInfo = entry.second;
@@ -91,13 +90,14 @@ PipelineInterestsAdaptive::checkRto()
       if (timeElapsed > segInfo.rto) { // timer expired?
         m_nTimeouts++;
         hasTimeout = true;
+        highTimeoutSeg = std::max(highTimeoutSeg, entry.first);
         enqueueForRetransmission(entry.first);
       }
     }
   }
 
   if (hasTimeout) {
-    recordTimeout();
+    recordTimeout(highTimeoutSeg);
     schedulePackets();
   }
 
@@ -227,9 +227,7 @@ PipelineInterestsAdaptive::handleData(const Interest& interest, const Data& data
               << ", rto=" << segInfo.rto.count() / 1e6 << "ms\n";
   }
 
-  if (m_highData < recvSegNo) {
-    m_highData = recvSegNo;
-  }
+  m_highData = std::max(m_highData, recvSegNo);
 
   // for segments in retx queue, we must not decrement m_nInFlight
   // because it was already decremented when the segment timed out
@@ -310,7 +308,7 @@ PipelineInterestsAdaptive::handleNack(const Interest& interest, const lp::Nack& 
     case lp::NackReason::CONGESTION:
       // treated the same as timeout for now
       enqueueForRetransmission(segNo);
-      recordTimeout();
+      recordTimeout(segNo);
       schedulePackets();
       break;
     default:
@@ -327,16 +325,19 @@ PipelineInterestsAdaptive::handleLifetimeExpiration(const Interest& interest)
     return;
 
   m_nTimeouts++;
-  enqueueForRetransmission(getSegmentFromPacket(interest));
-  recordTimeout();
+
+  uint64_t segNo = getSegmentFromPacket(interest);
+  enqueueForRetransmission(segNo);
+  recordTimeout(segNo);
   schedulePackets();
 }
 
 void
-PipelineInterestsAdaptive::recordTimeout()
+PipelineInterestsAdaptive::recordTimeout(uint64_t segNo)
 {
-  if (m_options.disableCwa || m_highData > m_recPoint) {
-    // react to only one timeout per RTT (conservative window adaptation)
+  if (m_options.disableCwa || segNo > m_recPoint) {
+    // interests that are still outstanding during a timeout event
+    // should not trigger another window decrease later (bug #5202)
     m_recPoint = m_highInterest;
 
     decreaseWindow();
