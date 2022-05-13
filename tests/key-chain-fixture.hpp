@@ -40,16 +40,6 @@ protected:
 
 public:
   /**
-   * @brief Creates and returns a certificate for a given key
-   * @param key The key for which to make a certificate
-   * @param issuer The IssuerId to include in the certificate name
-   * @param signingKey The key with which to sign the certificate; if not provided, the
-   *                   certificate will be self-signed
-   */
-  Certificate
-  makeCert(const Key& key, const std::string& issuer, const Key& signingKey = Key());
-
-  /**
    * @brief Saves an NDN certificate to a file
    * @return true if successful, false otherwise
    */
