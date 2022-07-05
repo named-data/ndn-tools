@@ -27,6 +27,11 @@ def configure(conf):
 
     conf.env.WITH_TESTS = conf.options.with_tests
 
+    # Prefer pkgconf if it's installed, because it gives more correct results
+    # on Fedora/CentOS/RHEL/etc. See https://bugzilla.redhat.com/show_bug.cgi?id=1953348
+    # Store the result in env.PKGCONFIG, which is the variable used inside check_cfg()
+    conf.find_program(['pkgconf', 'pkg-config'], var='PKGCONFIG')
+
     pkg_config_path = os.environ.get('PKG_CONFIG_PATH', f'{conf.env.LIBDIR}/pkgconfig')
     conf.check_cfg(package='libndn-cxx', args=['libndn-cxx >= 0.8.0', '--cflags', '--libs'],
                    uselib_store='NDN_CXX', pkg_config_path=pkg_config_path)

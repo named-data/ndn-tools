@@ -16,13 +16,12 @@ This document describes how to build and install ndn-tools.
 
   Comes with the base system on macOS.
 
-  On Ubuntu:
+  On Debian and Ubuntu:
 
       sudo apt install libpcap-dev
 
   On CentOS and Fedora:
 
-      sudo dnf config-manager --enable powertools  # CentOS only
       sudo dnf install libpcap-devel
 
 ## Build Steps
