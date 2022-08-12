@@ -1,47 +1,44 @@
 #!/usr/bin/env bash
-set -ex
+set -eo pipefail
 
-if has OSX $NODE_LABELS; then
-    FORMULAE=(boost openssl pkg-config)
+APT_PKGS=(build-essential pkg-config python3-minimal
+          libboost-all-dev libssl-dev libsqlite3-dev
+          libpcap-dev)
+FORMULAE=(boost openssl pkg-config)
+PIP_PKGS=()
+case $JOB_NAME in
+    *code-coverage)
+        APT_PKGS+=(lcov python3-pip)
+        PIP_PKGS+=('gcovr~=5.2')
+        ;;
+    *Docs)
+        APT_PKGS+=(python3-pip)
+        PIP_PKGS+=(sphinx)
+        ;;
+esac
 
+set -x
+
+if [[ $ID == macos ]]; then
     if [[ -n $GITHUB_ACTIONS ]]; then
-        # GitHub Actions runners have a large number of pre-installed
-        # Homebrew packages. Don't waste time upgrading all of them.
-        brew list --versions "${FORMULAE[@]}" || brew update
-        for FORMULA in "${FORMULAE[@]}"; do
-            brew list --versions "$FORMULA" || brew install "$FORMULA"
-        done
-        # Ensure /usr/local/opt/openssl exists
-        brew reinstall openssl
-    else
-        brew update
-        brew upgrade
-        brew install "${FORMULAE[@]}"
-        brew cleanup
+        export HOMEBREW_NO_INSTALL_UPGRADE=1
+    fi
+    brew update
+    brew install --formula "${FORMULAE[@]}"
+
+    if (( ${#PIP_PKGS[@]} )); then
+        pip3 install --upgrade --upgrade-strategy=eager "${PIP_PKGS[@]}"
     fi
 
-    if [[ $JOB_NAME == *"Docs" ]]; then
-        pip3 install --upgrade --upgrade-strategy=eager sphinx
-    fi
-
-elif has Ubuntu $NODE_LABELS; then
+elif [[ $ID_LIKE == *debian* ]]; then
     sudo apt-get -qq update
-    sudo apt-get -qy install build-essential pkg-config python3-minimal \
-                             libboost-all-dev libssl-dev libsqlite3-dev \
-                             libpcap-dev
+    sudo apt-get -qy install "${APT_PKGS[@]}"
 
-    case $JOB_NAME in
-        *code-coverage)
-            sudo apt-get -qy install lcov python3-pip
-            pip3 install --user --upgrade --upgrade-strategy=eager 'gcovr~=5.1'
-            ;;
-        *Docs)
-            sudo apt-get -qy install python3-pip
-            pip3 install --user --upgrade --upgrade-strategy=eager sphinx
-            ;;
-    esac
+    if (( ${#PIP_PKGS[@]} )); then
+        pip3 install --user --upgrade --upgrade-strategy=eager "${PIP_PKGS[@]}"
+    fi
 
-elif has CentOS $NODE_LABELS; then
+elif [[ $ID_LIKE == *fedora* ]]; then
     sudo dnf -y install gcc-c++ libasan pkgconf-pkg-config python3 \
                         boost-devel openssl-devel sqlite-devel \
                         libpcap-devel
