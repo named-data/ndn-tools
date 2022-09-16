@@ -248,6 +248,10 @@ for key, value in pairs(NDN_DICT) do
    table.insert(ndn.fields, value.field)
 end
 
+ndn.fields.bin = ProtoField.bytes("ndn.bin", "Binary")
+ndn.fields.len = ProtoField.uint32("ndn.len", "Packet Length")
+ndn.fields.type = ProtoField.string("ndn.type", "Packet Type")
+
 -----------------------------------------------------
 -----------------------------------------------------
 
@@ -504,6 +508,12 @@ function ndn.dissector(tvb, pInfo, root) -- Tvb, Pinfo, TreeItem
             break
          end
       end
+
+      -- These fields can be used to get NDN-packet level information using tshark,
+      -- for example when using the dissector only for reassembling NDN packets from TCP
+      block.tree:add(ndn.fields.bin, tvb(0, tvb:len())):set_hidden()
+      block.tree:add(ndn.fields.len, tvb:len()):set_hidden()
+      block.tree:add(ndn.fields.type, pktType):set_hidden()
    end -- while(block.size <= nBytesLeft)
 
    pInfo.cols.protocol = tostring(pInfo.cols.protocol) .. " (" .. ndn.name .. ")"
