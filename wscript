@@ -36,7 +36,7 @@ def configure(conf):
     conf.check_cfg(package='libndn-cxx', args=['libndn-cxx >= 0.8.0', '--cflags', '--libs'],
                    uselib_store='NDN_CXX', pkg_config_path=pkg_config_path)
 
-    boost_libs = ['system', 'program_options', 'filesystem']
+    boost_libs = ['system', 'program_options']
     if conf.env.WITH_TESTS:
         boost_libs.append('unit_test_framework')
         conf.define('WITH_TESTS', 1)
@@ -74,7 +74,9 @@ def build(bld):
         export_includes='.')
 
     bld.recurse('tools')
-    bld.recurse('tests')
+
+    if bld.env.WITH_TESTS:
+        bld.recurse('tests')
 
     if Utils.unversioned_sys_platform() == 'linux':
         systemd_units = bld.path.ant_glob('systemd/*.in')

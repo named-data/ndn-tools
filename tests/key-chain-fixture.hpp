@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Regents of the University of California.
+ * Copyright (c) 2013-2022 Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -21,59 +21,16 @@
 #define NDN_TOOLS_TESTS_KEY_CHAIN_FIXTURE_HPP
 
 #include <ndn-cxx/security/key-chain.hpp>
-#include <ndn-cxx/security/signing-helpers.hpp>
 
 namespace ndn::tests {
 
 /**
  * @brief A fixture providing an in-memory KeyChain.
- *
- * Test cases can use this fixture to create identities. Identities, certificates, and
- * saved certificates are automatically removed during test teardown.
  */
 class KeyChainFixture
 {
 protected:
-  using Certificate = ndn::security::Certificate;
-  using Identity    = ndn::security::Identity;
-  using Key         = ndn::security::Key;
-
-public:
-  /**
-   * @brief Saves an NDN certificate to a file
-   * @return true if successful, false otherwise
-   */
-  bool
-  saveCert(const Data& cert, const std::string& filename);
-
-  /**
-   * @brief Saves the default certificate of @p identity to a file
-   * @return true if successful, false otherwise
-   */
-  bool
-  saveIdentityCert(const Identity& identity, const std::string& filename);
-
-  /**
-   * @brief Saves the default certificate of the identity named @p identityName to a file
-   * @param identityName Name of the identity
-   * @param filename File name, must be writable
-   * @param allowCreate If true, create the identity if it does not exist
-   * @return true if successful, false otherwise
-   */
-  bool
-  saveIdentityCert(const Name& identityName, const std::string& filename,
-                   bool allowCreate = false);
-
-protected:
-  KeyChainFixture();
-
-  ~KeyChainFixture();
-
-protected:
-  ndn::KeyChain m_keyChain;
-
-private:
-  std::vector<std::string> m_certFiles;
+  ndn::KeyChain m_keyChain{"pib-memory:", "tpm-memory:"};
 };
 
 } // namespace ndn::tests
