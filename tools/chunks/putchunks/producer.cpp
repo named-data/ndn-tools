@@ -31,6 +31,7 @@
 #include "producer.hpp"
 
 #include <ndn-cxx/metadata-object.hpp>
+#include <ndn-cxx/util/segmenter.hpp>
 
 namespace ndn::chunks {
 
@@ -49,12 +50,13 @@ Producer::Producer(const Name& prefix, Face& face, KeyChain& keyChain, std::istr
     m_versionedPrefix = Name(m_prefix).appendVersion();
   }
 
-  populateStore(is);
+  if (!m_options.isQuiet) {
+    std::cerr << "Loading input ...\n";
+  }
+  util::Segmenter segmenter(m_keyChain, m_options.signingInfo);
+  m_store = segmenter.segment(is, m_versionedPrefix, m_options.maxSegmentSize, m_options.freshnessPeriod);
 
-  if (m_options.wantShowVersion)
-    std::cout << m_versionedPrefix[-1] << "\n";
-
-  // register m_prefix without interest handler
+  // register m_prefix without Interest handler
   m_face.registerPrefix(m_prefix, nullptr, [this] (const Name& prefix, const auto& reason) {
     std::cerr << "ERROR: Failed to register prefix '" << prefix << "' (" << reason << ")\n";
     m_face.shutdown();
@@ -76,8 +78,13 @@ Producer::Producer(const Name& prefix, Face& face, KeyChain& keyChain, std::istr
     processDiscoveryInterest(interest);
   });
 
-  if (!m_options.isQuiet)
-    std::cerr << "Data published with name: " << m_versionedPrefix << "\n";
+  if (m_options.wantShowVersion) {
+    std::cout << m_versionedPrefix[-1] << "\n";
+  }
+  if (!m_options.isQuiet) {
+    std::cerr << "Published " << m_store.size() << " Data packet" << (m_store.size() > 1 ? "s" : "")
+              << " with prefix " << m_versionedPrefix << "\n";
+  }
 }
 
 void
@@ -93,8 +100,9 @@ Producer::processDiscoveryInterest(const Interest& interest)
     std::cerr << "Discovery Interest: " << interest << "\n";
 
   if (!interest.getCanBePrefix()) {
-    if (m_options.isVerbose)
+    if (m_options.isVerbose) {
       std::cerr << "Discovery Interest lacks CanBePrefix, sending Nack\n";
+    }
     m_face.put(lp::Nack(interest));
     return;
   }
@@ -103,7 +111,7 @@ Producer::processDiscoveryInterest(const Interest& interest)
   mobject.setVersionedName(m_versionedPrefix);
 
   // make a metadata packet based on the received discovery Interest name
-  Data mdata(mobject.makeData(interest.getName(), m_keyChain, m_options.signingInfo));
+  auto mdata = mobject.makeData(interest.getName(), m_keyChain, m_options.signingInfo);
 
   if (m_options.isVerbose)
     std::cerr << "Sending metadata: " << mdata << "\n";
@@ -135,53 +143,17 @@ Producer::processSegmentInterest(const Interest& interest)
   }
 
   if (data != nullptr) {
-    if (m_options.isVerbose)
+    if (m_options.isVerbose) {
       std::cerr << "Data: " << *data << "\n";
-
+    }
     m_face.put(*data);
   }
   else {
-    if (m_options.isVerbose)
+    if (m_options.isVerbose) {
       std::cerr << "Interest cannot be satisfied, sending Nack\n";
+    }
     m_face.put(lp::Nack(interest));
   }
-}
-
-void
-Producer::populateStore(std::istream& is)
-{
-  BOOST_ASSERT(m_store.empty());
-
-  if (!m_options.isQuiet)
-    std::cerr << "Loading input ...\n";
-
-  std::vector<uint8_t> buffer(m_options.maxSegmentSize);
-  while (is.good()) {
-    is.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
-    const auto nCharsRead = is.gcount();
-
-    if (nCharsRead > 0) {
-      auto data = make_shared<Data>(Name(m_versionedPrefix).appendSegment(m_store.size()));
-      data->setFreshnessPeriod(m_options.freshnessPeriod);
-      data->setContent(make_span(buffer).first(nCharsRead));
-      m_store.push_back(data);
-    }
-  }
-
-  if (m_store.empty()) {
-    auto data = make_shared<Data>(Name(m_versionedPrefix).appendSegment(0));
-    data->setFreshnessPeriod(m_options.freshnessPeriod);
-    m_store.push_back(data);
-  }
-
-  auto finalBlockId = name::Component::fromSegment(m_store.size() - 1);
-  for (const auto& data : m_store) {
-    data->setFinalBlock(finalBlockId);
-    m_keyChain.sign(*data, m_options.signingInfo);
-  }
-
-  if (!m_options.isQuiet)
-    std::cerr << "Created " << m_store.size() << " chunks for prefix " << m_prefix << "\n";
 }
 
 } // namespace ndn::chunks

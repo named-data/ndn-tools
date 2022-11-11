@@ -35,7 +35,7 @@
 namespace ndn::chunks {
 
 /**
- * @brief Segmented & versioned data publisher
+ * @brief Segmented & versioned data publisher.
  *
  * Packetizes and publishes data from an input stream as `/prefix/<version>/<segment number>`.
  * Unless another value is provided, the current time is used as the version number.
@@ -54,9 +54,8 @@ public:
     bool wantShowVersion = false;
   };
 
-public:
   /**
-   * @brief Create the producer
+   * @brief Create the producer.
    * @param prefix prefix used to publish data; if the last component is not a valid
    *               version number, the current system time is used as version number.
    */
@@ -64,33 +63,20 @@ public:
            const Options& opts);
 
   /**
-   * @brief Run the producer
+   * @brief Run the producer.
    */
   void
   run();
 
 private:
   /**
-   * @brief Split the input stream in data packets and save them to the store
-   *
-   * Create data packets reading all the characters from the input stream until EOF or an
-   * error occurs. Each data packet has a maximum payload size of `m_options.maxSegmentSize`
-   * bytes and is stored in the vector `m_store`. An empty data packet is created and stored
-   * if the input stream is empty.
-   *
-   * @return Number of data packets contained in the store after the operation
-   */
-  void
-  populateStore(std::istream& is);
-
-  /**
-   * @brief Respond with a metadata packet containing the versioned content name
+   * @brief Respond with a metadata packet containing the versioned content name.
    */
   void
   processDiscoveryInterest(const Interest& interest);
 
   /**
-   * @brief Respond with the requested segment of content
+   * @brief Respond with the requested segment of content.
    */
   void
   processSegmentInterest(const Interest& interest);
