@@ -27,6 +27,7 @@
 #include <map>
 
 #include <ndn-cxx/encoding/tlv.hpp>
+#include <ndn-cxx/encoding/tlv-security.hpp>
 #include <ndn-cxx/util/string-helper.hpp>
 
 namespace ndn::dissect {
@@ -73,35 +74,11 @@ Dissector::printBranches()
   }
 }
 
+// https://named-data.net/doc/NDN-packet-spec/current/types.html
 static const std::map<uint32_t, std::string_view> TLV_DICT = {
-  {tlv::Interest                     , "Interest"},
-  {tlv::Data                         , "Data"},
-  {tlv::Name                         , "Name"},
-  // Interest packet
-  {tlv::CanBePrefix                  , "CanBePrefix"},
-  {tlv::MustBeFresh                  , "MustBeFresh"},
-  {tlv::ForwardingHint               , "ForwardingHint"},
-  {tlv::Nonce                        , "Nonce"},
-  {tlv::InterestLifetime             , "InterestLifetime"},
-  {tlv::HopLimit                     , "HopLimit"},
-  {tlv::ApplicationParameters        , "ApplicationParameters"},
-  {tlv::InterestSignatureInfo        , "InterestSignatureInfo"},
-  {tlv::InterestSignatureValue       , "InterestSignatureValue"},
-  // Data packet
-  {tlv::MetaInfo                     , "MetaInfo"},
-  {tlv::Content                      , "Content"},
-  {tlv::SignatureInfo                , "SignatureInfo"},
-  {tlv::SignatureValue               , "SignatureValue"},
-  {tlv::ContentType                  , "ContentType"},
-  {tlv::FreshnessPeriod              , "FreshnessPeriod"},
-  {tlv::FinalBlockId                 , "FinalBlockId"},
-  // (Interest)SignatureInfo elements
-  {tlv::SignatureType                , "SignatureType"},
-  {tlv::KeyLocator                   , "KeyLocator"},
-  {tlv::KeyDigest                    , "KeyDigest"},
-  {tlv::SignatureNonce               , "SignatureNonce"},
-  {tlv::SignatureTime                , "SignatureTime"},
-  {tlv::SignatureSeqNum              , "SignatureSeqNum"},
+  {tlv::Interest                        , "Interest"},
+  {tlv::Data                            , "Data"},
+  {tlv::Name                            , "Name"},
   // Name components
   {tlv::GenericNameComponent            , "GenericNameComponent"},
   {tlv::ImplicitSha256DigestComponent   , "ImplicitSha256DigestComponent"},
@@ -112,14 +89,42 @@ static const std::map<uint32_t, std::string_view> TLV_DICT = {
   {tlv::VersionNameComponent            , "VersionNameComponent"},
   {tlv::TimestampNameComponent          , "TimestampNameComponent"},
   {tlv::SequenceNumNameComponent        , "SequenceNumNameComponent"},
-  // Deprecated elements
-  {tlv::Selectors                    , "Selectors"},
-  {tlv::MinSuffixComponents          , "MinSuffixComponents"},
-  {tlv::MaxSuffixComponents          , "MaxSuffixComponents"},
-  {tlv::PublisherPublicKeyLocator    , "PublisherPublicKeyLocator"},
-  {tlv::Exclude                      , "Exclude"},
-  {tlv::ChildSelector                , "ChildSelector"},
-  {tlv::Any                          , "Any"},
+  // Interest packet
+  {tlv::CanBePrefix                     , "CanBePrefix"},
+  {tlv::MustBeFresh                     , "MustBeFresh"},
+  {tlv::ForwardingHint                  , "ForwardingHint"},
+  {tlv::Nonce                           , "Nonce"},
+  {tlv::InterestLifetime                , "InterestLifetime"},
+  {tlv::HopLimit                        , "HopLimit"},
+  {tlv::ApplicationParameters           , "ApplicationParameters"},
+  {tlv::InterestSignatureInfo           , "InterestSignatureInfo"},
+  {tlv::InterestSignatureValue          , "InterestSignatureValue"},
+  // Data packet
+  {tlv::MetaInfo                        , "MetaInfo"},
+  {tlv::Content                         , "Content"},
+  {tlv::SignatureInfo                   , "SignatureInfo"},
+  {tlv::SignatureValue                  , "SignatureValue"},
+  {tlv::ContentType                     , "ContentType"},
+  {tlv::FreshnessPeriod                 , "FreshnessPeriod"},
+  {tlv::FinalBlockId                    , "FinalBlockId"},
+  // (Interest)SignatureInfo
+  {tlv::SignatureType                   , "SignatureType"},
+  {tlv::KeyLocator                      , "KeyLocator"},
+  {tlv::KeyDigest                       , "KeyDigest"},
+  {tlv::SignatureNonce                  , "SignatureNonce"},
+  {tlv::SignatureTime                   , "SignatureTime"},
+  {tlv::SignatureSeqNum                 , "SignatureSeqNum"},
+  // Certificate
+  {tlv::ValidityPeriod                  , "ValidityPeriod"},
+  {tlv::NotBefore                       , "NotBefore"},
+  {tlv::NotAfter                        , "NotAfter"},
+  {tlv::AdditionalDescription           , "AdditionalDescription"},
+  {tlv::DescriptionEntry                , "DescriptionEntry"},
+  {tlv::DescriptionKey                  , "DescriptionKey"},
+  {tlv::DescriptionValue                , "DescriptionValue"},
+  // SafeBag
+  {tlv::security::SafeBag               , "SafeBag"},
+  {tlv::security::EncryptedKey          , "EncryptedKey"},
 };
 
 void
@@ -131,17 +136,12 @@ Dissector::printType(uint32_t type)
   if (it != TLV_DICT.end()) {
     m_out << it->second;
   }
-  else if (type < tlv::AppPrivateBlock1) {
-    m_out << "RESERVED_1";
-  }
-  else if (tlv::AppPrivateBlock1 <= type && type < 253) {
-    m_out << "APP_TAG_1";
-  }
-  else if (253 <= type && type < tlv::AppPrivateBlock2) {
-    m_out << "RESERVED_3";
+  else if ((type >= tlv::AppPrivateBlock1 && type <= 252) ||
+           type >= tlv::AppPrivateBlock2) {
+    m_out << "UNKNOWN_APP";
   }
   else {
-    m_out << "APP_TAG_3";
+    m_out << "RESERVED";
   }
 
   m_out << ")";
