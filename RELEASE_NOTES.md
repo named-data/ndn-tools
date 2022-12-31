@@ -1,9 +1,37 @@
 # Release Notes
 
+## Version 22.12
+
+The minimum build requirements have been increased as follows:
+- Either GCC >= 7.4.0 or Clang >= 6.0 is required on Linux
+- On macOS, Xcode 11.3 or later is recommended; older versions may still work but are
+  not officially supported
+- Boost >= 1.65.1 is required on all platforms
+- Sphinx 4.0 or later is required to build the manual pages
+
+chunks:
+- Avoid excess window decrease in certain conditions (Issue #5202)
+- Use ndn-cxx's `Segmenter` class (Issue #4702)
+
+dissect:
+- Recognize several TLV elements that appear in `Certificate` and `SafeBag`
+- Remove support for obsolete TLV types
+
+dissect-wireshark:
+- Expose `type`, `len`, and `bin` fields
+
+build system:
+- Switch to C++17
+- macOS 12 (Monterey) and 13 (Ventura) running on arm64 are now supported out-of-the-box
+  (Issue #5135)
+- CentOS Stream 9 is now supported; CentOS 8 has been dropped (Issue #5181)
+- Stop using the `gold` linker on Linux; prefer instead linking with `lld` if installed
+- Upgrade `waf` to version 2.0.24
+
 ## Version 22.02
 
-Starting with this release, ndn-tools switched to a new versioning scheme:
-`YEAR.MONTH[.REVISION]`.
+Starting with this release, ndn-tools switched to a date-based versioning scheme:
+`YEAR.MONTH[.PATCH]` (`YY.0M[.MICRO]` in [CalVer](https://calver.org/) notation).
 
 chunks:
 - Add `--naming-convention` command-line option (Issue #5109)
