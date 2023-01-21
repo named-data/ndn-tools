@@ -4,17 +4,15 @@ This document describes how to build and install ndn-tools.
 
 ## Prerequisites
 
-- Install the [ndn-cxx](https://named-data.net/doc/ndn-cxx/current/) library and its prerequisites.
-  Please see [Getting Started with ndn-cxx](https://named-data.net/doc/ndn-cxx/current/INSTALL.html)
-  for instructions.
-  All operating systems and compilers supported by ndn-cxx are also supported by ndn-tools.
+* Install the [ndn-cxx](https://github.com/named-data/ndn-cxx) library and its dependencies.
+  Check out [the documentation](https://docs.named-data.net/ndn-cxx/current/INSTALL.html) for
+  detailed installation instructions. All platforms supported by ndn-cxx are also supported
+  by ndn-tools.
 
   *Note*: If you have installed ndn-cxx from a binary package, please make sure the development
   headers are installed (e.g., if using Ubuntu PPA, the `libndn-cxx-dev` package is needed).
 
-- `libpcap`
-
-  Comes with the base system on macOS.
+* Install `libpcap` (except on macOS where it is provided by the base system).
 
   On Debian and Ubuntu:
 

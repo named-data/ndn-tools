@@ -1,19 +1,18 @@
-NDN Packet Dissector for Wireshark
-==================================
+# NDN Packet Dissector for Wireshark
 
-**NDN packet dissector requires at least version 1.12.6 of Wireshark with LUA support enabled**
+*NOTE: The dissector requires at least version 1.12.6 of Wireshark with LUA support enabled.*
 
-The dissection of [Named Data Networking (NDN) packets](http://named-data.net/doc/ndn-tlv/) is
-supported in the following cases:
+The dissection of [NDN packets](https://docs.named-data.net/NDN-packet-spec/current/)
+is supported in the following cases:
 
-- NDN packets are encapsulated in IPv4/IPv6 UDP packets with source or destination port
-  6363 or 56363.
+- NDN packets are encapsulated in IPv4/IPv6 UDP datagrams with source or destination
+  port 6363 or 56363.
 
 - NDN packets are encapsulated in IPv4/IPv6 TCP segments with source or destination
   port 6363.
 
-- NDN packets are encapsulated in IPv4/IPv6 TCP/HTTP WebSocket packets with source or
-  destination port 9696.
+- NDN packets are encapsulated in IPv4/IPv6 WebSocket packets with source or destination
+  port 9696.
 
 - NDN packets are encapsulated in Ethernet frames with EtherType 0x8624.
 
@@ -56,11 +55,15 @@ On some platforms, it may also be installed in `/usr/share/ndn-dissect-wireshark
 `/opt/local/share/ndn-dissect-wireshark`.  To enable the dissector for Wireshark session,
 use `-X` command line option, specifying the full path to the `ndn.lua` script:
 
-    wireshark -X lua_script:/usr/local/share/ndn-dissect-wireshark/ndn.lua
+```shell
+wireshark -X lua_script:/usr/local/share/ndn-dissect-wireshark/ndn.lua
+```
 
 Similarly, NDN packets dissector can be enabled when using `tshark`:
 
-    tshark shark -X lua_script:/usr/local/share/ndn-dissect-wireshark/ndn.lua
+```shell
+tshark shark -X lua_script:/usr/local/share/ndn-dissect-wireshark/ndn.lua
+```
 
 To enable NDN packets dissector for all future Wireshark sessions, you can create/edit
 Wireshark's `init.lua` script, which located in `/usr/share/wireshark`,
@@ -68,8 +71,9 @@ Wireshark's `init.lua` script, which located in `/usr/share/wireshark`,
 or similar location depending on the platform and the way Wireshark is installed.  The
 `dofile` command should be added to the end of `init.lua` file:
 
-    -- dofile("/full/path/to/ndn.lua")
-    dofile("/usr/local/share/ndn-dissect-wireshark/ndn.lua")
+```lua
+dofile("/usr/local/share/ndn-dissect-wireshark/ndn.lua")
+```
 
 For more detailed information about how to use Lua refer to [Lua wiki](https://wiki.wireshark.org/Lua).
 
@@ -78,26 +82,26 @@ For more detailed information about how to use Lua refer to [Lua wiki](https://w
 Due to security issues, customized lua scripts are not allowed to be loaded when Wireshark
 is started with root privileges.  There are two workarounds:
 
-- run Wireshark, `dumpcap`, or `tcpdump` with root privileges to capture traffic to a file, later
-  running Wireshark without root privileges and to analyze the captured traffic.
+- Run `dumpcap` or `tcpdump` with root privileges to capture traffic to a file, and later
+  run Wireshark *without* root privileges to analyze the captured traffic.
 
-- (beware of potential security implications) allow non-root users to capture packets:
+- Allow non-root users to capture packets (beware of potential security implications!)
 
-  * On Linux platform, you can use `setcap`
+  * On Linux, you can use `setcap`:
 
-          sudo setcap cap_net_raw,cap_net_admin=eip /full/path/to/wireshark
+        sudo setcap cap_net_raw,cap_net_admin=eip /full/path/to/wireshark
 
-      You may need to install a package to use setcap (e.g., `sudo apt-get install libcap2-bin` on Ubuntu)
+    You may need to install a package to use `setcap` (e.g., `sudo apt install libcap2-bin` on Ubuntu)
 
-  * On Debian/Ubuntu Linux, capturing traffic with Wireshark by a non-root user can be enabled by adding
-    this user to the `wireshark` group.
+  * On Debian/Ubuntu Linux, capturing traffic with Wireshark by a non-root user can be enabled by
+    adding the user to the `wireshark` group.
 
-    See [Wireshark Debian README](http://anonscm.debian.org/viewvc/collab-maint/ext-maint/wireshark/trunk/debian/README.Debian?view=markup)
-    for more details.
+    See Debian's [README file](https://salsa.debian.org/debian/wireshark/-/blob/debian/master/debian/README.Debian)
+    for details.
 
-  * On OSX platform, `/dev/bpf*` devices need to be assigned proper permissions
+  * On macOS, `/dev/bpf*` devices need to be assigned proper permissions.
 
-    Automatically using ChmodBPF app
+    Automatically using ChmodBPF app:
 
         curl https://bugs.wireshark.org/bugzilla/attachment.cgi?id=3373 -o ChmodBPF.tar.gz
         tar zxvf ChmodBPF.tar.gz

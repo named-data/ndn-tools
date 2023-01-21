@@ -8,7 +8,7 @@
 Usage example:
 
 1. start NFD
-2. execute `echo 'HELLO WORLD' | ndnpoke /localhost/demo/hello`
-3. in another terminal, execute `ndnpeek -p /localhost/demo/hello`
+2. run `echo 'HELLO WORLD' | ndnpoke /localhost/demo/hello`
+3. in another terminal, run `ndnpeek -p /localhost/demo/hello`
 
-For more information, consult the manpages of these programs.
+For more information on these programs, consult their respective manpages.

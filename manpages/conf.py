@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'NDN Essential Tools'
-copyright = 'Copyright © 2014-2022 Named Data Networking Project.'
+copyright = 'Copyright © 2014-2023 Named Data Networking Project.'
 author = 'Named Data Networking Project'
 
 # The short X.Y version.

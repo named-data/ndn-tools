@@ -3,7 +3,7 @@
 ## Licensing Requirements
 
 Contributions to ndn-tools must be licensed under the GPL 3.0 or a compatible license.
-If you choose GPL 3.0, include the following license boilerplate into all C++ code files:
+If you choose GPL 3.0, insert the following license boilerplate into all C++ source files:
 
     /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
     /*
@@ -57,7 +57,7 @@ and placed in the [`manpages`](manpages) directory.
 ## Code Guidelines
 
 C++ code should conform to the
-[ndn-cxx code style](https://named-data.net/doc/ndn-cxx/current/code-style.html).
+[ndn-cxx code style](https://docs.named-data.net/ndn-cxx/current/code-style.html).
 
 ### Namespace
 
@@ -83,36 +83,38 @@ subdirectory.
 
 Example:
 
-    namespace ndn {
-    namespace foo {
+```cpp
+namespace ndn {
+namespace foo {
 
-    class Bar
-    {
-    public:
-      explicit
-      Bar(Face& face);
+class Bar
+{
+public:
+  explicit
+  Bar(Face& face);
 
-      void
-      run();
-    };
+  void
+  run();
+};
 
-    static int
-    main(int argc, char* argv[])
-    {
-      Face face;
-      Bar program(face);
-      program.run();
-      return 0;
-    }
+static int
+main(int argc, char* argv[])
+{
+  Face face;
+  Bar program(face);
+  program.run();
+  return 0;
+}
 
-    } // namespace foo
-    } // namespace ndn
+} // namespace foo
+} // namespace ndn
 
-    int
-    main(int argc, char* argv[])
-    {
-      return ndn::foo::main(argc, argv);
-    }
+int
+main(int argc, char* argv[])
+{
+  return ndn::foo::main(argc, argv);
+}
+```
 
 ### Command Line Arguments
 

@@ -2,47 +2,48 @@
 
 ## Introduction
 
-**ndnping** and **ndnpingserver** are reachability testing tools for
-[Named Data Networking](http://named-data.net). They test the reachability between two nodes. The
-client sends an Interest intended for a node running **ndnpingserver**. The ping server then sends
-Data in response. The client then calculates the roundtrip time for the Interest-Data exchange, or
-marks it as a timeout if the Data is not received within the timeout period.
+**ndnping** and **ndnpingserver** are reachability testing tools for NDN. They can be used
+to test the network reachability between two nodes. The client sends an Interest intended
+for a node running **ndnpingserver**. The server then sends Data in response. The client
+then calculates the roundtrip time for the Interest-Data exchange, or marks it as a timeout
+if the Data packet is not received within the timeout period.
 
-## Using the Client
+## Using the client
 
-The client can be invoked by calling **ndnping** with a name to ping. For example, to ping
-`/edu/arizona`, one would execute:
+The client can be invoked by calling `ndnping` with a name to ping. For example, to ping
+`/edu/arizona`, one would run:
 
     ndnping /edu/arizona
 
-There are also a variety of options to control the behavior of the ping client. For example, to
-send only four pings to `/edu/arizona`, displaying a timestamp with each received Data or
+There are also a variety of options to control the behavior of the ping client. For example,
+to send only four pings to `/edu/arizona`, displaying a timestamp with each received Data or
 timeout, type:
 
     ndnping -c 4 -t /edu/arizona
 
 A list of the available options can be found with `man ndnping`.
 
-## Using the Server
+## Using the server
 
-The server can be invoked by calling **ndnpingserver** with a name to listen for pings to. For
-example, to listen for pings to `/edu/arizona`, one would execute:
+The server can be invoked by calling `ndnpingserver` with a name to listen for pings to. For
+example, to listen for pings to `/edu/arizona`, one would run:
 
     ndnpingserver /edu/arizona
 
-There are also a variety of options to control the behavior of the ping server. For example, to
-satisfy only 4 ping requests before exiting, execute the following:
+There are also a variety of options to control the behavior of the ping server. For example,
+to satisfy only 4 ping requests before exiting, run the following:
 
     ndnpingserver -p 4 /edu/arizona
 
 A list of the available options can be found with `man ndnpingserver`.
 
-## ndnping Protocol
+## NDN ping protocol
 
 This section briefly describes ndnping's protocol, in order to allow alternate implementations
 to be compatible with this implementation.
+
 The current protocol version is **ndnping protocol version 1**.
-This version number will be incremented in case there's an incompatible change.
+This version number will be incremented whenever there is an incompatible change.
 
 ### Probe Interests
 

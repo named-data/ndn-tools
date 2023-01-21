@@ -4,8 +4,8 @@
 
 * **ndnputchunks** is a producer program that reads a file from the standard input, and makes
   it available as a set of NDN Data segments. It appends version and segment number components
-  to the specified name as needed, according to the
-  [NDN naming conventions](https://named-data.net/publications/techreports/ndn-tr-22-2-ndn-memo-naming-conventions/).
+  to the specified name as needed, according to the [NDN naming conventions](
+  https://named-data.net/publications/techreports/ndn-tr-22-3-ndn-memo-naming-conventions/).
 
 * **ndncatchunks** is a consumer program that fetches Data segments of a file, optionally
   discovering the latest version of the file, and writes the content of the retrieved file to
@@ -18,7 +18,7 @@ number will be used, without any version discovery process. Otherwise, discovery
 be sent out to fetch metadata of the solicited content from which the Data version will be resolved.
 For more information about the packet format and naming conventions of Interest and Data packets
 used for version discovery in ndncatchunks, please refer to:
-[Realtime Data Retrieval (RDR) protocol wiki page](https://redmine.named-data.net/projects/ndn-tlv/wiki/RDR)
+[Realtime Data Retrieval (RDR) protocol](https://redmine.named-data.net/projects/ndn-tlv/wiki/RDR).
 
 ## Interest pipeline types in ndncatchunks
 
@@ -32,7 +32,7 @@ used for version discovery in ndncatchunks, please refer to:
 * `cubic`: adjusts the window size similar to the TCP CUBIC algorithm.
            For details about both aimd and cubic please refer to:
            [A Practical Congestion Control Scheme for Named Data
-           Networking](https://conferences2.sigcomm.org/acm-icn/2016/proceedings/p21-schneider.pdf)
+           Networking](https://conferences2.sigcomm.org/acm-icn/2016/proceedings/p21-schneider.pdf).
 
 The default Interest pipeline type is `cubic`.
 

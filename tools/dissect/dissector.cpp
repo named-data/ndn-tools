@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2013-2022, Regents of the University of California.
+ * Copyright (c) 2013-2023, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -74,7 +74,7 @@ Dissector::printBranches()
   }
 }
 
-// https://named-data.net/doc/NDN-packet-spec/current/types.html
+// https://docs.named-data.net/NDN-packet-spec/current/types.html
 static const std::map<uint32_t, std::string_view> TLV_DICT = {
   {tlv::Interest                        , "Interest"},
   {tlv::Data                            , "Data"},

@@ -5,16 +5,16 @@
 ![Language](https://img.shields.io/badge/C%2B%2B-17-blue)
 ![Latest version](https://img.shields.io/github/v/tag/named-data/ndn-tools?label=Latest%20version)
 
-**ndn-tools** is a collection of basic tools for [Named Data Networking](https://named-data.net/).
-Tools in this collection include:
+This repository contains a collection of basic tools for [Named Data Networking (NDN)](https://named-data.net/).
+The tools currently included are:
 
-* [peek](tools/peek): transmit a single Interest/Data packet between a consumer
+* [**peek**](tools/peek): transmit a single Interest/Data packet between a consumer
   and a producer
-* [chunks](tools/chunks): segmented file transfer between a consumer and a producer
-* [ping](tools/ping): test reachability between two NDN nodes
-* [dump](tools/dump): capture and analyze live traffic on an NDN network
-* [dissect](tools/dissect): inspect the TLV structure of an NDN packet
-* [dissect-wireshark](tools/dissect-wireshark): Wireshark extension to inspect
+* [**chunks**](tools/chunks): segmented file transfer between a consumer and a producer
+* [**ping**](tools/ping): test reachability between two NDN nodes
+* [**dump**](tools/dump): capture and analyze live traffic on an NDN network
+* [**dissect**](tools/dissect): inspect the TLV structure of an NDN packet
+* [**dissect-wireshark**](tools/dissect-wireshark): Wireshark extension to inspect
   the TLV structure of NDN packets
 
 ## Installation
@@ -28,12 +28,13 @@ Please submit any bug reports or feature requests to the
 
 ## Contributing
 
-We greatly appreciate contributions to ndn-tools. If you are new to the NDN
-software community, please read [`README-dev.md`](README-dev.md) and the
-[Contributor's Guide](https://github.com/named-data/.github/blob/master/CONTRIBUTING.md)
-to get started.
+Contributions to ndn-tools are greatly appreciated and can be made through our
+[Gerrit code review site](https://gerrit.named-data.net/).
+If you are new to the NDN software community, please read our
+[Contributor's Guide](https://github.com/named-data/.github/blob/main/CONTRIBUTING.md)
+and [`README-dev.md`](README-dev.md) to get started.
 
 ## License
 
-ndn-tools is an open source project licensed under the GPL version 3.
-See [`COPYING.md`](COPYING.md) for more information.
+ndn-tools is free software distributed under the GNU General Public License version 3.
+See [`COPYING.md`](COPYING.md) for details.

@@ -1,4 +1,4 @@
--- Copyright (c) 2015-2019,  Regents of the University of California.
+-- Copyright (c) 2015-2023, Regents of the University of California.
 --
 -- This file is part of ndn-tools (Named Data Networking Essential Tools).
 -- See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -173,7 +173,7 @@ function getGenericBlockInfo(block)
    local name = ""
 
    -- TODO: Properly format informational message based type value reservations
-   -- (https://named-data.net/doc/NDN-packet-spec/current/types.html#tlv-type-number-reservations)
+   -- (https://docs.named-data.net/NDN-packet-spec/current/types.html#reserved-ranges)
    if (block.type <= AppPrivateBlock1) then
       name = "Unrecognized from the reserved range " .. 0 .. "-" .. AppPrivateBlock1 .. ""
    elseif (AppPrivateBlock1 < block.type and block.type < AppPrivateBlock2) then

@@ -15,7 +15,7 @@ and makes it available as NDN Data segments.
 Version and segment number components are appended to the specified *name* as needed,
 according to the `NDN naming conventions`_.
 
-.. _NDN naming conventions: https://named-data.net/publications/techreports/ndn-tr-22-2-ndn-memo-naming-conventions/
+.. _NDN naming conventions: https://named-data.net/publications/techreports/ndn-tr-22-3-ndn-memo-naming-conventions/
 
 Options
 -------
