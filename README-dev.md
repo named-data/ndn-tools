@@ -1,9 +1,10 @@
-# Notes for ndn-tools Developers
+# Notes for ndn-tools developers
 
 ## Licensing Requirements
 
-Contributions to ndn-tools must be licensed under the GPL 3.0 or a compatible license.
-If you choose GPL 3.0, insert the following license boilerplate into all C++ source files:
+Contributions to ndn-tools must be licensed under the GPL v3 or a compatible license.
+If you choose the GPL v3, please use the following license boilerplate in all `.hpp`
+and `.cpp` files:
 
     /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
     /*
