@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Regents of the University of California,
+ * Copyright (c) 2014-2023,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -28,8 +28,8 @@
 namespace ndn::tests {
 
 shared_ptr<Interest>
-makeInterest(const Name& name, bool canBePrefix, optional<time::milliseconds> lifetime,
-             optional<Interest::Nonce> nonce)
+makeInterest(const Name& name, bool canBePrefix, std::optional<time::milliseconds> lifetime,
+             std::optional<Interest::Nonce> nonce)
 {
   auto interest = std::make_shared<Interest>(name);
   interest->setCanBePrefix(canBePrefix);

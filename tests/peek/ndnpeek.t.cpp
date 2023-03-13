@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Arizona Board of Regents.
+ * Copyright (c) 2014-2023,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Default, OutputCheck, OutputChecks)
   BOOST_CHECK_EQUAL(interest.getMustBeFresh(), false);
   BOOST_CHECK_EQUAL(interest.getForwardingHint().empty(), true);
   BOOST_CHECK_EQUAL(interest.getInterestLifetime(), DEFAULT_INTEREST_LIFETIME);
-  BOOST_CHECK(interest.getHopLimit() == nullopt);
+  BOOST_CHECK(interest.getHopLimit() == std::nullopt);
   BOOST_CHECK(!interest.hasApplicationParameters());
   BOOST_CHECK(peek->getResult() == NdnPeek::Result::DATA);
 }

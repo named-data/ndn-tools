@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Regents of the University of California,
+ * Copyright (c) 2014-2023,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -36,8 +36,8 @@ namespace ndn::tests {
  */
 shared_ptr<Interest>
 makeInterest(const Name& name, bool canBePrefix = false,
-             optional<time::milliseconds> lifetime = nullopt,
-             optional<Interest::Nonce> nonce = nullopt);
+             std::optional<time::milliseconds> lifetime = std::nullopt,
+             std::optional<Interest::Nonce> nonce = std::nullopt);
 
 /**
  * \brief Create a Data with a null (i.e., empty) signature
@@ -71,7 +71,7 @@ makeNack(Interest interest, lp::NackReason reason);
 
 /**
  * \brief Replace a name component in a packet
- * \param[inout] pkt the packet
+ * \param[in,out] pkt the packet
  * \param index the index of the name component to replace
  * \param args arguments to name::Component constructor
  */
