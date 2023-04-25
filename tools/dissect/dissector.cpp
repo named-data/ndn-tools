@@ -168,7 +168,7 @@ Dissector::printBlock(const Block& block)
   const auto& elements = block.elements();
   if (elements.empty()) {
     m_out << " [[";
-    escape(m_out, reinterpret_cast<const char*>(block.value()), block.value_size());
+    escape(m_out, {reinterpret_cast<const char*>(block.value()), block.value_size()});
     m_out << "]]";
   }
   m_out << "\n";
