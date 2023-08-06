@@ -81,7 +81,7 @@ def check_compiler_flags(conf):
 @Configure.conf
 def add_supported_cxxflags(self, cxxflags):
     """
-    Check which cxxflags are supported by compiler and add them to env.CXXFLAGS variable
+    Check which cxxflags are supported by the active compiler and add them to env.CXXFLAGS variable.
     """
     if len(cxxflags) == 0:
         return
@@ -100,7 +100,7 @@ def add_supported_cxxflags(self, cxxflags):
 @Configure.conf
 def add_supported_linkflags(self, linkflags):
     """
-    Check which linkflags are supported by compiler and add them to env.LINKFLAGS variable
+    Check which linkflags are supported by the active compiler and add them to env.LINKFLAGS variable.
     """
     if len(linkflags) == 0:
         return
@@ -135,7 +135,7 @@ class CompilerFlags(object):
 
 class GccBasicFlags(CompilerFlags):
     """
-    This class defines basic flags that work for both gcc and clang compilers
+    This class defines common flags that work for both gcc and clang compilers.
     """
     def getGeneralFlags(self, conf):
         flags = super(GccBasicFlags, self).getGeneralFlags(conf)
@@ -147,7 +147,7 @@ class GccBasicFlags(CompilerFlags):
     def getDebugFlags(self, conf):
         flags = super(GccBasicFlags, self).getDebugFlags(conf)
         flags['CXXFLAGS'] += ['-Og',
-                              '-g3',
+                              '-g',
                               '-Wall',
                               '-Wextra',
                               '-Wpedantic',
@@ -165,7 +165,7 @@ class GccBasicFlags(CompilerFlags):
     def getOptimizedFlags(self, conf):
         flags = super(GccBasicFlags, self).getOptimizedFlags(conf)
         flags['CXXFLAGS'] += ['-O2',
-                              '-g',
+                              '-g1',
                               '-Wall',
                               '-Wextra',
                               '-Wpedantic',
