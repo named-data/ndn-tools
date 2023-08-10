@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2023, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -77,7 +77,7 @@ protected:
   }
 
 protected:
-  util::DummyClientFace face{m_io};
+  DummyClientFace face{m_io};
   Name name{"/ndn/chunks/test"};
   uint64_t nDataSegments = 0;
   bool hasFailed = false;

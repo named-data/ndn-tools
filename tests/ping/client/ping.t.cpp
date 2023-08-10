@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Arizona Board of Regents.
+ * Copyright (c) 2014-2023,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -35,7 +35,7 @@ using client::Ping;
 
 BOOST_FIXTURE_TEST_CASE(Basic, IoFixture)
 {
-  util::DummyClientFace face(m_io, {true, true});
+  DummyClientFace face(m_io, {true, true});
   Options pingOptions;
   pingOptions.prefix = "/test-prefix";
   pingOptions.shouldAllowStaleData = false;

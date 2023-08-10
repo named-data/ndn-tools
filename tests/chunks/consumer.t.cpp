@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2023, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(InOrderData)
       "consequat massa Donec pede justo,"
   };
 
-  util::DummyClientFace face;
+  DummyClientFace face;
   output_test_stream output("");
   Consumer cons(security::getAcceptAllValidator(), output);
 
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(OutOfOrderData)
       "consequat massa Donec pede justo,"
   };
 
-  util::DummyClientFace face;
+  DummyClientFace face;
   output_test_stream output("");
   Consumer cons(security::getAcceptAllValidator(), output);
 
@@ -148,7 +148,7 @@ public:
 
 BOOST_FIXTURE_TEST_CASE(RunBasic, IoFixture)
 {
-  util::DummyClientFace face(m_io);
+  DummyClientFace face(m_io);
   Options options;
   Consumer consumer(security::getAcceptAllValidator());
 

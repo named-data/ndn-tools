@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2023, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -60,7 +60,7 @@ public:
 protected:
   const Name name = "/ndn/chunks/test";
   const uint64_t version = 1449227841747;
-  util::DummyClientFace face{m_io};
+  DummyClientFace face{m_io};
   Options opt;
   unique_ptr<DiscoverVersion> discover;
   std::optional<Name> discoveredName;

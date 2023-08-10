@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2022,  Arizona Board of Regents.
+ * Copyright (c) 2015-2023,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -51,7 +51,7 @@ protected:
 
   template<typename Packet>
   void
-  receive(util::DummyClientFace& face, const Packet& pkt)
+  receive(DummyClientFace& face, const Packet& pkt)
   {
     m_io.post([=, &face] {
       if (!wantLoss) {
@@ -69,8 +69,8 @@ protected:
   }
 
 protected:
-  util::DummyClientFace serverFace{m_io, m_keyChain, {false, true}};
-  util::DummyClientFace clientFace{m_io, m_keyChain, {false, true}};
+  DummyClientFace serverFace{m_io, m_keyChain, {false, true}};
+  DummyClientFace clientFace{m_io, m_keyChain, {false, true}};
   std::unique_ptr<server::PingServer> server;
   std::unique_ptr<client::Ping> client;
   bool wantLoss = false;

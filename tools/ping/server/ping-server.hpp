@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2022,  Arizona Board of Regents.
+ * Copyright (c) 2015-2023,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -55,12 +55,12 @@ public:
    *
    * @param name incoming interest name
    */
-  util::Signal<PingServer, Name> afterReceive;
+  signal::Signal<PingServer, Name> afterReceive;
 
   /**
    * @brief Signals when finished pinging
    */
-  util::Signal<PingServer> afterFinish;
+  signal::Signal<PingServer> afterFinish;
 
   /** @brief starts ping server
    *

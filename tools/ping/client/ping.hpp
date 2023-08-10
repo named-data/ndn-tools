@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2022,  Arizona Board of Regents.
+ * Copyright (c) 2015-2023,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -62,7 +62,7 @@ public:
    * @param seq ping sequence number
    * @param rtt round trip time
    */
-  util::Signal<Ping, uint64_t, Rtt> afterData;
+  signal::Signal<Ping, uint64_t, Rtt> afterData;
 
   /**
    * @brief Signals on the return of a Nack
@@ -71,19 +71,19 @@ public:
    * @param rtt round trip time
    * @param header the received Network NACK header
    */
-  util::Signal<Ping, uint64_t, Rtt, lp::NackHeader> afterNack;
+  signal::Signal<Ping, uint64_t, Rtt, lp::NackHeader> afterNack;
 
   /**
    * @brief Signals on timeout of a packet
    *
    * @param seq ping sequence number
    */
-  util::Signal<Ping, uint64_t> afterTimeout;
+  signal::Signal<Ping, uint64_t> afterTimeout;
 
   /**
    * @brief Signals when finished pinging
    */
-  util::Signal<Ping> afterFinish;
+  signal::Signal<Ping> afterFinish;
 
   /**
    * @brief Start sending ping interests

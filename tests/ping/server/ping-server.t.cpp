@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Arizona Board of Regents.
+ * Copyright (c) 2014-2023,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -59,7 +59,7 @@ private:
   }
 
 protected:
-  util::DummyClientFace face{m_io, m_keyChain, {false, true}};
+  DummyClientFace face{m_io, m_keyChain, {false, true}};
   Options pingOptions{makeOptions()};
   PingServer pingServer{face, m_keyChain, pingOptions};
 };

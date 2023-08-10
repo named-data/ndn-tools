@@ -68,7 +68,7 @@ protected:
   }
 
 protected:
-  ndn::util::DummyClientFace face{m_io};
+  DummyClientFace face{m_io};
   output_test_stream output;
   unique_ptr<NdnPeek> peek;
 };

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2023, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -51,12 +51,12 @@ public:
   /**
    * @brief Signal emitted when the versioned name of Data is found.
    */
-  util::Signal<DiscoverVersion, Name> onDiscoverySuccess;
+  signal::Signal<DiscoverVersion, Name> onDiscoverySuccess;
 
   /**
    * @brief Signal emitted when a failure occurs.
    */
-  util::Signal<DiscoverVersion, std::string> onDiscoveryFailure;
+  signal::Signal<DiscoverVersion, std::string> onDiscoveryFailure;
 
   void
   run();

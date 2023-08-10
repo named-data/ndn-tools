@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Regents of the University of California,
+ * Copyright (c) 2014-2023,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -59,7 +59,7 @@ protected:
   }
 
 protected:
-  ndn::util::DummyClientFace face{m_io, m_keyChain, {true, WANT_PREFIX_REG_REPLY}};
+  DummyClientFace face{m_io, m_keyChain, {true, WANT_PREFIX_REG_REPLY}};
   std::stringstream payload{"Hello, world!\n"};
   unique_ptr<NdnPoke> poke;
 };

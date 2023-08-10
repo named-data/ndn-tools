@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2023, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -53,7 +53,7 @@ Producer::Producer(const Name& prefix, Face& face, KeyChain& keyChain, std::istr
   if (!m_options.isQuiet) {
     std::cerr << "Loading input ...\n";
   }
-  util::Segmenter segmenter(m_keyChain, m_options.signingInfo);
+  Segmenter segmenter(m_keyChain, m_options.signingInfo);
   m_store = segmenter.segment(is, m_versionedPrefix, m_options.maxSegmentSize, m_options.freshnessPeriod);
 
   // register m_prefix without Interest handler

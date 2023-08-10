@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022,  Regents of the University of California,
+ * Copyright (c) 2016-2023,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -51,7 +51,7 @@ protected:
   }
 
 protected:
-  util::DummyClientFace face{m_io, {true, true}};
+  DummyClientFace face{m_io, {true, true}};
   Name prefix = "/ndn/chunks/test";
   Producer::Options options;
   uint64_t version = 1449227841747;
