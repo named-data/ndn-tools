@@ -3,8 +3,8 @@ top = '..'
 
 def build(bld):
     bld.program(
-        target='../unit-tests',
+        target=f'{top}/unit-tests',
         name='unit-tests',
-        source=bld.path.ant_glob(['*.cpp'] + ['%s/**/*.cpp' % tool for tool in bld.env.BUILD_TOOLS]),
-        use=['core-objects'] + ['%s-objects' % tool for tool in bld.env.BUILD_TOOLS],
+        source=bld.path.ant_glob(['*.cpp'] + [f'{tool}/**/*.cpp' for tool in bld.env.BUILD_TOOLS]),
+        use=['core-objects'] + [f'{tool}-objects' for tool in bld.env.BUILD_TOOLS],
         install_path=None)

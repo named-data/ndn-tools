@@ -6,12 +6,12 @@ from waflib import Options
 def options(opt):
     for subdir in opt.path.ant_glob('*', dir=True, src=False):
         tool = subdir.path_from(opt.path)
-        opt.add_option('--enable-%s' % tool,
-                       help='Build tool %s (enabled by default)' % tool,
-                       action='store_true', dest='enable_%s' % tool)
-        opt.add_option('--disable-%s' % tool,
-                       help='Do not build tool %s' % tool,
-                       action='store_true', dest='disable_%s' % tool)
+        opt.add_option(f'--enable-{tool}',
+                       help=f'Build tool {tool} (enabled by default)',
+                       action='store_true', dest=f'enable_{tool}')
+        opt.add_option(f'--disable-{tool}',
+                       help=f'Do not build tool {tool}',
+                       action='store_true', dest=f'disable_{tool}')
         opt.recurse(str(tool), mandatory=False)
 
 def configure(conf):
@@ -23,11 +23,11 @@ def configure(conf):
         tool = subdir.path_from(conf.path)
         all_tools.add(tool)
 
-        is_enabled = getattr(Options.options, 'enable_%s' % tool)
-        is_disabled = getattr(Options.options, 'disable_%s' % tool)
+        is_enabled = getattr(Options.options, f'enable_{tool}')
+        is_disabled = getattr(Options.options, f'disable_{tool}')
 
         if is_enabled and is_disabled:
-            conf.fatal('--enable-%s and --disable-%s cannot be both specified' % (tool, tool))
+            conf.fatal(f'--enable-{tool} and --disable-{tool} cannot be both specified')
 
         if is_enabled:
             enabled_tools.add(tool)
