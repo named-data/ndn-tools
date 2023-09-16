@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(Test1)
   int i = 0;
 
   // For reference of available Boost.Test macros, see
-  // https://www.boost.org/doc/libs/1_65_1/libs/test/doc/html/boost_test/testing_tools/summary.html
+  // https://www.boost.org/doc/libs/1_71_0/libs/test/doc/html/boost_test/testing_tools/summary.html
 
   BOOST_REQUIRE_NO_THROW(i = 1);
   BOOST_CHECK_EQUAL(i, 1);

@@ -6,5 +6,5 @@ def build(bld):
         target=f'{top}/unit-tests',
         name='unit-tests',
         source=bld.path.ant_glob(['*.cpp'] + [f'{tool}/**/*.cpp' for tool in bld.env.BUILD_TOOLS]),
-        use=['core-objects'] + [f'{tool}-objects' for tool in bld.env.BUILD_TOOLS],
+        use=['BOOST_TESTS', 'core-objects'] + [f'{tool}-objects' for tool in bld.env.BUILD_TOOLS],
         install_path=None)

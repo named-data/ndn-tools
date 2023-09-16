@@ -25,6 +25,7 @@
 #include "tests/key-chain-fixture.hpp"
 
 #include <ndn-cxx/util/dummy-client-face.hpp>
+#include <boost/asio/post.hpp>
 
 namespace ndn::ping::tests {
 
@@ -53,7 +54,7 @@ protected:
   void
   receive(DummyClientFace& face, const Packet& pkt)
   {
-    m_io.post([=, &face] {
+    boost::asio::post(m_io, [=, &face] {
       if (!wantLoss) {
         face.receive(pkt);
       }

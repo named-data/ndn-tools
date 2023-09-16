@@ -37,16 +37,14 @@ def configure(conf):
     conf.check_cfg(package='libndn-cxx', args=['libndn-cxx >= 0.8.1', '--cflags', '--libs'],
                    uselib_store='NDN_CXX', pkg_config_path=pkg_config_path)
 
-    boost_libs = ['system', 'program_options']
-    if conf.env.WITH_TESTS:
-        boost_libs.append('unit_test_framework')
-        conf.define('WITH_TESTS', 1)
-
-    conf.check_boost(lib=boost_libs, mt=True)
-    if conf.env.BOOST_VERSION_NUMBER < 106501:
-        conf.fatal('The minimum supported version of Boost is 1.65.1.\n'
+    conf.check_boost(lib='program_options', mt=True)
+    if conf.env.BOOST_VERSION_NUMBER < 107100:
+        conf.fatal('The minimum supported version of Boost is 1.71.0.\n'
                    'Please upgrade your distribution or manually install a newer version of Boost.\n'
                    'For more information, see https://redmine.named-data.net/projects/nfd/wiki/Boost')
+
+    if conf.env.WITH_TESTS:
+        conf.check_boost(lib='unit_test_framework', mt=True, uselib_store='BOOST_TESTS')
 
     conf.recurse('tools')
 
@@ -55,6 +53,8 @@ def configure(conf):
     # Loading "late" to prevent tests from being compiled with profiling flags
     conf.load('coverage')
     conf.load('sanitizers')
+
+    conf.define_cond('WITH_TESTS', conf.env.WITH_TESTS)
 
     conf.msg('Tools to build', ', '.join(conf.env.BUILD_TOOLS))
 
@@ -69,8 +69,8 @@ def build(bld):
 
     bld.objects(
         target='core-objects',
-        source=bld.path.find_node('core').ant_glob('*.cpp') + ['core/version.cpp'],
-        use='NDN_CXX BOOST',
+        source=bld.path.find_dir('core').ant_glob('*.cpp') + ['core/version.cpp'],
+        use='BOOST NDN_CXX',
         includes='.',
         export_includes='.')
 

@@ -24,7 +24,6 @@
 
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
-#include <boost/mpl/vector.hpp>
 #include <boost/test/tools/output_test_stream.hpp>
 
 namespace ndn::peek::tests {
@@ -129,7 +128,7 @@ public:
 BOOST_AUTO_TEST_SUITE(Peek)
 BOOST_FIXTURE_TEST_SUITE(TestNdnPeek, NdnPeekFixture)
 
-using OutputChecks = boost::mpl::vector<OutputFull, OutputPayloadOnly>;
+using OutputChecks = std::tuple<OutputFull, OutputPayloadOnly>;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Default, OutputCheck, OutputChecks)
 {

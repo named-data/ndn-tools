@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2023, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -31,7 +31,8 @@
 #include "pipeline-interests.hpp"
 #include "data-fetcher.hpp"
 
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/post.hpp>
 
 namespace ndn::chunks {
 
@@ -101,8 +102,9 @@ PipelineInterests::onFailure(const std::string& reason)
 
   cancel();
 
-  if (m_onFailure)
-    m_face.getIoService().post([this, reason] { m_onFailure(reason); });
+  if (m_onFailure) {
+    boost::asio::post(m_face.getIoService(), [this, reason] { m_onFailure(reason); });
+  }
 }
 
 void

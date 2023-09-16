@@ -8,15 +8,19 @@ except the object that contains the `main()` function.
 
 For example:
 
-    bld(features='cxx',
-        name='tool-subtool-objects',
+```python
+def build(bld):
+    bld.objects(
+        target='tool-subtool-objects',
         source=bld.path.ant_glob('subtool/*.cpp', excl='subtool/main.cpp'),
         use='core-objects')
 
-    bld(features='cxx cxxprogram',
+    bld.program(
+        name='subtool',
         target='../../bin/subtool',
         source='subtool/main.cpp',
         use='tool-subtool-objects')
 
     bld(name='tool-objects',
         use='tool-subtool-objects')
+```
