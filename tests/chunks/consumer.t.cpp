@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(OutOfOrderData)
   BOOST_CHECK(output.is_equal(testStrings[2]));
 }
 
-class PipelineInterestsDummy : public PipelineInterests
+class PipelineInterestsDummy final : public PipelineInterests
 {
 public:
   using PipelineInterests::PipelineInterests;
