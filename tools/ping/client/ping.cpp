@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Arizona Board of Regents.
+ * Copyright (c) 2014-2023,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -31,7 +31,7 @@ Ping::Ping(Face& face, const Options& options)
   : m_options(options)
   , m_nextSeq(options.startSeq)
   , m_face(face)
-  , m_scheduler(m_face.getIoService())
+  , m_scheduler(m_face.getIoContext())
 {
   if (m_options.shouldGenerateRandomSeq) {
     m_nextSeq = random::generateWord64();

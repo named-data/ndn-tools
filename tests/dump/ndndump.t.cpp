@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022, University of Memphis,
+ * Copyright (c) 2014-2023, University of Memphis,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
@@ -32,6 +32,7 @@
 #include <boost/test/tools/output_test_stream.hpp>
 
 #include <ndn-cxx/encoding/encoding-buffer.hpp>
+#include <ndn-cxx/lp/fields.hpp>
 #include <ndn-cxx/lp/packet.hpp>
 #include <ndn-cxx/net/ethernet.hpp>
 

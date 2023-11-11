@@ -103,7 +103,7 @@ PipelineInterests::onFailure(const std::string& reason)
   cancel();
 
   if (m_onFailure) {
-    boost::asio::post(m_face.getIoService(), [this, reason] { m_onFailure(reason); });
+    boost::asio::post(m_face.getIoContext(), [this, reason] { m_onFailure(reason); });
   }
 }
 

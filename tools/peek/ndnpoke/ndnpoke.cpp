@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Regents of the University of California,
+ * Copyright (c) 2014-2023,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -37,7 +37,7 @@ NdnPoke::NdnPoke(Face& face, KeyChain& keyChain, std::istream& input, const Poke
   , m_face(face)
   , m_keyChain(keyChain)
   , m_input(input)
-  , m_scheduler(m_face.getIoService())
+  , m_scheduler(m_face.getIoContext())
 {
 }
 

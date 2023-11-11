@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2023, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -29,7 +29,6 @@
 #include "pipeline-interests-adaptive.hpp"
 #include "data-fetcher.hpp"
 
-#include <cmath>
 #include <iomanip>
 
 namespace ndn::chunks {
@@ -41,7 +40,7 @@ PipelineInterestsAdaptive::PipelineInterestsAdaptive(Face& face,
   , m_cwnd(m_options.initCwnd)
   , m_ssthresh(m_options.initSsthresh)
   , m_rttEstimator(rttEstimator)
-  , m_scheduler(m_face.getIoService())
+  , m_scheduler(m_face.getIoContext())
 {
 }
 

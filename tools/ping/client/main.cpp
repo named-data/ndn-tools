@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Arizona Board of Regents.
+ * Copyright (c) 2014-2023,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -42,8 +42,8 @@ public:
     : m_ping(m_face, options)
     , m_statisticsCollector(m_ping, options)
     , m_tracer(m_ping, options)
-    , m_signalSetInt(m_face.getIoService(), SIGINT)
-    , m_signalSetQuit(m_face.getIoService(), SIGQUIT)
+    , m_signalSetInt(m_face.getIoContext(), SIGINT)
+    , m_signalSetQuit(m_face.getIoContext(), SIGQUIT)
   {
     m_signalSetInt.async_wait([this] (const auto& err, int) { onInterruptSignal(err); });
     m_signalSetQuit.async_wait([this] (const auto& err, int) { onQuitSignal(err); });

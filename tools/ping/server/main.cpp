@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2022, Arizona Board of Regents.
+ * Copyright (c) 2015-2023, Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -43,7 +43,7 @@ public:
     : m_options(options)
     , m_pingServer(m_face, m_keyChain, options)
     , m_tracer(m_pingServer, options)
-    , m_signalSet(m_face.getIoService(), SIGINT)
+    , m_signalSet(m_face.getIoContext(), SIGINT)
   {
     m_pingServer.afterFinish.connect([this] {
       m_pingServer.stop();

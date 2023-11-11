@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2023, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -50,7 +50,7 @@ DataFetcher::DataFetcher(Face& face, int maxNackRetries, int maxTimeoutRetries,
                          DataCallback onData, FailureCallback onNack, FailureCallback onTimeout,
                          bool isVerbose)
   : m_face(face)
-  , m_scheduler(m_face.getIoService())
+  , m_scheduler(m_face.getIoContext())
   , m_onData(std::move(onData))
   , m_onNack(std::move(onNack))
   , m_onTimeout(std::move(onTimeout))
