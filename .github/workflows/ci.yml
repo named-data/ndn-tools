@@ -10,3 +10,7 @@ jobs:
     uses: named-data/actions/.github/workflows/jenkins-script-ubuntu.yml@v1
   macOS:
     uses: named-data/actions/.github/workflows/jenkins-script-macos.yml@v1
+  PPA:
+    uses: named-data/actions/.github/workflows/ppa.yml@v1
+    with:
+      extra-deps: libboost-program-options-dev libpcap-dev
