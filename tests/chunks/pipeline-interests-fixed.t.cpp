@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -29,6 +29,8 @@
 
 #include "pipeline-interests-fixture.hpp"
 
+#include <cmath>
+
 namespace ndn::chunks::tests {
 
 class PipelineInterestFixedFixture : public PipelineInterestsFixture
@@ -46,7 +48,7 @@ public:
   void
   createPipeline()
   {
-    auto pline = make_unique<PipelineInterestsFixed>(face, opt);
+    auto pline = std::make_unique<PipelineInterestsFixed>(face, opt);
     pipeline = pline.get();
     setPipeline(std::move(pline));
   }
@@ -187,7 +189,7 @@ BOOST_AUTO_TEST_CASE(TimeoutBeforeFinalBlockIdReceived)
   BOOST_REQUIRE_EQUAL(face.sentInterests.size(), opt.maxPipelineSize * 3 - 2);
 
   // nack for the first pipeline element (segment #0)
-  auto nack = make_shared<lp::Nack>(face.sentInterests[opt.maxPipelineSize]);
+  auto nack = std::make_shared<lp::Nack>(face.sentInterests[opt.maxPipelineSize]);
   nack->setReason(lp::NackReason::DUPLICATE);
   face.receive(*nack);
 
@@ -232,7 +234,7 @@ BOOST_AUTO_TEST_CASE(SegmentReceivedAfterTimeout)
   advanceClocks(opt.interestLifetime);
 
   // nack for the first pipeline element (segment #0)
-  auto nack = make_shared<lp::Nack>(face.sentInterests[opt.maxPipelineSize]);
+  auto nack = std::make_shared<lp::Nack>(face.sentInterests[opt.maxPipelineSize]);
   nack->setReason(lp::NackReason::DUPLICATE);
   face.receive(*nack);
   BOOST_CHECK_EQUAL(hasFailed, false);
@@ -261,7 +263,7 @@ BOOST_AUTO_TEST_CASE(CongestionAllSegments)
 
   // send nack for all the pipeline elements first interest
   for (size_t i = 0; i < opt.maxPipelineSize; i++) {
-    auto nack = make_shared<lp::Nack>(face.sentInterests[i]);
+    auto nack = std::make_shared<lp::Nack>(face.sentInterests[i]);
     nack->setReason(lp::NackReason::CONGESTION);
     face.receive(*nack);
     advanceClocks(time::nanoseconds(1));
@@ -283,7 +285,7 @@ BOOST_AUTO_TEST_CASE(CongestionAllSegments)
     }
 
     for (size_t j = 0; j < opt.maxPipelineSize; j++) {
-      auto nack = make_shared<lp::Nack>(face.sentInterests[(opt.maxPipelineSize * i) + j]);
+      auto nack = std::make_shared<lp::Nack>(face.sentInterests[(opt.maxPipelineSize * i) + j]);
       nack->setReason(lp::NackReason::CONGESTION);
       face.receive(*nack);
       advanceClocks(time::nanoseconds(1));

@@ -29,12 +29,15 @@
 #include <pcap/sll.h>
 
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 
 #include <ndn-cxx/lp/fields.hpp>
 #include <ndn-cxx/lp/nack.hpp>
 #include <ndn-cxx/lp/packet.hpp>
 #include <ndn-cxx/net/ethernet.hpp>
+#include <ndn-cxx/util/backports.hpp>
+#include <ndn-cxx/util/exception.hpp>
 #include <ndn-cxx/util/scope.hpp>
 #include <ndn-cxx/util/string-helper.hpp>
 

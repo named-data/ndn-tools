@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2023, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -31,6 +31,7 @@
 
 #include "options.hpp"
 
+#include <ndn-cxx/face.hpp>
 #include <ndn-cxx/util/signal.hpp>
 
 namespace ndn::chunks {
@@ -69,7 +70,7 @@ private:
   Face& m_face;
   const Name m_prefix;
   const Options& m_options;
-  shared_ptr<DataFetcher> m_fetcher;
+  std::shared_ptr<DataFetcher> m_fetcher;
 };
 
 } // namespace ndn::chunks

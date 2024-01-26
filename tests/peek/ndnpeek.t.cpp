@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2023,  Arizona Board of Regents.
+ * Copyright (c) 2014-2024,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -24,6 +24,7 @@
 
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/test/tools/output_test_stream.hpp>
 
 namespace ndn::peek::tests {
@@ -63,13 +64,13 @@ protected:
   void
   initialize(const PeekOptions& opts = makeDefaultOptions())
   {
-    peek = make_unique<NdnPeek>(face, opts);
+    peek = std::make_unique<NdnPeek>(face, opts);
   }
 
 protected:
   DummyClientFace face{m_io};
   output_test_stream output;
-  unique_ptr<NdnPeek> peek;
+  std::unique_ptr<NdnPeek> peek;
 };
 
 class OutputFull
@@ -232,7 +233,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ReceiveNackWithoutReason, OutputCheck, OutputCheck
 BOOST_AUTO_TEST_CASE(ApplicationParameters)
 {
   auto options = makeDefaultOptions();
-  options.applicationParameters = make_shared<Buffer>("hello", 5);
+  options.applicationParameters = std::make_shared<Buffer>("hello", 5);
   initialize(options);
 
   peek->start();
@@ -305,7 +306,7 @@ BOOST_AUTO_TEST_CASE(TimeoutGreaterThanLifetime)
 BOOST_AUTO_TEST_CASE(OversizedPacket)
 {
   auto options = makeDefaultOptions();
-  options.applicationParameters = make_shared<Buffer>(MAX_NDN_PACKET_SIZE);
+  options.applicationParameters = std::make_shared<Buffer>(MAX_NDN_PACKET_SIZE);
   initialize(options);
 
   peek->start();

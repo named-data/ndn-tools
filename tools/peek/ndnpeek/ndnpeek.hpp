@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Regents of the University of California,
+ * Copyright (c) 2014-2024,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -32,8 +32,12 @@
 
 #include "core/common.hpp"
 
+#include <ndn-cxx/face.hpp>
 #include <ndn-cxx/link.hpp>
 #include <ndn-cxx/util/scheduler.hpp>
+
+#include <optional>
+#include <vector>
 
 namespace ndn::peek {
 
@@ -49,7 +53,7 @@ struct PeekOptions
   std::vector<Name> forwardingHint;
   time::milliseconds interestLifetime = DEFAULT_INTEREST_LIFETIME;
   std::optional<uint8_t> hopLimit;
-  shared_ptr<Buffer> applicationParameters;
+  std::shared_ptr<Buffer> applicationParameters;
 
   // program behavior options
   bool isVerbose = false;

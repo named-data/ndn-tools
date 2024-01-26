@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -27,6 +27,8 @@
 
 #include "consumer.hpp"
 
+#include <ndn-cxx/util/exception.hpp>
+
 namespace ndn::chunks {
 
 Consumer::Consumer(security::Validator& validator, std::ostream& os)
@@ -36,7 +38,7 @@ Consumer::Consumer(security::Validator& validator, std::ostream& os)
 }
 
 void
-Consumer::run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests> pipeline)
+Consumer::run(std::unique_ptr<DiscoverVersion> discover, std::unique_ptr<PipelineInterests> pipeline)
 {
   m_discover = std::move(discover);
   m_pipeline = std::move(pipeline);

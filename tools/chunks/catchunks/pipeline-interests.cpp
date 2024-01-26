@@ -34,6 +34,8 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/post.hpp>
 
+#include <iostream>
+
 namespace ndn::chunks {
 
 PipelineInterests::PipelineInterests(Face& face, const Options& opts)

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022,  Regents of the University of California,
+ * Copyright (c) 2016-2024,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -31,6 +31,8 @@
 #define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_HPP
 
 #include "pipeline-interests.hpp"
+
+#include <vector>
 
 namespace ndn::chunks {
 
@@ -81,7 +83,7 @@ private:
   handleFail(const std::string& reason, size_t pipeNo);
 
 private:
-  std::vector<std::pair<shared_ptr<DataFetcher>, uint64_t>> m_segmentFetchers;
+  std::vector<std::pair<std::shared_ptr<DataFetcher>, uint64_t>> m_segmentFetchers;
 
   /**
    * true if one or more segment fetchers encountered an error; if m_hasFinalBlockId

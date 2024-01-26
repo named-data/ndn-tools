@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2023,  Arizona Board of Regents.
+ * Copyright (c) 2015-2024,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -54,7 +54,7 @@ protected:
   void
   receive(DummyClientFace& face, const Packet& pkt)
   {
-    boost::asio::post(m_io, [=, &face] {
+    boost::asio::post(m_io, [&face, pkt, wantLoss = wantLoss] {
       if (!wantLoss) {
         face.receive(pkt);
       }
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(Normal)
   serverOpts.nMaxPings = 4;
   serverOpts.wantTimestamp = false;
   serverOpts.payloadSize = 0;
-  server = make_unique<server::PingServer>(serverFace, m_keyChain, serverOpts);
+  server = std::make_unique<server::PingServer>(serverFace, m_keyChain, serverOpts);
   BOOST_REQUIRE_EQUAL(0, server->getNPings());
   server->start();
 
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(Normal)
   clientOpts.interval = 100_ms;
   clientOpts.timeout = 2_s;
   clientOpts.startSeq = 1000;
-  client = make_unique<client::Ping>(clientFace, clientOpts);
+  client = std::make_unique<client::Ping>(clientFace, clientOpts);
   client->afterFinish.connect([this] { onFinish(); });
   client->start();
 
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(Timeout)
   serverOpts.nMaxPings = 4;
   serverOpts.wantTimestamp = false;
   serverOpts.payloadSize = 0;
-  server = make_unique<server::PingServer>(serverFace, m_keyChain, serverOpts);
+  server = std::make_unique<server::PingServer>(serverFace, m_keyChain, serverOpts);
   BOOST_REQUIRE_EQUAL(0, server->getNPings());
   server->start();
 
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(Timeout)
   clientOpts.interval = 100_ms;
   clientOpts.timeout = 500_ms;
   clientOpts.startSeq = 1000;
-  client = make_unique<client::Ping>(clientFace, clientOpts);
+  client = std::make_unique<client::Ping>(clientFace, clientOpts);
   client->afterFinish.connect([this] { onFinish(); });
   client->start();
 

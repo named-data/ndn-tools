@@ -26,22 +26,25 @@
 
 #include "data-fetcher.hpp"
 
+#include <boost/lexical_cast.hpp>
+
 #include <cmath>
+#include <iostream>
 
 namespace ndn::chunks {
 
-shared_ptr<DataFetcher>
+std::shared_ptr<DataFetcher>
 DataFetcher::fetch(Face& face, const Interest& interest, int maxNackRetries, int maxTimeoutRetries,
                    DataCallback onData, FailureCallback onNack, FailureCallback onTimeout,
                    bool isVerbose)
 {
-  auto dataFetcher = shared_ptr<DataFetcher>(new DataFetcher(face,
-                                                             maxNackRetries,
-                                                             maxTimeoutRetries,
-                                                             std::move(onData),
-                                                             std::move(onNack),
-                                                             std::move(onTimeout),
-                                                             isVerbose));
+  auto dataFetcher = std::shared_ptr<DataFetcher>(new DataFetcher(face,
+                                                                  maxNackRetries,
+                                                                  maxTimeoutRetries,
+                                                                  std::move(onData),
+                                                                  std::move(onNack),
+                                                                  std::move(onTimeout),
+                                                                  isVerbose));
   dataFetcher->expressInterest(interest, dataFetcher);
   return dataFetcher;
 }
@@ -72,18 +75,18 @@ DataFetcher::cancel()
 }
 
 void
-DataFetcher::expressInterest(const Interest& interest, const shared_ptr<DataFetcher>& self)
+DataFetcher::expressInterest(const Interest& interest, const std::shared_ptr<DataFetcher>& self)
 {
   m_nCongestionRetries = 0;
   m_pendingInterest = m_face.expressInterest(interest,
-    [=] (auto&&... args) { handleData(std::forward<decltype(args)>(args)..., self); },
-    [=] (auto&&... args) { handleNack(std::forward<decltype(args)>(args)..., self); },
-    [=] (auto&&... args) { handleTimeout(std::forward<decltype(args)>(args)..., self); });
+    [this, self] (auto&&... args) { handleData(std::forward<decltype(args)>(args)..., self); },
+    [this, self] (auto&&... args) { handleNack(std::forward<decltype(args)>(args)..., self); },
+    [this, self] (auto&&... args) { handleTimeout(std::forward<decltype(args)>(args)..., self); });
 }
 
 void
 DataFetcher::handleData(const Interest& interest, const Data& data,
-                        const shared_ptr<DataFetcher>& self)
+                        const std::shared_ptr<DataFetcher>& self)
 {
   if (!isRunning())
     return;
@@ -94,7 +97,7 @@ DataFetcher::handleData(const Interest& interest, const Data& data,
 
 void
 DataFetcher::handleNack(const Interest& interest, const lp::Nack& nack,
-                        const shared_ptr<DataFetcher>& self)
+                        const std::shared_ptr<DataFetcher>& self)
 {
   if (!isRunning())
     return;
@@ -123,7 +126,9 @@ DataFetcher::handleNack(const Interest& interest, const lp::Nack& nack,
         else {
           m_nCongestionRetries++;
         }
-        m_scheduler.schedule(backoffTime, [=] { expressInterest(newInterest, self); });
+        m_scheduler.schedule(backoffTime, [this, newInterest, self] {
+          expressInterest(newInterest, self);
+        });
         break;
       }
       default: {
@@ -144,7 +149,7 @@ DataFetcher::handleNack(const Interest& interest, const lp::Nack& nack,
 }
 
 void
-DataFetcher::handleTimeout(const Interest& interest, const shared_ptr<DataFetcher>& self)
+DataFetcher::handleTimeout(const Interest& interest, const std::shared_ptr<DataFetcher>& self)
 {
   if (!isRunning())
     return;

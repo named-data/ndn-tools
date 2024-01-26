@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2023, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(OutOfOrderData)
   Consumer cons(security::getAcceptAllValidator(), output);
 
   auto interest = makeInterest(name, true);
-  std::vector<shared_ptr<Data>> dataStore;
+  std::vector<std::shared_ptr<Data>> dataStore;
 
   for (size_t i = 0; i < testStrings.size(); ++i) {
     auto data = makeData(Name(name).appendVersion(1).appendSegment(i));
@@ -153,8 +153,8 @@ BOOST_FIXTURE_TEST_CASE(RunBasic, IoFixture)
   Consumer consumer(security::getAcceptAllValidator());
 
   Name prefix = Name("/ndn/chunks/test").appendVersion(1);
-  auto discover = make_unique<DiscoverVersion>(face, prefix, options);
-  auto pipeline = make_unique<PipelineInterestsDummy>(face, options);
+  auto discover = std::make_unique<DiscoverVersion>(face, prefix, options);
+  auto pipeline = std::make_unique<PipelineInterestsDummy>(face, options);
   auto pipelinePtr = pipeline.get();
 
   BOOST_CHECK_EQUAL(pipelinePtr->isPipelineRunning, false);

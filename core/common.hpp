@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Regents of the University of California,
+ * Copyright (c) 2014-2024,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -40,42 +40,23 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <functional>
-#include <iostream>
-#include <limits>
+#include <iosfwd>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
-#include <vector>
 
 #include <boost/assert.hpp>
 #include <boost/core/noncopyable.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <ndn-cxx/data.hpp>
-#include <ndn-cxx/face.hpp>
 #include <ndn-cxx/interest.hpp>
 #include <ndn-cxx/name.hpp>
-#include <ndn-cxx/security/key-chain.hpp>
-#include <ndn-cxx/util/backports.hpp>
-#include <ndn-cxx/util/exception.hpp>
-#include <ndn-cxx/util/scheduler.hpp>
 #include <ndn-cxx/util/time.hpp>
 
 namespace ndn {
-
-using std::shared_ptr;
-using std::unique_ptr;
-using std::make_shared;
-using std::make_unique;
-
-using std::size_t;
-
 using boost::noncopyable;
-
 } // namespace ndn
 
 #define FORWARD_TO_MEM_FN(func) \

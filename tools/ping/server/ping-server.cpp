@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2022,  Arizona Board of Regents.
+ * Copyright (c) 2015-2024,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -23,6 +23,7 @@
 #include "ping-server.hpp"
 
 #include <ndn-cxx/security/signing-helpers.hpp>
+#include <ndn-cxx/util/exception.hpp>
 
 namespace ndn::ping::server {
 
@@ -31,7 +32,7 @@ PingServer::PingServer(Face& face, KeyChain& keyChain, const Options& options)
   , m_face(face)
   , m_keyChain(keyChain)
 {
-  auto b = make_shared<Buffer>();
+  auto b = std::make_shared<Buffer>();
   b->assign(m_options.payloadSize, 'a');
   m_payload = Block(tlv::Content, std::move(b));
 }
@@ -63,7 +64,7 @@ PingServer::onInterest(const Interest& interest)
 {
   afterReceive(interest.getName());
 
-  auto data = make_shared<Data>(interest.getName());
+  auto data = std::make_shared<Data>(interest.getName());
   data->setFreshnessPeriod(m_options.freshnessPeriod);
   data->setContent(m_payload);
   m_keyChain.sign(*data, signingWithSha256());

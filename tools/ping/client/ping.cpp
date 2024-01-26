@@ -61,9 +61,9 @@ Ping::performPing()
 
   auto now = time::steady_clock::now();
   m_face.expressInterest(interest,
-    [=, seq = m_nextSeq] (auto&&...) { onData(seq, now); },
-    [=, seq = m_nextSeq] (auto&&, const auto& nack) { onNack(seq, now, nack); },
-    [=, seq = m_nextSeq] (auto&&...) { onTimeout(seq); });
+    [this, seq = m_nextSeq, now] (auto&&...) { onData(seq, now); },
+    [this, seq = m_nextSeq, now] (auto&&, const auto& nack) { onNack(seq, now, nack); },
+    [this, seq = m_nextSeq] (auto&&...) { onTimeout(seq); });
 
   ++m_nSent;
   ++m_nextSeq;

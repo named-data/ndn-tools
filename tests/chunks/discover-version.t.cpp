@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2023, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -42,7 +42,7 @@ public:
   void
   run(const Name& prefix)
   {
-    discover = make_unique<DiscoverVersion>(face, prefix, opt);
+    discover = std::make_unique<DiscoverVersion>(face, prefix, opt);
     discover->onDiscoverySuccess.connect([this] (const Name& versionedName) {
       isDiscoveryFinished = true;
       discoveredName = versionedName;
@@ -62,7 +62,7 @@ protected:
   const uint64_t version = 1449227841747;
   DummyClientFace face{m_io};
   Options opt;
-  unique_ptr<DiscoverVersion> discover;
+  std::unique_ptr<DiscoverVersion> discover;
   std::optional<Name> discoveredName;
   std::optional<uint64_t> discoveredVersion;
   bool isDiscoveryFinished = false;

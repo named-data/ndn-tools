@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -37,13 +37,15 @@
 #include "statistics-collector.hpp"
 #include "core/version.hpp"
 
-#include <fstream>
 #include <ndn-cxx/security/validator-null.hpp>
 #include <ndn-cxx/util/rtt-estimator.hpp>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
+
+#include <fstream>
+#include <iostream>
 
 namespace ndn::chunks {
 
@@ -57,7 +59,7 @@ main(int argc, char* argv[])
   Options options;
   std::string prefix, nameConv, pipelineType("cubic");
   std::string cwndPath, rttPath;
-  auto rttEstOptions = make_shared<util::RttEstimator::Options>();
+  auto rttEstOptions = std::make_shared<util::RttEstimator::Options>();
   rttEstOptions->k = 8; // increased from the ndn-cxx default of 4
 
   po::options_description basicDesc("Basic Options");
@@ -229,15 +231,15 @@ main(int argc, char* argv[])
 
   try {
     Face face;
-    auto discover = make_unique<DiscoverVersion>(face, Name(prefix), options);
-    unique_ptr<PipelineInterests> pipeline;
-    unique_ptr<StatisticsCollector> statsCollector;
-    unique_ptr<RttEstimatorWithStats> rttEstimator;
+    auto discover = std::make_unique<DiscoverVersion>(face, Name(prefix), options);
+    std::unique_ptr<PipelineInterests> pipeline;
+    std::unique_ptr<StatisticsCollector> statsCollector;
+    std::unique_ptr<RttEstimatorWithStats> rttEstimator;
     std::ofstream statsFileCwnd;
     std::ofstream statsFileRtt;
 
     if (pipelineType == "fixed") {
-      pipeline = make_unique<PipelineInterestsFixed>(face, options);
+      pipeline = std::make_unique<PipelineInterestsFixed>(face, options);
     }
     else if (pipelineType == "aimd" || pipelineType == "cubic") {
       if (options.isVerbose) {
@@ -251,14 +253,14 @@ main(int argc, char* argv[])
                   << "\tMax RTO = " << duration_cast<milliseconds>(rttEstOptions->maxRto) << "\n"
                   << "\tBackoff multiplier = " << rttEstOptions->rtoBackoffMultiplier << "\n";
       }
-      rttEstimator = make_unique<RttEstimatorWithStats>(std::move(rttEstOptions));
+      rttEstimator = std::make_unique<RttEstimatorWithStats>(std::move(rttEstOptions));
 
-      unique_ptr<PipelineInterestsAdaptive> adaptivePipeline;
+      std::unique_ptr<PipelineInterestsAdaptive> adaptivePipeline;
       if (pipelineType == "aimd") {
-        adaptivePipeline = make_unique<PipelineInterestsAimd>(face, *rttEstimator, options);
+        adaptivePipeline = std::make_unique<PipelineInterestsAimd>(face, *rttEstimator, options);
       }
       else {
-        adaptivePipeline = make_unique<PipelineInterestsCubic>(face, *rttEstimator, options);
+        adaptivePipeline = std::make_unique<PipelineInterestsCubic>(face, *rttEstimator, options);
       }
 
       if (!cwndPath.empty() || !rttPath.empty()) {
@@ -276,7 +278,7 @@ main(int argc, char* argv[])
             return 4;
           }
         }
-        statsCollector = make_unique<StatisticsCollector>(*adaptivePipeline, statsFileCwnd, statsFileRtt);
+        statsCollector = std::make_unique<StatisticsCollector>(*adaptivePipeline, statsFileCwnd, statsFileRtt);
       }
 
       pipeline = std::move(adaptivePipeline);

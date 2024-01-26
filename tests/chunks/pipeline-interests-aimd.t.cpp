@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -29,6 +29,8 @@
 
 #include "pipeline-interests-fixture.hpp"
 
+#include <cmath>
+
 namespace ndn::chunks::tests {
 
 using namespace ndn::tests;
@@ -45,16 +47,16 @@ protected:
   void
   createPipeline()
   {
-    auto pline = make_unique<PipelineInterestsAimd>(face, rttEstimator, opt);
+    auto pline = std::make_unique<PipelineInterestsAimd>(face, rttEstimator, opt);
     pipeline = pline.get();
     setPipeline(std::move(pline));
   }
 
 private:
-  static shared_ptr<RttEstimatorWithStats::Options>
+  static std::shared_ptr<RttEstimatorWithStats::Options>
   makeRttEstimatorOptions()
   {
-    auto rttOptions = make_shared<RttEstimatorWithStats::Options>();
+    auto rttOptions = std::make_shared<RttEstimatorWithStats::Options>();
     rttOptions->alpha = 0.125;
     rttOptions->beta = 0.25;
     rttOptions->k = 4;
@@ -118,7 +120,7 @@ BOOST_AUTO_TEST_CASE(CongestionAvoidance)
   for (uint64_t i = pipeline->m_ssthresh; i < nDataSegments - 1; ++i) { // congestion avoidance
     face.receive(*makeDataWithSegment(i));
     advanceClocks(time::nanoseconds(1));
-    BOOST_CHECK_CLOSE(pipeline->m_cwnd - preCwnd, opt.aiStep / floor(preCwnd), MARGIN);
+    BOOST_CHECK_CLOSE(pipeline->m_cwnd - preCwnd, opt.aiStep / std::floor(preCwnd), MARGIN);
     preCwnd = pipeline->m_cwnd;
   }
 

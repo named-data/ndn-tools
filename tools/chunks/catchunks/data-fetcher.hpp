@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -28,6 +28,11 @@
 #define NDN_TOOLS_CHUNKS_CATCHUNKS_DATA_FETCHER_HPP
 
 #include "core/common.hpp"
+
+#include <ndn-cxx/face.hpp>
+#include <ndn-cxx/util/scheduler.hpp>
+
+#include <functional>
 
 namespace ndn::chunks {
 
@@ -66,7 +71,7 @@ public:
    *
    * @param onData callback for segment correctly received, must not be empty
    */
-  static shared_ptr<DataFetcher>
+  static std::shared_ptr<DataFetcher>
   fetch(Face& face, const Interest& interest, int maxNackRetries, int maxTimeoutRetries,
         DataCallback onData, FailureCallback onTimeout, FailureCallback onNack,
         bool isVerbose);
@@ -95,16 +100,16 @@ private:
               bool isVerbose);
 
   void
-  expressInterest(const Interest& interest, const shared_ptr<DataFetcher>& self);
+  expressInterest(const Interest& interest, const std::shared_ptr<DataFetcher>& self);
 
   void
-  handleData(const Interest& interest, const Data& data, const shared_ptr<DataFetcher>& self);
+  handleData(const Interest& interest, const Data& data, const std::shared_ptr<DataFetcher>& self);
 
   void
-  handleNack(const Interest& interest, const lp::Nack& nack, const shared_ptr<DataFetcher>& self);
+  handleNack(const Interest& interest, const lp::Nack& nack, const std::shared_ptr<DataFetcher>& self);
 
   void
-  handleTimeout(const Interest& interest, const shared_ptr<DataFetcher>& self);
+  handleTimeout(const Interest& interest, const std::shared_ptr<DataFetcher>& self);
 
 private:
   Face& m_face;

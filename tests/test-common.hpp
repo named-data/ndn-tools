@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2023,  Regents of the University of California,
+ * Copyright (c) 2014-2024,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -29,48 +29,51 @@
 #include "core/common.hpp"
 #include "tests/boost-test.hpp"
 
+#include <ndn-cxx/lp/nack.hpp>
+#include <optional>
+
 namespace ndn::tests {
 
 /**
- * \brief Create an Interest
+ * \brief Create an Interest.
  */
-shared_ptr<Interest>
+std::shared_ptr<Interest>
 makeInterest(const Name& name, bool canBePrefix = false,
              std::optional<time::milliseconds> lifetime = std::nullopt,
              std::optional<Interest::Nonce> nonce = std::nullopt);
 
 /**
- * \brief Create a Data with a null (i.e., empty) signature
+ * \brief Create a Data with a null (i.e., empty) signature.
  *
  * If a "real" signature is desired, use KeyChainFixture and sign again with `m_keyChain`.
  */
-shared_ptr<Data>
+std::shared_ptr<Data>
 makeData(const Name& name);
 
 /**
- * \brief Add a null signature to \p data
+ * \brief Add a null signature to \p data.
  */
 Data&
 signData(Data& data);
 
 /**
- * \brief Add a null signature to \p data
+ * \brief Add a null signature to \p data.
  */
-inline shared_ptr<Data>
-signData(shared_ptr<Data> data)
+inline std::shared_ptr<Data>
+signData(std::shared_ptr<Data> data)
 {
   signData(*data);
   return data;
 }
 
 /**
- * \brief Create a Nack
+ * \brief Create a Nack.
  */
 lp::Nack
 makeNack(Interest interest, lp::NackReason reason);
 
 /**
- * \brief Replace a name component in a packet
+ * \brief Replace a name component in a packet.
  * \param[in,out] pkt the packet
  * \param index the index of the name component to replace
  * \param args arguments to name::Component constructor

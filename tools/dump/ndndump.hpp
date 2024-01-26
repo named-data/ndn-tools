@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2011-2022, Regents of the University of California.
+ * Copyright (c) 2011-2024, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -23,6 +23,8 @@
 #include "core/common.hpp"
 
 #include <pcap.h>
+
+#include <optional>
 #include <regex>
 
 #ifdef HAVE_BSD_TCPHDR

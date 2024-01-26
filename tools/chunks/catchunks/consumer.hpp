@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -34,12 +34,14 @@
 #include <ndn-cxx/security/validation-error.hpp>
 #include <ndn-cxx/security/validator.hpp>
 
+#include <boost/lexical_cast.hpp>
+#include <iostream>
 #include <map>
 
 namespace ndn::chunks {
 
 /**
- * @brief Segmented version consumer
+ * @brief Segmented version consumer.
  *
  * Discover the latest version of the data published under a specified prefix, and retrieve all the
  * segments associated to that version. The segments are fetched in order and written to a
@@ -78,7 +80,7 @@ public:
    * @brief Run the consumer
    */
   void
-  run(unique_ptr<DiscoverVersion> discover, unique_ptr<PipelineInterests> pipeline);
+  run(std::unique_ptr<DiscoverVersion> discover, std::unique_ptr<PipelineInterests> pipeline);
 
 private:
   void
@@ -91,12 +93,12 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
 private:
   security::Validator& m_validator;
   std::ostream& m_outputStream;
-  unique_ptr<DiscoverVersion> m_discover;
-  unique_ptr<PipelineInterests> m_pipeline;
+  std::unique_ptr<DiscoverVersion> m_discover;
+  std::unique_ptr<PipelineInterests> m_pipeline;
   uint64_t m_nextToPrint = 0;
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  std::map<uint64_t, shared_ptr<const Data>> m_bufferedData;
+  std::map<uint64_t, std::shared_ptr<const Data>> m_bufferedData;
 };
 
 } // namespace ndn::chunks

@@ -29,7 +29,9 @@
 #include "pipeline-interests-adaptive.hpp"
 #include "data-fetcher.hpp"
 
+#include <boost/lexical_cast.hpp>
 #include <iomanip>
+#include <iostream>
 
 namespace ndn::chunks {
 

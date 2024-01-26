@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2023,  Regents of the University of California,
+ * Copyright (c) 2014-2024,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -30,6 +30,8 @@
 
 #include <ndn-cxx/encoding/buffer-stream.hpp>
 
+#include <iostream>
+
 namespace ndn::peek {
 
 NdnPoke::NdnPoke(Face& face, KeyChain& keyChain, std::istream& input, const PokeOptions& options)
@@ -56,10 +58,10 @@ NdnPoke::start()
     [this] (auto&&, const auto& reason) { this->onRegFailure(reason); });
 }
 
-shared_ptr<Data>
+std::shared_ptr<Data>
 NdnPoke::createData() const
 {
-  auto data = make_shared<Data>(m_options.name);
+  auto data = std::make_shared<Data>(m_options.name);
   data->setFreshnessPeriod(m_options.freshnessPeriod);
   if (m_options.wantFinalBlockId) {
     data->setFinalBlock(m_options.name.at(-1));

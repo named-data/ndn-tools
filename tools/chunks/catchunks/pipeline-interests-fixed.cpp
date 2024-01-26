@@ -30,6 +30,8 @@
 #include "pipeline-interests-fixed.hpp"
 #include "data-fetcher.hpp"
 
+#include <iostream>
+
 namespace ndn::chunks {
 
 PipelineInterestsFixed::PipelineInterestsFixed(Face& face, const Options& opts)
@@ -88,13 +90,13 @@ PipelineInterestsFixed::fetchNextSegment(std::size_t pipeNo)
   auto fetcher = DataFetcher::fetch(m_face, interest,
                                     m_options.maxRetriesOnTimeoutOrNack,
                                     m_options.maxRetriesOnTimeoutOrNack,
-                                    [=] (const auto& interest, const auto& data) {
+                                    [this, pipeNo] (const auto& interest, const auto& data) {
                                       handleData(interest, data, pipeNo);
                                     },
-                                    [=] (const auto&, const auto& reason) {
+                                    [this, pipeNo] (const auto&, const auto& reason) {
                                       handleFail(reason, pipeNo);
                                     },
-                                    [=] (const auto&, const auto& reason) {
+                                    [this, pipeNo] (const auto&, const auto& reason) {
                                       handleFail(reason, pipeNo);
                                     },
                                     m_options.isVerbose);

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2023, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -32,6 +32,8 @@
 
 #include <ndn-cxx/metadata-object.hpp>
 #include <ndn-cxx/util/segmenter.hpp>
+
+#include <iostream>
 
 namespace ndn::chunks {
 
@@ -128,7 +130,7 @@ Producer::processSegmentInterest(const Interest& interest)
     std::cerr << "Interest: " << interest << "\n";
 
   const Name& name = interest.getName();
-  shared_ptr<Data> data;
+  std::shared_ptr<Data> data;
 
   if (name.size() == m_versionedPrefix.size() + 1 && name[-1].isSegment()) {
     const auto segmentNo = static_cast<size_t>(interest.getName()[-1].toSegment());

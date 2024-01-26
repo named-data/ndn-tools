@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2023,  Regents of the University of California,
+ * Copyright (c) 2014-2024,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -47,7 +47,7 @@ protected:
   void
   initialize(const PokeOptions& opts = makeDefaultOptions())
   {
-    poke = make_unique<NdnPoke>(face, m_keyChain, payload, opts);
+    poke = std::make_unique<NdnPoke>(face, m_keyChain, payload, opts);
   }
 
   static PokeOptions
@@ -61,7 +61,7 @@ protected:
 protected:
   DummyClientFace face{m_io, m_keyChain, {true, WANT_PREFIX_REG_REPLY}};
   std::stringstream payload{"Hello, world!\n"};
-  unique_ptr<NdnPoke> poke;
+  std::unique_ptr<NdnPoke> poke;
 };
 
 BOOST_AUTO_TEST_SUITE(Peek)

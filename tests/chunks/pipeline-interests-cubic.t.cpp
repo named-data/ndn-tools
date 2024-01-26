@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -45,16 +45,16 @@ protected:
   void
   createPipeline()
   {
-    auto pline = make_unique<PipelineInterestsCubic>(face, rttEstimator, opt);
+    auto pline = std::make_unique<PipelineInterestsCubic>(face, rttEstimator, opt);
     pipeline = pline.get();
     setPipeline(std::move(pline));
   }
 
 private:
-  static shared_ptr<RttEstimatorWithStats::Options>
+  static std::shared_ptr<RttEstimatorWithStats::Options>
   makeRttEstimatorOptions()
   {
-    auto rttOptions = make_shared<RttEstimatorWithStats::Options>();
+    auto rttOptions = std::make_shared<RttEstimatorWithStats::Options>();
     rttOptions->alpha = 0.125;
     rttOptions->beta = 0.25;
     rttOptions->k = 8;

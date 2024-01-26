@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Regents of the University of California,
+ * Copyright (c) 2014-2024,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -31,7 +31,11 @@
 
 #include "core/common.hpp"
 
+#include <ndn-cxx/face.hpp>
+#include <ndn-cxx/security/key-chain.hpp>
 #include <ndn-cxx/util/scheduler.hpp>
+
+#include <optional>
 
 namespace ndn::peek {
 
@@ -79,7 +83,7 @@ public:
   start();
 
 private:
-  shared_ptr<Data>
+  std::shared_ptr<Data>
   createData() const;
 
   void

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -27,11 +27,14 @@
 #ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_OPTIONS_HPP
 #define NDN_TOOLS_CHUNKS_CATCHUNKS_OPTIONS_HPP
 
-#include "core/common.hpp"
+#include <ndn-cxx/interest.hpp>
+#include <ndn-cxx/util/time.hpp>
+
+#include <limits>
 
 namespace ndn::chunks {
 
-struct Options : noncopyable
+struct Options
 {
   // Common options
   time::milliseconds interestLifetime = DEFAULT_INTEREST_LIFETIME;

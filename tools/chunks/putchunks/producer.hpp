@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -31,6 +31,11 @@
 #define NDN_TOOLS_CHUNKS_PUTCHUNKS_PRODUCER_HPP
 
 #include "core/common.hpp"
+
+#include <ndn-cxx/face.hpp>
+#include <ndn-cxx/security/key-chain.hpp>
+
+#include <vector>
 
 namespace ndn::chunks {
 
@@ -82,7 +87,7 @@ private:
   processSegmentInterest(const Interest& interest);
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  std::vector<shared_ptr<Data>> m_store;
+  std::vector<std::shared_ptr<Data>> m_store;
 
 private:
   Name m_prefix;

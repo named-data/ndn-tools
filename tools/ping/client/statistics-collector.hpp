@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2015-2022,  Arizona Board of Regents.
+ * Copyright (c) 2015-2024,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -25,8 +25,9 @@
 #define NDN_TOOLS_PING_CLIENT_STATISTICS_COLLECTOR_HPP
 
 #include "core/common.hpp"
-
 #include "ping.hpp"
+
+#include <limits>
 
 namespace ndn::ping::client {
 

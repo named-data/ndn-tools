@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2023, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -44,21 +44,21 @@ class PipelineInterestsFixture : public IoFixture
 {
 protected:
   void
-  setPipeline(unique_ptr<PipelineInterests> pline)
+  setPipeline(std::unique_ptr<PipelineInterests> pline)
   {
     m_pipeline = std::move(pline);
   }
 
-  shared_ptr<Data>
+  std::shared_ptr<Data>
   makeDataWithSegment(uint64_t segmentNo, bool setFinalBlockId = true) const
   {
-    auto data = make_shared<Data>(Name(name).appendVersion(0).appendSegment(segmentNo));
+    auto data = std::make_shared<Data>(Name(name).appendVersion(0).appendSegment(segmentNo));
     if (setFinalBlockId)
       data->setFinalBlock(name::Component::fromSegment(nDataSegments - 1));
     return signData(data);
   }
 
-  shared_ptr<Data>
+  std::shared_ptr<Data>
   makeDataWithSegmentAndCongMark(uint64_t segmentNo,
                                  uint64_t congestionMark = 1,
                                  bool setFinalBlockId = true) const
@@ -83,7 +83,7 @@ protected:
   bool hasFailed = false;
 
 private:
-  unique_ptr<PipelineInterests> m_pipeline;
+  std::unique_ptr<PipelineInterests> m_pipeline;
 };
 
 } // namespace ndn::chunks::tests
