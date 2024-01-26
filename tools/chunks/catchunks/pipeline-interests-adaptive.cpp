@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2023, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -129,8 +129,8 @@ PipelineInterestsAdaptive::sendInterest(uint64_t segNo, bool isRetransmission)
       if (m_options.maxRetriesOnTimeoutOrNack != DataFetcher::MAX_RETRIES_INFINITE &&
           m_retxCount[segNo] > m_options.maxRetriesOnTimeoutOrNack) {
         return handleFail(segNo, "Reached the maximum number of retries (" +
-                          to_string(m_options.maxRetriesOnTimeoutOrNack) +
-                          ") while retrieving segment #" + to_string(segNo));
+                          std::to_string(m_options.maxRetriesOnTimeoutOrNack) +
+                          ") while retrieving segment #" + std::to_string(segNo));
       }
 
       if (m_options.isVerbose) {

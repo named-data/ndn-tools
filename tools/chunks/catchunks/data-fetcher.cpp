@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2023, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -138,7 +138,7 @@ DataFetcher::handleNack(const Interest& interest, const lp::Nack& nack,
   else {
     m_hasError = true;
     if (m_onNack)
-      m_onNack(interest, "Reached the maximum number of nack retries (" + to_string(m_maxNackRetries) +
+      m_onNack(interest, "Reached the maximum number of nack retries (" + std::to_string(m_maxNackRetries) +
                          ") while retrieving data for " + interest.getName().toUri());
   }
 }
@@ -163,7 +163,7 @@ DataFetcher::handleTimeout(const Interest& interest, const shared_ptr<DataFetche
   else {
     m_hasError = true;
     if (m_onTimeout)
-      m_onTimeout(interest, "Reached the maximum number of timeout retries (" + to_string(m_maxTimeoutRetries) +
+      m_onTimeout(interest, "Reached the maximum number of timeout retries (" + std::to_string(m_maxTimeoutRetries) +
                             ") while retrieving data for " + interest.getName().toUri());
   }
 }

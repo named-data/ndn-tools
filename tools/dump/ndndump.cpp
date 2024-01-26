@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2011-2023, Regents of the University of California.
+ * Copyright (c) 2011-2024, Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -130,7 +130,7 @@ NdnDump::run()
   m_dataLinkType = pcap_datalink(m_pcap);
   const char* dltName = pcap_datalink_val_to_name(m_dataLinkType);
   const char* dltDesc = pcap_datalink_val_to_description(m_dataLinkType);
-  std::string formattedDlt = dltName ? dltName : to_string(m_dataLinkType);
+  std::string formattedDlt = dltName ? dltName : std::to_string(m_dataLinkType);
   if (dltDesc) {
     formattedDlt += " ("s + dltDesc + ")";
   }

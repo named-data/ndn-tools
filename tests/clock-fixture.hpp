@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022,  Regents of the University of California,
+ * Copyright (c) 2014-2024,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -78,8 +78,8 @@ private:
   }
 
 protected:
-  shared_ptr<time::UnitTestSteadyClock> m_steadyClock;
-  shared_ptr<time::UnitTestSystemClock> m_systemClock;
+  std::shared_ptr<time::UnitTestSteadyClock> m_steadyClock;
+  std::shared_ptr<time::UnitTestSystemClock> m_systemClock;
 };
 
 } // namespace ndn::tests

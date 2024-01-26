@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -144,7 +144,7 @@ PipelineInterestsFixed::handleData(const Interest& interest, const Data& data, s
       }
       else if (fetcher.first->hasError()) { // fetcher.second <= m_lastSegmentNo
         // there was an error while fetching a segment that is part of the content
-        return onFailure("Failure retrieving segment #" + to_string(fetcher.second));
+        return onFailure("Failure retrieving segment #" + std::to_string(fetcher.second));
       }
     }
   }

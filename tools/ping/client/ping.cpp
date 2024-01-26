@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2023,  Arizona Board of Regents.
+ * Copyright (c) 2014-2024,  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -117,7 +117,7 @@ Ping::makePingName(uint64_t seq) const
   if (!m_options.clientIdentifier.empty()) {
     name.append(m_options.clientIdentifier);
   }
-  name.append(to_string(seq));
+  name.append(std::to_string(seq));
   return name;
 }
 

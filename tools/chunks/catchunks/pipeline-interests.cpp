@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2023, Regents of the University of California,
+ * Copyright (c) 2016-2024, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -115,7 +115,7 @@ PipelineInterests::printOptions() const
             << "\tInterest lifetime = " << m_options.interestLifetime << "\n"
             << "\tMax retries on timeout or Nack = " <<
                (m_options.maxRetriesOnTimeoutOrNack == DataFetcher::MAX_RETRIES_INFINITE ?
-                  "infinite" : to_string(m_options.maxRetriesOnTimeoutOrNack)) << "\n";
+                  "infinite" : std::to_string(m_options.maxRetriesOnTimeoutOrNack)) << "\n";
 }
 
 void
@@ -142,15 +142,15 @@ PipelineInterests::formatThroughput(double throughput)
   }
   switch (pow) {
     case 0:
-      return to_string(throughput) + " bit/s";
+      return std::to_string(throughput) + " bit/s";
     case 1:
-      return to_string(throughput) + " kbit/s";
+      return std::to_string(throughput) + " kbit/s";
     case 2:
-      return to_string(throughput) + " Mbit/s";
+      return std::to_string(throughput) + " Mbit/s";
     case 3:
-      return to_string(throughput) + " Gbit/s";
+      return std::to_string(throughput) + " Gbit/s";
     case 4:
-      return to_string(throughput) + " Tbit/s";
+      return std::to_string(throughput) + " Tbit/s";
   }
   return "";
 }
