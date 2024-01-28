@@ -1,6 +1,10 @@
 name: CI
 on:
   push:
+    paths-ignore:
+      - 'manpages/**'
+      - '*.md'
+      - '.mailmap'
   workflow_dispatch:
 
 permissions: {}
