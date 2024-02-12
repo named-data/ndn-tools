@@ -31,11 +31,16 @@
 
 namespace ndn::ping::client {
 
-/**
- * @brief statistics data
- */
-struct Statistics
+class Statistics
 {
+public:
+  void
+  printSummary(std::ostream& os) const;
+
+  void
+  printFull(std::ostream& os) const;
+
+public:
   Name prefix;                                  //!< prefix pinged
   int nSent;                                    //!< number of pings sent
   int nReceived;                                //!< number of pings received
@@ -48,16 +53,10 @@ struct Statistics
   double sumRtt;                                //!< sum of round trip times
   double avgRtt;                                //!< average round trip time
   double stdDevRtt;                             //!< std dev of round trip time
-
-  std::ostream&
-  printSummary(std::ostream& os) const;
-
-  friend std::ostream&
-  operator<<(std::ostream& os, const Statistics& statistics);
 };
 
 /**
- * @brief Statistics collector from ping client
+ * @brief Statistics collector from ping client.
  */
 class StatisticsCollector : noncopyable
 {

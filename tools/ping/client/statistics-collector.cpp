@@ -100,7 +100,7 @@ StatisticsCollector::computeStatistics() const
   return statistics;
 }
 
-std::ostream&
+void
 Statistics::printSummary(std::ostream& os) const
 {
   os << nReceived << "/" << nSent << " packets";
@@ -110,39 +110,33 @@ Statistics::printSummary(std::ostream& os) const
   }
 
   if (nReceived > 0) {
-    os << ", min/avg/max/mdev = " << minRtt << "/" << avgRtt << "/" << maxRtt << "/" << stdDevRtt
-       << " ms";
+    os << ", min/avg/max/mdev = " << minRtt << "/" << avgRtt << "/" << maxRtt
+       << "/" << stdDevRtt << " ms";
   }
 
-  return os << "\n";
+  os << "\n";
 }
 
-std::ostream&
-operator<<(std::ostream& os, const Statistics& statistics)
+void
+Statistics::printFull(std::ostream& os) const
 {
+  os << "\n--- " << prefix << " ping statistics ---\n"
+     << nSent << " packets transmitted"
+     << ", " << nReceived << " received"
+     << ", " << nNacked << " nacked";
+
+  if (nSent > 0) {
+    os << ", " << packetLossRate * 100.0 << "% lost, " << packetNackedRate * 100.0 << "% nacked";
+  }
+
+  os << ", time " << sumRtt << " ms";
+
+  if (nReceived > 0) {
+    os << "\nrtt min/avg/max/mdev = " << minRtt << "/" << avgRtt << "/" << maxRtt
+       << "/" << stdDevRtt << " ms";
+  }
+
   os << "\n";
-  os << "--- " << statistics.prefix << " ping statistics ---\n";
-  os << statistics.nSent << " packets transmitted";
-  os << ", " << statistics.nReceived << " received";
-  os << ", " << statistics.nNacked << " nacked";
-
-  if (statistics.nSent > 0) {
-    os << ", " << statistics.packetLossRate * 100.0 << "% lost";
-    os << ", " << statistics.packetNackedRate * 100.0 << "% nacked";
-  }
-
-  os << ", time " << statistics.sumRtt << " ms";
-
-  if (statistics.nReceived > 0) {
-    os << "\n";
-    os << "rtt min/avg/max/mdev = ";
-    os << statistics.minRtt << "/";
-    os << statistics.avgRtt << "/";
-    os << statistics.maxRtt << "/";
-    os << statistics.stdDevRtt << " ms";
-  }
-
-  return os;
 }
 
 } // namespace ndn::ping::client

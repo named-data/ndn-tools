@@ -64,8 +64,8 @@ public:
       return 2;
     }
 
-    Statistics statistics = m_statisticsCollector.computeStatistics();
-    std::cout << statistics << "\n";
+    auto statistics = m_statisticsCollector.computeStatistics();
+    statistics.printFull(std::cout);
 
     if (statistics.nReceived == statistics.nSent) {
       return 0;
@@ -102,6 +102,7 @@ private:
     }
 
     m_statisticsCollector.computeStatistics().printSummary(std::cout);
+
     m_signalSetQuit.async_wait([this] (const auto& err, int) { onQuitSignal(err); });
   }
 
