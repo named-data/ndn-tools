@@ -16,21 +16,29 @@ This document describes how to build and install ndn-tools.
 
   On Debian and Ubuntu:
 
-      sudo apt install libpcap-dev
+  ```shell
+  sudo apt install libpcap-dev
+  ```
 
   On CentOS and Fedora:
 
-      sudo dnf install libpcap-devel
+  ```shell
+  sudo dnf install libpcap-devel
+  ```
 
 ## Build Steps
 
 To configure, compile, and install ndn-tools, type the following commands
 in ndn-tools source directory:
 
-    ./waf configure
-    ./waf
-    sudo ./waf install
+```shell
+./waf configure
+./waf
+sudo ./waf install
+```
 
 To uninstall:
 
-    sudo ./waf uninstall
+```shell
+sudo ./waf uninstall
+```
