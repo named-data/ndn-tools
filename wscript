@@ -12,7 +12,7 @@ def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
     opt.load(['default-compiler-flags',
               'coverage', 'sanitizers', 'boost',
-              'sphinx_build'],
+              'sphinx'],
              tooldir=['.waf-tools'])
 
     optgrp = opt.add_option_group('Tools Options')
@@ -24,7 +24,7 @@ def options(opt):
 def configure(conf):
     conf.load(['compiler_cxx', 'gnu_dirs',
                'default-compiler-flags', 'boost',
-               'sphinx_build'])
+               'sphinx'])
 
     conf.env.WITH_TESTS = conf.options.with_tests
 
