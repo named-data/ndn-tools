@@ -1,9 +1,9 @@
 # NDN Essential Tools
 
+![Latest version](https://img.shields.io/github/v/tag/named-data/ndn-tools?label=Latest%20version)
+![Language](https://img.shields.io/badge/C%2B%2B-17-blue)
 [![CI](https://github.com/named-data/ndn-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/named-data/ndn-tools/actions/workflows/ci.yml)
 [![Docs](https://github.com/named-data/ndn-tools/actions/workflows/docs.yml/badge.svg)](https://github.com/named-data/ndn-tools/actions/workflows/docs.yml)
-![Language](https://img.shields.io/badge/C%2B%2B-17-blue)
-![Latest version](https://img.shields.io/github/v/tag/named-data/ndn-tools?label=Latest%20version)
 
 This repository contains a collection of basic tools for [Named Data Networking (NDN)](https://named-data.net/).
 The tools currently included are:
