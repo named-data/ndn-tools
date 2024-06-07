@@ -42,7 +42,8 @@ COPY --link --from=build /usr/bin/ndndump /usr/bin/
 COPY --link --from=build /usr/bin/ndn-dissect /usr/bin/
 
 RUN --mount=from=build,source=/deps,target=/deps \
-    apt-get install -Uy --no-install-recommends $(cat /deps/ndn*) \
+    apt-get install -Uy --no-install-recommends \
+        $(cat /deps/ndn*) \
     && apt-get distclean
 
 ENV HOME=/config
