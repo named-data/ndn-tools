@@ -1,8 +1,5 @@
 .. toctree::
-  ndn-dissect
-  ndndump
-  ndnpeek
-  ndnping
-  ndnpingserver
-  ndnpoke
-  ndnputchunks
+   :glob:
+   :maxdepth: 1
+
+   ndn*

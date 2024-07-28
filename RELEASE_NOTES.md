@@ -1,5 +1,30 @@
 # Release Notes
 
+## Version 24.07
+
+The build dependencies have been increased as follows:
+
+- GCC >= 9.3 or Clang >= 7.0 are strongly recommended on Linux; GCC 8.x is also known
+  to work but is not officially supported
+- Xcode 13 or later is recommended on macOS; older versions may still work but are not
+  officially supported
+- Boost >= 1.71.0 is required on all platforms
+
+docker:
+
+- Added an official Dockerfile to the repository
+- A prebuilt image for *linux/amd64* and *linux/arm64* platforms is available on the
+  [GitHub container registry](https://github.com/named-data/ndn-tools/pkgs/container/ndn-tools)
+
+build system:
+
+- Fix detection of libpcap 1.10.2 and later on Linux
+- Fix building the man pages with Python 3.12
+  ([#5298](https://redmine.named-data.net/issues/5298))
+- Reduce amount of debugging information produced in compiled binaries by default
+  ([#5279](https://redmine.named-data.net/issues/5279))
+- Upgrade `waf` to version 2.0.27
+
 ## Version 22.12
 
 The minimum build requirements have been increased as follows:
@@ -12,8 +37,10 @@ The minimum build requirements have been increased as follows:
 
 chunks:
 
-- Avoid excess window decrease in certain conditions (Issue #5202)
-- Use ndn-cxx's `Segmenter` class (Issue #4702)
+- Avoid excess window decrease in certain conditions
+  ([#5202](https://redmine.named-data.net/issues/5202))
+- Use ndn-cxx's `Segmenter` class
+  ([#4702](https://redmine.named-data.net/issues/4702))
 
 dissect:
 
@@ -28,8 +55,9 @@ build system:
 
 - Switch to C++17
 - macOS 12 (Monterey) and 13 (Ventura) running on arm64 are now supported out-of-the-box
-  (Issue #5135)
-- CentOS Stream 9 is now supported; CentOS 8 has been dropped (Issue #5181)
+  ([#5135](https://redmine.named-data.net/issues/5135))
+- CentOS Stream 9 is now supported; CentOS 8 has been dropped
+  ([#5181](https://redmine.named-data.net/issues/5181))
 - Stop using the `gold` linker on Linux; prefer instead linking with `lld` if installed
 - Upgrade `waf` to version 2.0.24
 
