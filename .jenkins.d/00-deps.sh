@@ -19,7 +19,7 @@ APT_PKGS=(
     pkg-config
     python3
 )
-FORMULAE=(boost openssl pkg-config)
+FORMULAE=(boost openssl pkgconf)
 PIP_PKGS=()
 case $JOB_NAME in
     *code-coverage)
