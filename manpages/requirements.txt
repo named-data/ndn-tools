@@ -1,0 +1,2 @@
+docutils>=0.20
+sphinx>=7.0.1,<9
