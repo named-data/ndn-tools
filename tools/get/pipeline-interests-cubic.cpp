@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -28,7 +28,7 @@
 #include <cmath>
 #include <iostream>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 constexpr double CUBIC_C = 0.4;
 
@@ -111,4 +111,4 @@ PipelineInterestsCubic::decreaseWindow()
   emitSignal(afterCwndChange, time::steady_clock::now() - getStartTime(), m_cwnd);
 }
 
-} // namespace ndn::chunks
+} // namespace ndn::get

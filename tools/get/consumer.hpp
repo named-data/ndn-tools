@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -25,8 +25,8 @@
  * @author Andrea Tosatto
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_CONSUMER_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_CONSUMER_HPP
+#ifndef NDN_TOOLS_GET_CONSUMER_HPP
+#define NDN_TOOLS_GET_CONSUMER_HPP
 
 #include "discover-version.hpp"
 #include "pipeline-interests.hpp"
@@ -38,7 +38,7 @@
 #include <iostream>
 #include <map>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 /**
  * @brief Segmented version consumer.
@@ -101,6 +101,6 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   std::map<uint64_t, std::shared_ptr<const Data>> m_bufferedData;
 };
 
-} // namespace ndn::chunks
+} // namespace ndn::get
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_CONSUMER_HPP
+#endif // NDN_TOOLS_GET_CONSUMER_HPP

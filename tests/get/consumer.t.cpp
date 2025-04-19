@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -23,9 +23,9 @@
  * @author Andrea Tosatto
  */
 
-#include "tools/chunks/catchunks/consumer.hpp"
-#include "tools/chunks/catchunks/discover-version.hpp"
-#include "tools/chunks/catchunks/pipeline-interests.hpp"
+#include "tools/get/consumer.hpp"
+#include "tools/get/discover-version.hpp"
+#include "tools/get/pipeline-interests.hpp"
 
 #include "tests/test-common.hpp"
 #include "tests/io-fixture.hpp"
@@ -35,12 +35,12 @@
 
 #include <boost/test/tools/output_test_stream.hpp>
 
-namespace ndn::chunks::tests {
+namespace ndn::tests {
 
-using namespace ndn::tests;
+using namespace ndn::get;
 using boost::test_tools::output_test_stream;
 
-BOOST_AUTO_TEST_SUITE(Chunks)
+BOOST_AUTO_TEST_SUITE(Get)
 BOOST_AUTO_TEST_SUITE(TestConsumer)
 
 BOOST_AUTO_TEST_CASE(InOrderData)
@@ -167,6 +167,6 @@ BOOST_FIXTURE_TEST_CASE(RunBasic, IoFixture)
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestConsumer
-BOOST_AUTO_TEST_SUITE_END() // Chunks
+BOOST_AUTO_TEST_SUITE_END() // Get
 
-} // namespace ndn::chunks::tests
+} // namespace ndn::tests

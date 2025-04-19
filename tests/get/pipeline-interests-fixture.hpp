@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -26,19 +26,19 @@
  * @author Chavoosh Ghasemi
  */
 
-#ifndef NDN_TOOLS_TESTS_CHUNKS_PIPELINE_INTERESTS_FIXTURE_HPP
-#define NDN_TOOLS_TESTS_CHUNKS_PIPELINE_INTERESTS_FIXTURE_HPP
+#ifndef NDN_TOOLS_TESTS_GET_PIPELINE_INTERESTS_FIXTURE_HPP
+#define NDN_TOOLS_TESTS_GET_PIPELINE_INTERESTS_FIXTURE_HPP
 
-#include "tools/chunks/catchunks/pipeline-interests.hpp"
+#include "tools/get/pipeline-interests.hpp"
 
 #include "tests/test-common.hpp"
 #include "tests/io-fixture.hpp"
 
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
-namespace ndn::chunks::tests {
+namespace ndn::tests {
 
-using namespace ndn::tests;
+using namespace ndn::get;
 
 class PipelineInterestsFixture : public IoFixture
 {
@@ -86,6 +86,6 @@ private:
   std::unique_ptr<PipelineInterests> m_pipeline;
 };
 
-} // namespace ndn::chunks::tests
+} // namespace ndn::tests
 
-#endif // NDN_TOOLS_TESTS_CHUNKS_PIPELINE_INTERESTS_FIXTURE_HPP
+#endif // NDN_TOOLS_TESTS_GET_PIPELINE_INTERESTS_FIXTURE_HPP

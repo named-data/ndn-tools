@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -23,12 +23,12 @@
  * @author Klaus Schneider
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_CUBIC_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_CUBIC_HPP
+#ifndef NDN_TOOLS_GET_PIPELINE_INTERESTS_CUBIC_HPP
+#define NDN_TOOLS_GET_PIPELINE_INTERESTS_CUBIC_HPP
 
 #include "pipeline-interests-adaptive.hpp"
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 /**
  * @brief Implements Cubic window increase and decrease.
@@ -54,6 +54,6 @@ private:
   time::steady_clock::time_point m_lastDecrease; ///< time of last window decrease
 };
 
-} // namespace ndn::chunks
+} // namespace ndn::get
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_CUBIC_HPP
+#endif // NDN_TOOLS_GET_PIPELINE_INTERESTS_CUBIC_HPP

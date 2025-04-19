@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024,  Regents of the University of California,
+ * Copyright (c) 2016-2025,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -27,14 +27,14 @@
  * @author Chavoosh Ghasemi
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_HPP
+#ifndef NDN_TOOLS_GET_PIPELINE_INTERESTS_FIXED_HPP
+#define NDN_TOOLS_GET_PIPELINE_INTERESTS_FIXED_HPP
 
 #include "pipeline-interests.hpp"
 
 #include <vector>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 class DataFetcher;
 
@@ -92,6 +92,6 @@ private:
   bool m_hasFailure = false;
 };
 
-} // namespace ndn::chunks
+} // namespace ndn::get
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_FIXED_HPP
+#endif // NDN_TOOLS_GET_PIPELINE_INTERESTS_FIXED_HPP

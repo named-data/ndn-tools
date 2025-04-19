@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -26,29 +26,42 @@
  * @author Klaus Schneider
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_AIMD_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_AIMD_HPP
+#include "pipeline-interests-aimd.hpp"
 
-#include "pipeline-interests-adaptive.hpp"
+#include <cmath>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
-/**
- * @brief Implements AIMD window increase and decrease.
- */
-class PipelineInterestsAimd final : public PipelineInterestsAdaptive
+PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimatorWithStats& rttEstimator,
+                                             const Options& opts)
+  : PipelineInterestsAdaptive(face, rttEstimator, opts)
 {
-public:
-  PipelineInterestsAimd(Face& face, RttEstimatorWithStats& rttEstimator, const Options& opts);
+  if (m_options.isVerbose) {
+    printOptions();
+  }
+}
 
-private:
-  void
-  increaseWindow() final;
+void
+PipelineInterestsAimd::increaseWindow()
+{
+  if (m_cwnd < m_ssthresh) {
+    m_cwnd += m_options.aiStep; // additive increase
+  }
+  else {
+    m_cwnd += m_options.aiStep / std::floor(m_cwnd); // congestion avoidance
+  }
 
-  void
-  decreaseWindow() final;
-};
+  emitSignal(afterCwndChange, time::steady_clock::now() - getStartTime(), m_cwnd);
+}
 
-} // namespace ndn::chunks
+void
+PipelineInterestsAimd::decreaseWindow()
+{
+  // please refer to RFC 5681, Section 3.1 for the rationale behind it
+  m_ssthresh = std::max(MIN_SSTHRESH, m_cwnd * m_options.mdCoef); // multiplicative decrease
+  m_cwnd = m_options.resetCwndToInit ? m_options.initCwnd : m_ssthresh;
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_AIMD_HPP
+  emitSignal(afterCwndChange, time::steady_clock::now() - getStartTime(), m_cwnd);
+}
+
+} // namespace ndn::get

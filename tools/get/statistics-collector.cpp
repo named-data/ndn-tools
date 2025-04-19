@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2022,  Regents of the University of California,
+ * Copyright (c) 2016-2025,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -24,7 +24,7 @@
 
 #include "statistics-collector.hpp"
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 StatisticsCollector::StatisticsCollector(PipelineInterestsAdaptive& pipeline,
                                          std::ostream& osCwnd, std::ostream& osRtt)
@@ -47,4 +47,4 @@ StatisticsCollector::StatisticsCollector(PipelineInterestsAdaptive& pipeline,
   });
 }
 
-} // namespace ndn::chunks
+} // namespace ndn::get

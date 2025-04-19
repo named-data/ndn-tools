@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -25,13 +25,11 @@
  * @author Klaus Schneider
  */
 
-#include "tools/chunks/catchunks/pipeline-interests-cubic.hpp"
+#include "tools/get/pipeline-interests-cubic.hpp"
 
 #include "pipeline-interests-fixture.hpp"
 
-namespace ndn::chunks::tests {
-
-using namespace ndn::tests;
+namespace ndn::tests {
 
 class PipelineInterestCubicFixture : public PipelineInterestsFixture
 {
@@ -72,7 +70,7 @@ protected:
   static constexpr double MARGIN = 0.001;
 };
 
-BOOST_AUTO_TEST_SUITE(Chunks)
+BOOST_AUTO_TEST_SUITE(Get)
 BOOST_FIXTURE_TEST_SUITE(TestPipelineInterestsCubic, PipelineInterestCubicFixture)
 
 BOOST_AUTO_TEST_CASE(SlowStart)
@@ -160,7 +158,6 @@ BOOST_AUTO_TEST_CASE(Timeout)
   BOOST_CHECK_EQUAL(pipeline->m_nRetransmitted, 3);
   BOOST_CHECK_EQUAL(pipeline->m_nTimeouts,
       pipeline->m_nRetransmitted + pipeline->m_nSkippedRetx);
-
 }
 
 BOOST_AUTO_TEST_CASE(CongestionMarksWithCwa)
@@ -553,8 +550,7 @@ BOOST_AUTO_TEST_CASE(StopsWhenFileSizeLessThanChunkSize)
   BOOST_CHECK_EQUAL(face.getNPendingInterests(), 0);
 }
 
-
 BOOST_AUTO_TEST_SUITE_END() // TestPipelineInterestsCubic
-BOOST_AUTO_TEST_SUITE_END() // Chunks
+BOOST_AUTO_TEST_SUITE_END() // Get
 
-} // namespace ndn::chunks::tests
+} // namespace ndn::tests

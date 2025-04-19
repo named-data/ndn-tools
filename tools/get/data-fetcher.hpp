@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -24,8 +24,8 @@
  * @author Davide Pesavento
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_DATA_FETCHER_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_DATA_FETCHER_HPP
+#ifndef NDN_TOOLS_GET_DATA_FETCHER_HPP
+#define NDN_TOOLS_GET_DATA_FETCHER_HPP
 
 #include "core/common.hpp"
 
@@ -34,7 +34,7 @@
 
 #include <functional>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 /**
  * @brief Fetch data for a given interest and handle timeout or nack error with retries.
@@ -130,6 +130,6 @@ private:
   bool m_hasError = false;
 };
 
-} // namespace ndn::chunks
+} // namespace ndn::get
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_DATA_FETCHER_HPP
+#endif // NDN_TOOLS_GET_DATA_FETCHER_HPP

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -23,7 +23,7 @@
  * @author Chavoosh Ghasemi
  */
 
-#include "tools/chunks/catchunks/discover-version.hpp"
+#include "tools/get/discover-version.hpp"
 
 #include "tests/test-common.hpp"
 #include "tests/io-fixture.hpp"
@@ -32,9 +32,9 @@
 #include <ndn-cxx/metadata-object.hpp>
 #include <ndn-cxx/util/dummy-client-face.hpp>
 
-namespace ndn::chunks::tests {
+namespace ndn::tests {
 
-using namespace ndn::tests;
+using namespace ndn::get;
 
 class DiscoverVersionFixture : public IoFixture, public KeyChainFixture
 {
@@ -68,7 +68,7 @@ protected:
   bool isDiscoveryFinished = false;
 };
 
-BOOST_AUTO_TEST_SUITE(Chunks)
+BOOST_AUTO_TEST_SUITE(Get)
 BOOST_FIXTURE_TEST_SUITE(TestDiscoverVersion, DiscoverVersionFixture)
 
 BOOST_AUTO_TEST_CASE(Disabled)
@@ -211,6 +211,6 @@ BOOST_AUTO_TEST_CASE(SuccessAfterNackAndTimeout)
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestDiscoverVersion
-BOOST_AUTO_TEST_SUITE_END() // Chunks
+BOOST_AUTO_TEST_SUITE_END() // Get
 
-} // namespace ndn::chunks::tests
+} // namespace ndn::tests

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -47,7 +47,7 @@
 #include <fstream>
 #include <iostream>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 namespace po = boost::program_options;
 
@@ -170,7 +170,7 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("version") > 0) {
-    std::cout << "ndncatchunks " << tools::VERSION << "\n";
+    std::cout << "ndnget " << tools::VERSION << "\n";
     return 0;
   }
 
@@ -310,10 +310,10 @@ main(int argc, char* argv[])
   return 0;
 }
 
-} // namespace ndn::chunks
+} // namespace ndn::get
 
 int
 main(int argc, char* argv[])
 {
-  return ndn::chunks::main(argc, argv);
+  return ndn::get::main(argc, argv);
 }

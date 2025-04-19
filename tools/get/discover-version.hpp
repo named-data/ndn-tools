@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -26,15 +26,15 @@
  * @author Chavoosh Ghasemi
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_DISCOVER_VERSION_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_DISCOVER_VERSION_HPP
+#ifndef NDN_TOOLS_GET_DISCOVER_VERSION_HPP
+#define NDN_TOOLS_GET_DISCOVER_VERSION_HPP
 
 #include "options.hpp"
 
 #include <ndn-cxx/face.hpp>
 #include <ndn-cxx/util/signal.hpp>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 class DataFetcher;
 
@@ -73,6 +73,6 @@ private:
   std::shared_ptr<DataFetcher> m_fetcher;
 };
 
-} // namespace ndn::chunks
+} // namespace ndn::get
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_DISCOVER_VERSION_HPP
+#endif // NDN_TOOLS_GET_DISCOVER_VERSION_HPP

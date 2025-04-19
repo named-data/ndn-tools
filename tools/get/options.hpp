@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -24,15 +24,15 @@
  * @author Davide Pesavento
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_OPTIONS_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_OPTIONS_HPP
+#ifndef NDN_TOOLS_GET_OPTIONS_HPP
+#define NDN_TOOLS_GET_OPTIONS_HPP
 
 #include <ndn-cxx/interest.hpp>
 #include <ndn-cxx/util/time.hpp>
 
 #include <limits>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 struct Options
 {
@@ -64,6 +64,6 @@ struct Options
   bool enableFastConv = false;  ///< use cubic fast convergence
 };
 
-} // namespace ndn::chunks
+} // namespace ndn::get
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_OPTIONS_HPP
+#endif // NDN_TOOLS_GET_OPTIONS_HPP

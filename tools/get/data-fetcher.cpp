@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -31,7 +31,7 @@
 #include <cmath>
 #include <iostream>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 std::shared_ptr<DataFetcher>
 DataFetcher::fetch(Face& face, const Interest& interest, int maxNackRetries, int maxTimeoutRetries,
@@ -173,4 +173,4 @@ DataFetcher::handleTimeout(const Interest& interest, const std::shared_ptr<DataF
   }
 }
 
-} // namespace ndn::chunks
+} // namespace ndn::get

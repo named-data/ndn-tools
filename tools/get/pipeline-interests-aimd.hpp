@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2022, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -26,42 +26,29 @@
  * @author Klaus Schneider
  */
 
-#include "pipeline-interests-aimd.hpp"
+#ifndef NDN_TOOLS_GET_PIPELINE_INTERESTS_AIMD_HPP
+#define NDN_TOOLS_GET_PIPELINE_INTERESTS_AIMD_HPP
 
-#include <cmath>
+#include "pipeline-interests-adaptive.hpp"
 
-namespace ndn::chunks {
+namespace ndn::get {
 
-PipelineInterestsAimd::PipelineInterestsAimd(Face& face, RttEstimatorWithStats& rttEstimator,
-                                             const Options& opts)
-  : PipelineInterestsAdaptive(face, rttEstimator, opts)
+/**
+ * @brief Implements AIMD window increase and decrease.
+ */
+class PipelineInterestsAimd final : public PipelineInterestsAdaptive
 {
-  if (m_options.isVerbose) {
-    printOptions();
-  }
-}
+public:
+  PipelineInterestsAimd(Face& face, RttEstimatorWithStats& rttEstimator, const Options& opts);
 
-void
-PipelineInterestsAimd::increaseWindow()
-{
-  if (m_cwnd < m_ssthresh) {
-    m_cwnd += m_options.aiStep; // additive increase
-  }
-  else {
-    m_cwnd += m_options.aiStep / std::floor(m_cwnd); // congestion avoidance
-  }
+private:
+  void
+  increaseWindow() final;
 
-  emitSignal(afterCwndChange, time::steady_clock::now() - getStartTime(), m_cwnd);
-}
+  void
+  decreaseWindow() final;
+};
 
-void
-PipelineInterestsAimd::decreaseWindow()
-{
-  // please refer to RFC 5681, Section 3.1 for the rationale behind it
-  m_ssthresh = std::max(MIN_SSTHRESH, m_cwnd * m_options.mdCoef); // multiplicative decrease
-  m_cwnd = m_options.resetCwndToInit ? m_options.initCwnd : m_ssthresh;
+} // namespace ndn::get
 
-  emitSignal(afterCwndChange, time::steady_clock::now() - getStartTime(), m_cwnd);
-}
-
-} // namespace ndn::chunks
+#endif // NDN_TOOLS_GET_PIPELINE_INTERESTS_AIMD_HPP

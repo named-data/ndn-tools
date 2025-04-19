@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -24,14 +24,14 @@
  * @author Chavoosh Ghasemi
  */
 
-#include "tools/chunks/catchunks/pipeline-interests-fixed.hpp"
-#include "tools/chunks/catchunks/data-fetcher.hpp"
+#include "tools/get/pipeline-interests-fixed.hpp"
+#include "tools/get/data-fetcher.hpp"
 
 #include "pipeline-interests-fixture.hpp"
 
 #include <cmath>
 
-namespace ndn::chunks::tests {
+namespace ndn::tests {
 
 class PipelineInterestFixedFixture : public PipelineInterestsFixture
 {
@@ -58,7 +58,7 @@ protected:
   PipelineInterestsFixed* pipeline;
 };
 
-BOOST_AUTO_TEST_SUITE(Chunks)
+BOOST_AUTO_TEST_SUITE(Get)
 BOOST_FIXTURE_TEST_SUITE(TestPipelineInterestsFixed, PipelineInterestFixedFixture)
 
 BOOST_AUTO_TEST_CASE(FullPipeline)
@@ -296,6 +296,6 @@ BOOST_AUTO_TEST_CASE(CongestionAllSegments)
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestPipelineInterests
-BOOST_AUTO_TEST_SUITE_END() // Chunks
+BOOST_AUTO_TEST_SUITE_END() // Get
 
-} // namespace ndn::chunks::tests
+} // namespace ndn::tests

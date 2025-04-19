@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -33,7 +33,7 @@
 #include <iomanip>
 #include <iostream>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 PipelineInterestsAdaptive::PipelineInterestsAdaptive(Face& face,
                                                      RttEstimatorWithStats& rttEstimator,
@@ -458,4 +458,4 @@ operator<<(std::ostream& os, SegmentState state)
   return os;
 }
 
-} // namespace ndn::chunks
+} // namespace ndn::get

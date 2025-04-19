@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -25,15 +25,13 @@
  * @author Klaus Schneider
  */
 
-#include "tools/chunks/catchunks/pipeline-interests-aimd.hpp"
+#include "tools/get/pipeline-interests-aimd.hpp"
 
 #include "pipeline-interests-fixture.hpp"
 
 #include <cmath>
 
-namespace ndn::chunks::tests {
-
-using namespace ndn::tests;
+namespace ndn::tests {
 
 class PipelineInterestAimdFixture : public PipelineInterestsFixture
 {
@@ -74,7 +72,7 @@ protected:
   static constexpr double MARGIN = 0.001;
 };
 
-BOOST_AUTO_TEST_SUITE(Chunks)
+BOOST_AUTO_TEST_SUITE(Get)
 BOOST_FIXTURE_TEST_SUITE(TestPipelineInterestsAimd, PipelineInterestAimdFixture)
 
 BOOST_AUTO_TEST_CASE(SlowStart)
@@ -640,6 +638,6 @@ BOOST_AUTO_TEST_CASE(StopsWhenFileSizeLessThanChunkSize)
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestPipelineInterestsAimd
-BOOST_AUTO_TEST_SUITE_END() // Chunks
+BOOST_AUTO_TEST_SUITE_END() // Get
 
-} // namespace ndn::chunks::tests
+} // namespace ndn::tests

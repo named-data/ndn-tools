@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2022,  Regents of the University of California,
+ * Copyright (c) 2016-2025,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -22,12 +22,12 @@
  * @author Weiwei Liu
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_STATISTICS_COLLECTOR_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_STATISTICS_COLLECTOR_HPP
+#ifndef NDN_TOOLS_GET_STATISTICS_COLLECTOR_HPP
+#define NDN_TOOLS_GET_STATISTICS_COLLECTOR_HPP
 
 #include "pipeline-interests-adaptive.hpp"
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 /**
  * @brief Statistics collector for Adaptive pipelines
@@ -43,6 +43,6 @@ private:
   std::ostream& m_osRtt;
 };
 
-} // namespace ndn::chunks
+} // namespace ndn::get
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_STATISTICS_COLLECTOR_HPP
+#endif // NDN_TOOLS_GET_STATISTICS_COLLECTOR_HPP

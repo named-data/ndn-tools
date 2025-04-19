@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -26,8 +26,8 @@
  * @author Klaus Schneider
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_ADAPTIVE_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_ADAPTIVE_HPP
+#ifndef NDN_TOOLS_GET_PIPELINE_INTERESTS_ADAPTIVE_HPP
+#define NDN_TOOLS_GET_PIPELINE_INTERESTS_ADAPTIVE_HPP
 
 #include "pipeline-interests.hpp"
 
@@ -38,7 +38,7 @@
 #include <queue>
 #include <unordered_map>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 using util::RttEstimatorWithStats;
 
@@ -70,8 +70,8 @@ struct SegmentInfo
  *
  * Retrieves all segmented Data under the specified prefix by maintaining a dynamic
  * congestion window combined with a Conservative Loss Adaptation algorithm. For details,
- * please refer to the description in section "Interest pipeline types in ndncatchunks" of
- * tools/chunks/README.md
+ * please refer to the description in section "Interest pipeline types in ndnget" of
+ * tools/get/README.md
  *
  * Provides retrieved Data on arrival with no ordering guarantees. Data is delivered to the
  * PipelineInterests' user via callback immediately upon arrival.
@@ -226,6 +226,6 @@ PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   std::string m_failureReason;
 };
 
-} // namespace ndn::chunks
+} // namespace ndn::get
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_ADAPTIVE_HPP
+#endif // NDN_TOOLS_GET_PIPELINE_INTERESTS_ADAPTIVE_HPP

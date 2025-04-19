@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -28,8 +28,8 @@
  * @author Chavoosh Ghasemi
  */
 
-#ifndef NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_HPP
-#define NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_HPP
+#ifndef NDN_TOOLS_GET_PIPELINE_INTERESTS_HPP
+#define NDN_TOOLS_GET_PIPELINE_INTERESTS_HPP
 
 #include "core/common.hpp"
 #include "options.hpp"
@@ -38,7 +38,7 @@
 
 #include <functional>
 
-namespace ndn::chunks {
+namespace ndn::get {
 
 /**
  * @brief Service for retrieving Data via an Interest pipeline
@@ -181,6 +181,6 @@ getSegmentFromPacket(const Packet& packet)
   return packet.getName().at(-1).toSegment();
 }
 
-} // namespace ndn::chunks
+} // namespace ndn::get
 
-#endif // NDN_TOOLS_CHUNKS_CATCHUNKS_PIPELINE_INTERESTS_HPP
+#endif // NDN_TOOLS_GET_PIPELINE_INTERESTS_HPP
