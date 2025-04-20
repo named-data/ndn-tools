@@ -9,12 +9,13 @@
 This repository contains a collection of basic tools for [Named Data Networking (NDN)](https://named-data.net/).
 The tools currently included are:
 
-* [**peek**](tools/peek): transmit a single Interest/Data packet between a consumer
-  and a producer
-* [**chunks**](tools/chunks): segmented file transfer between a consumer and a producer
-* [**ping**](tools/ping): test reachability between two NDN nodes
-* [**dump**](tools/dump): capture and analyze live traffic on an NDN network
-* [**dissect**](tools/dissect): inspect the TLV structure of an NDN packet
+* [**ndnpeek** and **ndnpoke**](tools/peek): transmit a single Interest/Data packet
+  between a consumer and a producer
+* [**ndnget**](tools/get) and [**ndnserve**](tools/serve): segmented file transfer
+  between a consumer and a producer
+* [**ndnping**](tools/ping): test reachability between two NDN nodes
+* [**ndndump**](tools/dump): capture and analyze live traffic on an NDN network
+* [**ndn-dissect**](tools/dissect): inspect the TLV structure of an NDN packet
 * [**dissect-wireshark**](tools/dissect-wireshark): Wireshark extension to inspect
   the TLV structure of NDN packets
 

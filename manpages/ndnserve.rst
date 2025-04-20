@@ -1,15 +1,15 @@
-ndnputchunks
-============
+ndnserve
+========
 
 Synopsis
 --------
 
-**ndnputchunks** [*option*]... *name*
+**ndnserve** [*option*]... *name*
 
 Description
 -----------
 
-:program:`ndnputchunks` is a producer program that reads a file from the standard input
+:program:`ndnserve` is a producer program that reads a file from the standard input
 and makes it available as NDN Data segments.
 
 Version and segment number components are appended to the specified *name* as needed,
@@ -77,11 +77,11 @@ Examples
 The following command will publish the text of the GPL-3 license under the ``/localhost/demo/gpl3``
 prefix::
 
-    ndnputchunks /localhost/demo/gpl3 < /usr/share/common-licenses/GPL-3
+    ndnserve /localhost/demo/gpl3 < /usr/share/common-licenses/GPL-3
 
 To see the published version, you can run the program with the **-p** option::
 
-    ndnputchunks -p /localhost/demo/gpl3 < /usr/share/common-licenses/GPL-3
+    ndnserve -p /localhost/demo/gpl3 < /usr/share/common-licenses/GPL-3
 
 This command will print the published version to the standard output.
 
@@ -90,7 +90,7 @@ prefix. The version component must follow the aforementioned NDN naming conventi
 For example, the following command will publish version 1615519151142 of ``/localhost/demo/gpl3``
 using the "typed" naming convention::
 
-    ndnputchunks -Nt /localhost/demo/gpl3/v=1615519151142 < /usr/share/common-licenses/GPL-3
+    ndnserve -Nt /localhost/demo/gpl3/v=1615519151142 < /usr/share/common-licenses/GPL-3
 
 See Also
 --------

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2023,  Regents of the University of California,
+ * Copyright (c) 2016-2025,  Regents of the University of California,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University.
  *
@@ -23,7 +23,7 @@
  * @author Andrea Tosatto
  */
 
-#include "tools/chunks/putchunks/producer.hpp"
+#include "tools/serve/producer.hpp"
 
 #include "tests/test-common.hpp"
 #include "tests/io-fixture.hpp"
@@ -37,9 +37,9 @@
 #include <cmath>
 #include <sstream>
 
-namespace ndn::chunks::tests {
+namespace ndn::tests {
 
-using namespace ndn::tests;
+using namespace ndn::serve;
 
 class ProducerFixture : public IoFixture, public KeyChainFixture
 {
@@ -55,7 +55,7 @@ protected:
   Name prefix = "/ndn/chunks/test";
   Producer::Options options;
   uint64_t version = 1449227841747;
-  Name keyLocatorName = m_keyChain.createIdentity("/putchunks/producer")
+  Name keyLocatorName = m_keyChain.createIdentity("/ndnserve/producer")
                         .getDefaultKey().getDefaultCertificate().getName();
   std::istringstream testString{
     "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget "
@@ -64,7 +64,7 @@ protected:
     "sem. Nulla consequat massa Donec pede justo,"s};
 };
 
-BOOST_AUTO_TEST_SUITE(Chunks)
+BOOST_AUTO_TEST_SUITE(Serve)
 BOOST_FIXTURE_TEST_SUITE(TestProducer, ProducerFixture)
 
 BOOST_AUTO_TEST_CASE(InputData)
@@ -214,6 +214,6 @@ BOOST_AUTO_TEST_CASE(RequestMetadata)
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestProducer
-BOOST_AUTO_TEST_SUITE_END() // Chunks
+BOOST_AUTO_TEST_SUITE_END() // Serve
 
-} // namespace ndn::chunks::tests
+} // namespace ndn::tests

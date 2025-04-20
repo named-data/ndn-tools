@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'NDN Essential Tools'
-copyright = 'Copyright © 2014-2024 Named Data Networking Project.'
+copyright = 'Copyright © 2014-2025 Named Data Networking Project.'
 author = 'Named Data Networking Project'
 
 # The short X.Y version.
@@ -39,11 +39,11 @@ exclude_patterns = ['Thumbs.db', '.DS_Store']
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
+    ('ndn-dissect',   'ndn-dissect',   'NDN packet format inspector',                [], 1),
+    ('ndndump',       'ndndump',       'traffic analysis tool',                      [], 8),
     ('ndnpeek',       'ndnpeek',       'simple consumer to send one Interest and receive one Data', [], 1),
     ('ndnpoke',       'ndnpoke',       'simple producer to publish one Data',        [], 1),
     ('ndnping',       'ndnping',       'reachability testing client',                [], 1),
     ('ndnpingserver', 'ndnpingserver', 'reachability testing server',                [], 1),
-    ('ndnputchunks',  'ndnputchunks',  'producer program with content segmentation', [], 1),
-    ('ndndump',       'ndndump',       'traffic analysis tool',                      [], 8),
-    ('ndn-dissect',   'ndn-dissect',   'NDN packet format inspector',                [], 1),
+    ('ndnserve',      'ndnserve',      'producer program with content segmentation', [], 1),
 ]

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -27,8 +27,8 @@
  * @author Klaus Schneider
  */
 
-#ifndef NDN_TOOLS_CHUNKS_PUTCHUNKS_PRODUCER_HPP
-#define NDN_TOOLS_CHUNKS_PUTCHUNKS_PRODUCER_HPP
+#ifndef NDN_TOOLS_SERVE_PRODUCER_HPP
+#define NDN_TOOLS_SERVE_PRODUCER_HPP
 
 #include "core/common.hpp"
 
@@ -37,7 +37,7 @@
 
 #include <vector>
 
-namespace ndn::chunks {
+namespace ndn::serve {
 
 /**
  * @brief Segmented & versioned data publisher.
@@ -97,6 +97,6 @@ private:
   const Options m_options;
 };
 
-} // namespace ndn::chunks
+} // namespace ndn::serve
 
-#endif // NDN_TOOLS_CHUNKS_PUTCHUNKS_PRODUCER_HPP
+#endif // NDN_TOOLS_SERVE_PRODUCER_HPP

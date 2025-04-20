@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2016-2024, Regents of the University of California,
+ * Copyright (c) 2016-2025, Regents of the University of California,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University.
  *
@@ -36,7 +36,7 @@
 
 #include <iostream>
 
-namespace ndn::chunks {
+namespace ndn::serve {
 
 namespace po = boost::program_options;
 
@@ -68,7 +68,7 @@ main(int argc, char* argv[])
                     "maximum chunk size, in bytes")
     ("naming-convention,N",  po::value<std::string>(&nameConv),
                              "encoding convention to use for name components, either 'marker' or 'typed'")
-    ("signing-info,S",       po::value<std::string>(&signingStr), "see 'man ndnputchunks' for usage")
+    ("signing-info,S",       po::value<std::string>(&signingStr), "see 'man ndnserve' for usage")
     ("print-data-version,p", po::bool_switch(&opts.wantShowVersion),
                              "print Data version to the standard output")
     ("quiet,q",     po::bool_switch(&opts.isQuiet), "turn off all non-error output")
@@ -106,7 +106,7 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("version") > 0) {
-    std::cout << "ndnputchunks " << tools::VERSION << "\n";
+    std::cout << "ndnserve " << tools::VERSION << "\n";
     return 0;
   }
 
@@ -164,10 +164,10 @@ main(int argc, char* argv[])
   return 0;
 }
 
-} // namespace ndn::chunks
+} // namespace ndn::serve
 
 int
 main(int argc, char* argv[])
 {
-  return ndn::chunks::main(argc, argv);
+  return ndn::serve::main(argc, argv);
 }
