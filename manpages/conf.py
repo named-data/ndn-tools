@@ -29,7 +29,6 @@ today_fmt = '%Y-%m-%d'
 needs_sphinx = '4.0'
 extensions = []
 
-templates_path = ['_templates']
 exclude_patterns = ['Thumbs.db', '.DS_Store']
 
 
@@ -39,11 +38,11 @@ exclude_patterns = ['Thumbs.db', '.DS_Store']
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('ndn-dissect',   'ndn-dissect',   'NDN packet format inspector',                [], 1),
-    ('ndndump',       'ndndump',       'traffic analysis tool',                      [], 8),
-    ('ndnpeek',       'ndnpeek',       'simple consumer to send one Interest and receive one Data', [], 1),
-    ('ndnpoke',       'ndnpoke',       'simple producer to publish one Data',        [], 1),
-    ('ndnping',       'ndnping',       'reachability testing client',                [], 1),
-    ('ndnpingserver', 'ndnpingserver', 'reachability testing server',                [], 1),
-    ('ndnserve',      'ndnserve',      'producer program with content segmentation', [], 1),
+    ('ndndissect',    'ndndissect',    'NDN packet format inspector',               [], 1),
+    ('ndndump',       'ndndump',       'NDN traffic analysis tool',                 [], 8),
+    ('ndnpeek',       'ndnpeek',       'simple NDN consumer to send one Interest and receive one Data', [], 1),
+    ('ndnpoke',       'ndnpoke',       'simple NDN producer to publish one Data',   [], 1),
+    ('ndnping',       'ndnping',       'NDN reachability testing client',           [], 1),
+    ('ndnpingserver', 'ndnpingserver', 'NDN reachability testing server',           [], 1),
+    ('ndnserve',      'ndnserve',      'NDN producer with content segmentation',    [], 1),
 ]

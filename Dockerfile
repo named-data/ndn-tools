@@ -23,7 +23,7 @@ RUN --mount=rw,target=/src <<EOF
     mkdir -p /deps/debian
     touch /deps/debian/control
     cd /deps
-    for binary in ndn-dissect ndndump ndnget ndnpeek ndnpoke ndnping ndnpingserver ndnserve; do
+    for binary in ndndissect ndndump ndnget ndnpeek ndnpoke ndnping ndnpingserver ndnserve; do
         dpkg-shlibdeps --ignore-missing-info "/usr/bin/${binary}" -O \
             | sed -n 's|^shlibs:Depends=||p' | sed 's| ([^)]*),\?||g' > "${binary}"
     done
@@ -32,7 +32,7 @@ EOF
 
 FROM ghcr.io/named-data/ndn-cxx-runtime:${NDN_CXX_VERSION} AS ndn-tools
 
-COPY --link --from=build /usr/bin/ndn-dissect /usr/bin/
+COPY --link --from=build /usr/bin/ndndissect /usr/bin/
 COPY --link --from=build /usr/bin/ndndump /usr/bin/
 COPY --link --from=build /usr/bin/ndnget /usr/bin/
 COPY --link --from=build /usr/bin/ndnpeek /usr/bin/

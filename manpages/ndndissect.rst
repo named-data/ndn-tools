@@ -1,15 +1,15 @@
-ndn-dissect
-===========
+ndndissect
+==========
 
 Synopsis
 --------
 
-**ndn-dissect** [**-h**] [**-c**] [**-V**] [*file*]
+**ndndissect** [**-h**] [**-c**] [**-V**] [*file*]
 
 Description
 -----------
 
-:program:`ndn-dissect` is an NDN packet format inspector.
+:program:`ndndissect` is an NDN packet format inspector.
 It reads zero or more NDN packets from either an input file or the standard
 input, and displays the Type-Length-Value (TLV) structure of those packets
 on the standard output.
@@ -40,4 +40,4 @@ Examples
 
 Inspect the response to Interest ``/app1/video``::
 
-    ndnpeek /app1/video | ndn-dissect
+    ndnpeek /app1/video | ndndissect

@@ -8,7 +8,10 @@ def build(bld):
         use='core-objects')
 
     bld.program(
-        target='../../bin/ndn-dissect',
-        name='ndn-dissect',
+        target=f'{top}/bin/ndndissect',
+        name='ndndissect',
         source='main.cpp',
         use='dissect-objects')
+
+    # backward compatibility
+    bld.symlink_as('${BINDIR}/ndn-dissect', 'ndndissect')

@@ -15,7 +15,7 @@ The tools currently included are:
   between a consumer and a producer
 * [**ndnping**](tools/ping): test reachability between two NDN nodes
 * [**ndndump**](tools/dump): capture and analyze live traffic on an NDN network
-* [**ndn-dissect**](tools/dissect): inspect the TLV structure of an NDN packet
+* [**ndndissect**](tools/dissect): inspect the TLV structure of an NDN packet
 * [**dissect-wireshark**](tools/dissect-wireshark): Wireshark extension to inspect
   the TLV structure of NDN packets
 

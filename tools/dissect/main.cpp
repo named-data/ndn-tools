@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2024,  Regents of the University of California.
+ * Copyright (c) 2014-2025,  Regents of the University of California.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -78,7 +78,7 @@ main(int argc, char* argv[])
   }
 
   if (vm.count("version") > 0) {
-    std::cout << "ndn-dissect " << tools::VERSION << "\n";
+    std::cout << "ndndissect " << tools::VERSION << "\n";
     return 0;
   }
 
