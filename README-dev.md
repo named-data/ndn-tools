@@ -121,5 +121,5 @@ main(int argc, char* argv[])
 
 ### Command Line Arguments
 
-[Boost.Program\_options](https://www.boost.org/doc/libs/1_71_0/doc/html/program_options.html)
+[Boost.Program\_options](https://www.boost.org/doc/libs/1_74_0/doc/html/program_options.html)
 is strongly preferred over `getopt(3)` for parsing command line arguments.

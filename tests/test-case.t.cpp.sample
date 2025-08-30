@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2022  Arizona Board of Regents.
+ * Copyright (c) 2014-2025  Arizona Board of Regents.
  *
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(Test1)
   int i = 0;
 
   // For reference of available Boost.Test macros, see
-  // https://www.boost.org/doc/libs/1_71_0/libs/test/doc/html/boost_test/testing_tools/summary.html
+  // https://www.boost.org/doc/libs/1_74_0/libs/test/doc/html/boost_test/testing_tools/summary.html
 
   BOOST_REQUIRE_NO_THROW(i = 1);
   BOOST_CHECK_EQUAL(i, 1);
