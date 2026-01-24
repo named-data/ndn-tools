@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'NDN Essential Tools'
-copyright = 'Copyright © 2014-2025 Named Data Networking Project.'
+copyright = '2014-2026, Named Data Networking Project'
 author = 'Named Data Networking Project'
 
 # The short X.Y version.
@@ -26,10 +26,16 @@ today_fmt = '%Y-%m-%d'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-needs_sphinx = '4.0'
+needs_sphinx = '7.0'
 extensions = []
 
-exclude_patterns = ['Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+
+# Disable syntax highlighting of code blocks by default.
+highlight_language = 'none'
+
+# Generate warnings for all missing references.
+nitpicky = True
 
 
 # -- Options for manual page output ------------------------------------------
