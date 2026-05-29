@@ -241,6 +241,8 @@ class ClangFlags(GccClangCommonFlags):
     def getDebugFlags(self, conf):
         flags = super().getDebugFlags(conf)
         flags['CXXFLAGS'] += self.__cxxFlags
+        if get_compiler_ver(conf) >= (22, 0, 0) and get_compiler_ver(conf) < (23, 0, 0):
+            flags['CXXFLAGS'] += ['-Wno-c2y-extensions'] # Bug #5391
         flags['DEFINES'] += [
             # Enable assertions in libc++
             # https://libcxx.llvm.org/Hardening.html
@@ -254,4 +256,6 @@ class ClangFlags(GccClangCommonFlags):
     def getOptimizedFlags(self, conf):
         flags = super().getOptimizedFlags(conf)
         flags['CXXFLAGS'] += self.__cxxFlags
+        if get_compiler_ver(conf) >= (22, 0, 0) and get_compiler_ver(conf) < (23, 0, 0):
+            flags['CXXFLAGS'] += ['-Wno-c2y-extensions'] # Bug #5391
         return flags
