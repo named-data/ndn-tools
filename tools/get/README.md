@@ -10,8 +10,8 @@ If a version component is present at the end of the user-specified NDN name, the
 number will be used, without any version discovery process. Otherwise, discovery Interest(s) will
 be sent out to fetch metadata of the solicited content from which the Data version will be resolved.
 For more information about the packet format and naming conventions of Interest and Data packets
-used for version discovery in ndnget, please refer to:
-[Realtime Data Retrieval (RDR) protocol](https://redmine.named-data.net/projects/ndn-tlv/wiki/RDR).
+used for version discovery in ndnget, please refer to the
+[Metadata Protocol](https://redmine.named-data.net/projects/ndn-tlv/wiki/Metadata).
 
 ## Interest pipeline types in ndnget
 
